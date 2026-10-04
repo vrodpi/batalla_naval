@@ -1,0 +1,19 @@
+git pull (actualizar repositorio)
+
+git branch nueva_rama
+
+git checkout nueva_rama (moverse a la rama nueva)
+
+--hacer cambios--
+
+git add archivo_nuevo_o_modificado
+
+git commit -m "mensaje claro explicando los cambios"
+
+git checkout main (moverse a la rama principal)
+
+git merge nueva_rama (traer los cambios a la rama main)
+
+git push (subir los cambios a la nube)
+
+git branch -d nueva_rama (eliminar la rama vieja si ya terminamos de trabajar)
