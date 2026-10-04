@@ -1,2 +1,18 @@
-.vscode/
+# Artefactos de compilacion
+build/
+*.o
+*.obj
 *.exe
+!build/.gitkeep
+
+# Temporales de pruebas del ranking
+data/ranking_test_*.dat
+
+# El ranking real se puede versionar o no; por defecto se ignora
+# para no subir victorias de prueba. Quitar la linea si se quiere entregar.
+data/ranking.dat
+
+# Editores / SO
+.vscode/
+.DS_Store
+Thumbs.db
