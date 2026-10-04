@@ -21,4 +21,6 @@ void ingresar_jugador(void);
 void mostrar_archivo_de_texto(const char *ruta_al_archivo);
 
 void mostrar_presentacion_y_reglamento(void);
+void mostrar_menu_principal(void);
+void imprimir_linea(void);
 #endif

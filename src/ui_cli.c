@@ -2,6 +2,11 @@
 
 #define MAX_CARACTERES_NICKS 21
 
+typedef enum {
+    SALIR,
+    Jugador_vs_Jugador,
+    Jugador_vs_Maquina
+} MENU_PRINCIPAL;
 
 char nombres_jugadores[2];
 int cantidad_de_jugadores = 0;
@@ -83,8 +88,41 @@ void mostrar_presentacion_y_reglamento(void){
 
 void mostrar_menu_principal(void){
     imprimir_linea();
+    printf("MENÚ PRINCIPAL\n");
+    imprimir_linea();
+    printf("    %d. Jugador vs Jugador\n", Jugador_vs_Jugador);
+    printf("    %d. Jugador vs Máquina\n", Jugador_vs_Maquina);
+    printf("    %d. Salir del juego.\n", SALIR);
+    imprimir_linea();
 }
 
 void imprimir_linea(void){
     printf("-------------------------------------------------------------------\n");
+}
+
+void elegir_modo_de_juego(void){
+
+    int opcion_menu;
+
+    do {
+        limpiar_pantalla_cli();
+
+        mostrar_menu_principal();
+        printf("Ingrese una opción: ");
+        scanf("%d", opcion_menu);
+        getchar();
+
+        switch (opcion_menu){
+            case Jugador_vs_Jugador:
+                break;
+            case Jugador_vs_Maquina:
+                break;
+            case SALIR:
+                break;
+            default:
+                printf("No se reconoce la opción ingresada.\n");
+                break;
+        }
+    } while (opcion_menu != 0);
+    
 }
