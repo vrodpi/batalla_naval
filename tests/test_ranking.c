@@ -1,4 +1,5 @@
 /*
+<<<<<<< HEAD
  * test_ranking.c - Pruebas automaticas del modulo ranking.
  *
  * ---------------------------------------------------------------------------
@@ -28,6 +29,9 @@
  * Las pruebas de archivo usan nombres data/ranking_test_*.dat (ignorados
  * por .gitignore) y borran con remove() al terminar, ganado o perdido,
  * para no dejar basura ni contaminar el ranking.dat real.
+=======
+ * test_ranking.c - Pruebas del modulo ranking (sin frameworks externos).
+>>>>>>> main
  *
  * Compilar: gcc -ansi -pedantic -Wall -Wextra -Iinclude \
  *               tests/test_ranking.c src/ranking.c -o build/test_ranking
@@ -40,6 +44,7 @@
 
 #include "ranking.h"
 
+<<<<<<< HEAD
 /* Contadores globales del mini-framework (ver encabezado). */
 static int fallos = 0;
 static int pruebas = 0;
@@ -50,6 +55,11 @@ static int pruebas = 0;
  * `nombre` debe describir la invariante verificada, porque es lo que el
  * equipo lee cuando algo se rompe.
  */
+=======
+static int fallos = 0;
+static int pruebas = 0;
+
+>>>>>>> main
 static void chequear(int condicion, const char *nombre)
 {
     pruebas++;
@@ -61,6 +71,7 @@ static void chequear(int condicion, const char *nombre)
     }
 }
 
+<<<<<<< HEAD
 /*
  * escribir_texto: crea un archivo de prueba con el contenido dado.
  * Se usa para fabricar rankings.dat corruptos o con duplicados sin
@@ -68,6 +79,9 @@ static void chequear(int condicion, const char *nombre)
  * asi se prueba el LADO DE LECTURA con entradas que el lado de
  * escritura jamas generaria. Devuelve 1 si pudo crearlo.
  */
+=======
+/* Escribe un archivo de texto para pruebas de carga. */
+>>>>>>> main
 static int escribir_texto(const char *ruta, const char *contenido)
 {
     FILE *f;
@@ -80,12 +94,15 @@ static int escribir_texto(const char *ruta, const char *contenido)
     return 1;
 }
 
+<<<<<<< HEAD
 /*
  * prueba_basica: el circuito minimo de uso. Inicializar deja cantidad
  * en 0; registrar un nombre nuevo lo crea con 1 victoria; registrarlo
  * de nuevo NO crea un segundo jugador sino que incrementa a 2. Si esto
  * falla, nada de lo demas tiene sentido.
  */
+=======
+>>>>>>> main
 static void prueba_basica(void)
 {
     Ranking r;
@@ -104,6 +121,7 @@ static void prueba_basica(void)
     chequear(ranking_obtener_victorias(&r, "Ana") == 2, "Ana tiene 2");
 }
 
+<<<<<<< HEAD
 /*
  * prueba_mayusculas_espacios: verifica la regla de identidad "nombres
  * que solo difieren en mayusculas son el mismo jugador" mas el recorte
@@ -111,6 +129,8 @@ static void prueba_basica(void)
  * entrada con 3 victorias, y buscar() debe encontrarla en cualquier
  * combinacion de mayusculas.
  */
+=======
+>>>>>>> main
 static void prueba_mayusculas_espacios(void)
 {
     Ranking r;
@@ -123,6 +143,7 @@ static void prueba_mayusculas_espacios(void)
     chequear(ranking_buscar(&r, "LUIS") == 0, "buscar insensible encuentra");
 }
 
+<<<<<<< HEAD
 /*
  * prueba_nombres_invalidos: la validacion debe rechazar vacio, solo
  * espacios, nombres con ';' (romperian el formato del archivo), NULL
@@ -131,6 +152,8 @@ static void prueba_mayusculas_espacios(void)
  * caracteres (supera el maximo de 31). Ademas confirma que ningun
  * intento invalido dejo jugadores fantasma en el ranking.
  */
+=======
+>>>>>>> main
 static void prueba_nombres_invalidos(void)
 {
     Ranking r;
@@ -159,6 +182,7 @@ static void prueba_nombres_invalidos(void)
     chequear(ranking_cantidad(&r) == 0, "nada se agrego con invalidos");
 }
 
+<<<<<<< HEAD
 /*
  * prueba_orden: verifica el criterio compuesto con un caso de tres
  * niveles (Luis 3 > Ana 2 > Zoe 1) accediendo por puesto con
@@ -166,6 +190,8 @@ static void prueba_nombres_invalidos(void)
  * donde "Ana" debe quedar antes que "beto" aunque se registro despues
  * (el orden no depende del orden de llegada, solo del criterio).
  */
+=======
+>>>>>>> main
 static void prueba_orden(void)
 {
     Ranking r;
@@ -199,6 +225,7 @@ static void prueba_orden(void)
              "empate: Ana antes que beto");
 }
 
+<<<<<<< HEAD
 /*
  * prueba_guardar_cargar: roundtrip completo memoria -> disco ->
  * memoria. Registra Ana x2 y Luis x1, guarda, carga en OTRO Ranking
@@ -206,6 +233,8 @@ static void prueba_orden(void)
  * cantidad, valores y que la busqueda siga insensible a mayusculas
  * tras pasar por texto. El temporal se borra con remove().
  */
+=======
+>>>>>>> main
 static void prueba_guardar_cargar(void)
 {
     Ranking r;
@@ -232,12 +261,15 @@ static void prueba_guardar_cargar(void)
     remove(tmp);
 }
 
+<<<<<<< HEAD
 /*
  * prueba_archivo_inexistente: simula la PRIMERA ejecucion del juego,
  * cuando ranking.dat todavia no existe. Cargar debe devolver
  * RANKING_ERROR_ARCHIVO (para que app.c muestre el aviso) pero dejar
  * el ranking vacio y utilizable, no con basura.
  */
+=======
+>>>>>>> main
 static void prueba_archivo_inexistente(void)
 {
     Ranking r;
@@ -248,6 +280,7 @@ static void prueba_archivo_inexistente(void)
     chequear(ranking_cantidad(&r) == 0, "archivo inexistente deja vacio");
 }
 
+<<<<<<< HEAD
 /*
  * prueba_formato: dos propiedades de la carga tolerante. Primero, un
  * archivo con una linea sin ';', un numero no numerico ("xyz"), una
@@ -257,6 +290,8 @@ static void prueba_archivo_inexistente(void)
  * pueden venir de edicion manual, guardar jamas los genera): no es
  * error fatal y se fusionan en un unico "Ana" con 2+3 = 5.
  */
+=======
+>>>>>>> main
 static void prueba_formato(void)
 {
     Ranking r;
@@ -289,6 +324,7 @@ static void prueba_formato(void)
     remove("data/ranking_test_dup.dat");
 }
 
+<<<<<<< HEAD
 /*
  * prueba_lleno: llena el ranking hasta RANKING_MAX_JUGADORES (100)
  * con nombres generados "J000".."J099" via sprintf (el %03d con ceros
@@ -296,6 +332,8 @@ static void prueba_formato(void)
  * jugador 101 sea rechazado con RANKING_ERROR_LLENO en vez de
  * desbordar el arreglo.
  */
+=======
+>>>>>>> main
 static void prueba_lleno(void)
 {
     Ranking r;
@@ -318,6 +356,7 @@ static void prueba_lleno(void)
     chequear(rc == RANKING_ERROR_LLENO, "uno mas alla de MAX -> LLENO");
 }
 
+<<<<<<< HEAD
 /*
  * prueba_mostrar: la impresion no debe fallar con datos validos
  * (ademas deja a la vista la tabla para inspeccion manual), debe
@@ -325,6 +364,8 @@ static void prueba_lleno(void)
  * dar NULL y el traductor de errores nunca NULL (la interfaz lo
  * imprime directo con %s y un NULL la romperia).
  */
+=======
+>>>>>>> main
 static void prueba_mostrar(void)
 {
     Ranking r;

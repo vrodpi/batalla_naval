@@ -1,4 +1,5 @@
 /*
+<<<<<<< HEAD
  * ranking.c - Ranking de victorias por jugador (logica + persistencia).
  *
  * ---------------------------------------------------------------------------
@@ -76,6 +77,13 @@
  *   ranking_buscar, ranking_obtener_victorias, ranking_ordenar,
  *   ranking_registrar_victoria, ranking_cargar, ranking_guardar,
  *   ranking_mensaje_error, ranking_mostrar_en, ranking_mostrar
+=======
+ * ranking.c - Implementacion del ranking de victorias.
+ *
+ * ANSI C (C89): solo <stdio.h>, <string.h>, <ctype.h>.
+ * Sin fwrite de structs: el archivo es texto "nombre;victorias".
+ * Sin dependencias de sistema operativo.
+>>>>>>> main
  */
 
 #include <stdio.h>
@@ -84,6 +92,7 @@
 
 #include "ranking.h"
 
+<<<<<<< HEAD
 /*
  * RANKING_LINEA_MAX: tamano del buffer con que se lee cada linea del
  * archivo. 256 sobra para "31 de nombre + ';' + 7 de numero + salto".
@@ -108,6 +117,11 @@
  * en Latin-1/UTF-8) seria comportamiento indefinido; por eso cada
  * caracter se convierte con (unsigned char) antes de llamar.
  */
+=======
+#define RANKING_LINEA_MAX 256
+
+/* Recorta espacios en extremos. Siempre termina en '\0'. */
+>>>>>>> main
 static void recortar_extremos(const char *origen, char *destino, int tam_destino)
 {
     const char *ini;
@@ -140,6 +154,7 @@ static void recortar_extremos(const char *origen, char *destino, int tam_destino
     destino[n] = '\0';
 }
 
+<<<<<<< HEAD
 /*
  * comparar_insensible: compara dos strings ignorando mayusculas,
  * como strcasecmp() pero portable.
@@ -154,6 +169,9 @@ static void recortar_extremos(const char *origen, char *destino, int tam_destino
  * (misma convencion que strcmp). Los NULL se ordenan antes que
  * cualquier string, para no romper nunca por un puntero nulo.
  */
+=======
+/* Comparacion insensible a mayusculas. Estilo strcasecmp portable. */
+>>>>>>> main
 static int comparar_insensible(const char *a, const char *b)
 {
     unsigned char ca;
@@ -187,6 +205,7 @@ static int comparar_insensible(const char *a, const char *b)
 }
 
 /*
+<<<<<<< HEAD
  * nombre_normalizado: valida un nombre de jugador y produce su forma
  * canonica (recortada, con mayusculas originales).
  *
@@ -205,6 +224,11 @@ static int comparar_insensible(const char *a, const char *b)
  *
  * Devuelve 1 + `salida` con el nombre listo para guardar, o 0 si el
  * nombre es invalido (en ese caso `salida` no debe usarse).
+=======
+ * Normaliza y valida un nombre.
+ * Salida: nombre recortado (conserva mayusculas originales).
+ * Devuelve 1 si valido, 0 si no.
+>>>>>>> main
  */
 static int nombre_normalizado(const char *nombre, char *salida, int tam_salida)
 {
@@ -261,6 +285,7 @@ static int nombre_normalizado(const char *nombre, char *salida, int tam_salida)
     return 1;
 }
 
+<<<<<<< HEAD
 /*
  * parsear_victorias: convierte el texto a la derecha del ';' en un
  * entero 0..RANKING_VICTORIAS_MAX. Gramatica aceptada:
@@ -280,6 +305,9 @@ static int nombre_normalizado(const char *nombre, char *salida, int tam_salida)
  * '\0'; cualquier otro resto invalida el texto. Se exige al menos un
  * digito para rechazar strings vacios o de solo espacios.
  */
+=======
+/* Convierte texto a victorias 0..RANKING_VICTORIAS_MAX. 1 si ok. */
+>>>>>>> main
 static int parsear_victorias(const char *texto, int *valor)
 {
     const char *p;
@@ -323,6 +351,7 @@ static int parsear_victorias(const char *texto, int *valor)
     return 1;
 }
 
+<<<<<<< HEAD
 /*
  * quitar_salto: elimina los '\n' y '\r' del final de una linea leida
  * con fgets(). Se quitan AMBOS porque un archivo escrito en Windows
@@ -330,6 +359,9 @@ static int parsear_victorias(const char *texto, int *valor)
  * nada y el '\r' quedaria pegado al numero ("3\r" dejaria de parsear).
  * Quitar en bucle cubre lineas con mas de un salto al final.
  */
+=======
+/* Quita '\n' y '\r' finales de una linea leida con fgets. */
+>>>>>>> main
 static void quitar_salto(char *linea)
 {
     int largo;
@@ -340,11 +372,14 @@ static void quitar_salto(char *linea)
     }
 }
 
+<<<<<<< HEAD
 /*
  * ranking_inicializar: deja el ranking vacio (cantidad = 0).
  * Debe llamarse antes de cualquier otro uso: es lo que garantiza el
  * INVARIANTE 1 (solo las primeras `cantidad` entradas son validas).
  */
+=======
+>>>>>>> main
 void ranking_inicializar(Ranking *r)
 {
     if (r == NULL) {
@@ -353,11 +388,14 @@ void ranking_inicializar(Ranking *r)
     r->cantidad = 0;
 }
 
+<<<<<<< HEAD
 /*
  * ranking_cantidad: cuantos jugadores distintos hay (0 si r es NULL).
  * Se usa para recorrer con ranking_obtener(0..cantidad-1) y para que
  * la futura GUI dibuje tantas filas como haga falta.
  */
+=======
+>>>>>>> main
 int ranking_cantidad(const Ranking *r)
 {
     if (r == NULL) {
@@ -366,6 +404,7 @@ int ranking_cantidad(const Ranking *r)
     return r->cantidad;
 }
 
+<<<<<<< HEAD
 /*
  * ranking_obtener: acceso de SOLO LECTURA a la entrada del puesto
  * `indice` (0 = lider). Devuelve NULL si el indice esta fuera de
@@ -373,6 +412,8 @@ int ranking_cantidad(const Ranking *r)
  * apunta a memoria interna del Ranking: no debe liberarse ni
  * modificarse (toda modificacion pasa por registrar_victoria).
  */
+=======
+>>>>>>> main
 const RankingEntrada *ranking_obtener(const Ranking *r, int indice)
 {
     if (r == NULL) {
@@ -384,6 +425,7 @@ const RankingEntrada *ranking_obtener(const Ranking *r, int indice)
     return &r->entradas[indice];
 }
 
+<<<<<<< HEAD
 /*
  * ranking_buscar: busca un nombre con la misma regla de identidad que
  * el resto del modulo (recorte + insensible a mayusculas). Recorre el
@@ -392,6 +434,8 @@ const RankingEntrada *ranking_obtener(const Ranking *r, int indice)
  * Devuelve el indice o -1 si no existe (o si el nombre es invalido,
  * porque un nombre invalido nunca puede estar guardado).
  */
+=======
+>>>>>>> main
 int ranking_buscar(const Ranking *r, const char *nombre)
 {
     char norm[RANKING_NOMBRE_MAX];
@@ -411,11 +455,14 @@ int ranking_buscar(const Ranking *r, const char *nombre)
     return -1;
 }
 
+<<<<<<< HEAD
 /*
  * ranking_obtener_victorias: atajo de consulta para la interfaz
  * ("¿cuantas lleva Ana?"). Devuelve 0 si el jugador no figura, que es
  * el valor correcto para alguien que aun no gano nada.
  */
+=======
+>>>>>>> main
 int ranking_obtener_victorias(const Ranking *r, const char *nombre)
 {
     int idx;
@@ -426,6 +473,7 @@ int ranking_obtener_victorias(const Ranking *r, const char *nombre)
     return r->entradas[idx].victorias;
 }
 
+<<<<<<< HEAD
 /*
  * ranking_ordenar: ordena el arreglo in situ de mejor a peor puesto.
  *
@@ -445,6 +493,8 @@ int ranking_obtener_victorias(const Ranking *r, const char *nombre)
  * seguir en la defensa. La copia `tmp = r->entradas[i]` es asignacion
  * de structs, valida en ANSI C.
  */
+=======
+>>>>>>> main
 void ranking_ordenar(Ranking *r)
 {
     int i;
@@ -484,6 +534,7 @@ void ranking_ordenar(Ranking *r)
     }
 }
 
+<<<<<<< HEAD
 /*
  * ranking_registrar_victoria: suma UNA victoria al jugador `nombre`.
  * Es la unica via para modificar el ranking (la interfaz no toca el
@@ -497,6 +548,8 @@ void ranking_ordenar(Ranking *r)
  *   3. reordena SIEMPRE (mantiene el INVARIANTE 2: el ranking nunca
  *      queda desordenado, ni siquiera entre llamadas).
  */
+=======
+>>>>>>> main
 int ranking_registrar_victoria(Ranking *r, const char *nombre)
 {
     char norm[RANKING_NOMBRE_MAX];
@@ -530,6 +583,7 @@ int ranking_registrar_victoria(Ranking *r, const char *nombre)
     return RANKING_OK;
 }
 
+<<<<<<< HEAD
 /*
  * ranking_cargar: lee el archivo `ruta` y reconstruye el ranking.
  *
@@ -560,6 +614,8 @@ int ranking_registrar_victoria(Ranking *r, const char *nombre)
  *     RANKING_ERROR_FORMATO si hubo al menos una linea mala (pero con
  *     las lineas validas ya cargadas: carga tolerante, decision 4).
  */
+=======
+>>>>>>> main
 int ranking_cargar(Ranking *r, const char *ruta)
 {
     FILE *f;
@@ -660,6 +716,7 @@ int ranking_cargar(Ranking *r, const char *ruta)
     return RANKING_OK;
 }
 
+<<<<<<< HEAD
 /*
  * ranking_guardar: escribe TODO el ranking en `ruta`, una linea
  * "nombre;victorias\n" por jugador, en el orden actual (que ya esta
@@ -673,6 +730,8 @@ int ranking_cargar(Ranking *r, const char *ruta)
  * puede aparecer recien al volcar el buffer al cerrar. Cualquier falla
  * -> RANKING_ERROR_ARCHIVO para que la interfaz avise al usuario.
  */
+=======
+>>>>>>> main
 int ranking_guardar(const Ranking *r, const char *ruta)
 {
     FILE *f;
@@ -697,12 +756,15 @@ int ranking_guardar(const Ranking *r, const char *ruta)
     return RANKING_OK;
 }
 
+<<<<<<< HEAD
 /*
  * ranking_mensaje_error: traduce un codigo de retorno a texto en
  * espanol para mostrar en pantalla. La logica devuelve numeros y la
  * interfaz los convierte con esta funcion: asi los mensajes viven en
  * un solo lugar y la futura GUI puede reutilizarlos o reemplazarlos.
  */
+=======
+>>>>>>> main
 const char *ranking_mensaje_error(int codigo)
 {
     switch (codigo) {
@@ -723,6 +785,7 @@ const char *ranking_mensaje_error(int codigo)
     }
 }
 
+<<<<<<< HEAD
 /*
  * ranking_mostrar_en: imprime la tabla del ranking en el FILE dado.
  * Formato: encabezado con cantidad ("1 jugador" / "N jugadores") y
@@ -733,6 +796,8 @@ const char *ranking_mensaje_error(int codigo)
  * la salida redirigiendola y para que la futura GUI use las funciones
  * de consulta en vez de esta impresion.
  */
+=======
+>>>>>>> main
 int ranking_mostrar_en(FILE *salida, const Ranking *r)
 {
     int i;
@@ -753,11 +818,14 @@ int ranking_mostrar_en(FILE *salida, const Ranking *r)
     return RANKING_OK;
 }
 
+<<<<<<< HEAD
 /*
  * ranking_mostrar: atajo que imprime en pantalla (stdout). Es lo que
  * llama app.c para la pantalla final de consola exigida por la
  * consigna. No hace nada mas: delega todo en ranking_mostrar_en.
  */
+=======
+>>>>>>> main
 void ranking_mostrar(const Ranking *r)
 {
     if (r == NULL) {
