@@ -4,14 +4,6 @@
 
 
 
-typedef struct {
-    char posicion[FIL][COL];  // Tablero con mis barcos.
-    char posicion_disparos[FIL][COL];   // Tablero de disparos al oponente.
-} Tablero;
-
-
-
-
 
 
 // Que el tablero solo tenga agua
@@ -103,15 +95,24 @@ void ingresar_barco(int filas, int columnas, Orientacion orientacion, Tamanio ta
 
 // muestra los dos tableros, el del barcos del jugador de turno y el tablero de disparos al oponente
 void mostrar_tablero(char posicion[FIL][COL], char posicion_disparos[FIL][COL]) {
-    for(int k=0; k<COL;k++) {
-        printf("%c ",'A'+k);    // letras de las columnas
+    printf("\n---MI FLOTA---\n   ");
+    for(int k=0; k<COL;k++) printf("%c ",'A'+k);
+    printf("\n");
+    for(int i=0; i<FIL;i++) {
+        printf("%2d ",i+1);
+        for(int k=0; k<COL;k++) {
+            printf("%c ",posicion[i][k]);
+        }
         printf("\n");
     }
+    printf("\n---DISPAROS A FLOTA ENEMIGA---\n   ");
+    for(int k=0; k<COL;k++) printf("%c ",'A'+k);
+    printf("\n");
     for(int i=0; i<FIL;i++) {
-        printf("%d",i+1);      // n° de las filas
+        printf("%2d ",i+1);
         for(int k=0; k<COL;k++) {
-            printf("%c",posicion[i][k]);
+            printf("%c ",posicion_disparos[i][k]);
         }
+        printf("\n");
     }
 }
-
