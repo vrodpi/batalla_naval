@@ -1,23 +1,24 @@
 #ifndef TABLERO_H
 
 #define TABLERO_H
-
+#include <string.h>
  
-#define FIL 10;
-#define COL 10;
+#define FIL 10
+#define COL 10
+#define BARCOS_MODO_NORMAL 5
 
 typedef enum {              // estado de cada celda
     agua,                   //    ~
     barco,                  //    #
     impacto,                //    X
-    disparo_a_agua,         //    /
+    disparo_a_agua         //    /
 } Estado;
 
 
 typedef enum {              // orientación del barco a ingresar
     horizontal,
-    vertical,
-} Orientacion,
+    vertical
+} Orientacion;
 
 
 typedef enum {              // Tipo y tamaño del barco
@@ -25,23 +26,30 @@ typedef enum {              // Tipo y tamaño del barco
     buque=4,
     submarino=3,
     lancha=2,
-    velero=1,
+    velero=1
 } Tamanio;
 
 
 typedef struct {
     Tamanio tamanio;
     Orientacion orientacion;
-    int filas;
-    char columnas;
+    int fila;
+    int columna;
 } Barco;
 
+<<<<<<< HEAD
 
 typedef struct {
     char posicion[FIL][COL];  // Tablero con mis barcos.
     char posicion_disparos[FIL][COL];   // Tablero de disparos al oponente.
 } Tablero;
 
+=======
+typedef struct {
+    char nombre[20];
+    Barco barco[BARCOS_MODO_NORMAL];
+} Jugador;
+>>>>>>> 74301a1cba6174373063c358a49616eb81e32e26
 
 void inicializar_tablero(char posicion[FIL][COL], char posicion_disparos[FIL][COL]);
 int rango(int filas, int columnas, Orientacion orientacion, Tamanio tamanio, char posicion[FIL][COL]);
