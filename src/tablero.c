@@ -22,11 +22,11 @@ int rango(int fila, int columna, Orientacion orientacion, Tamanio tamanio, char 
     // filas
     for (int i=0; i<FIL; i++) {
         if(fila>=0 && fila<=FIL && columna>=0 && columna<=COL) {   // coordenada válida?  (dentro de la función); 
-            if(Orientacion==horizontal) {                             // si es horizontal
+            if(orientacion==horizontal) {                             // si es horizontal
                 if((columna + tamanio)<=COL) {        // si coordenada columna + tamaño es menor o igual a 10, entonces el barco entra completo, es válido.  
                     return 1; // indica que esta dentro del rango. Coordenada válida
                 } 
-            } else if (Orientacion==vertical) {
+            } else if (orientacion==vertical) {
                 if((fila + tamanio)<=FIL) {        // si coordenada columna + tamaño es menor o igual a 10, entonces el barco entra completo, es válido.  
                     return 1; // indica que esta dentro del rango. Coordenada válida
                 } 
@@ -42,7 +42,7 @@ int rango(int fila, int columna, Orientacion orientacion, Tamanio tamanio, char 
 int libre(int fila, int columna, Orientacion orientacion, Tamanio tamanio, char posicion[FIL][COL]) {
 
 
-    if (orientacacion == horizontal) {      // si la orientación ingresada es horizontal
+    if (orientacion == horizontal) {      // si la orientación ingresada es horizontal
         for(int i=0; i<tamanio;i++) {       // desde 0, hasta el tamaño del barco
             if(posicion[fila][columna +i] !='~') {    // comprobar si el barco completo entra en un espacio en donde solo hay agua
                 return 0;
@@ -53,11 +53,11 @@ int libre(int fila, int columna, Orientacion orientacion, Tamanio tamanio, char 
             if(fila < FIL -1 && posicion[fila+1][columna +i] !='~') {       // comprobar los cuadrantes de abajo del barco
                 return 0;
             }
-            if(columa > 0 && posicion[fila][columna - 1] !='~'){           // comprobar el cuadrante anterior inmediato a la izquierda
+            if(columna > 0 && posicion[fila][columna - 1] !='~'){           // comprobar el cuadrante anterior inmediato a la izquierda
                 return 0;
             }
             if(columna + tamanio < COL &&  posicion[fila][columna + tamanio] != '~') {    // Siempre que esté por dentro del rango, comprobar el cuadrante inmediato a la derecha
-                return 0:
+                return 0;
             }
         }
     } else { 
@@ -85,7 +85,7 @@ int libre(int fila, int columna, Orientacion orientacion, Tamanio tamanio, char 
 // para cambiar ~ (agua) por # (barco)
 void ingresar_barco(int fila, int columna, Orientacion orientacion, Tamanio tamanio, char posicion[FIL][COL]){
     for(int i =0; i<tamanio;i++){
-        if(orientacion==horizontal) {
+        if(orientacion ==horizontal) {
             posicion[fila][columna+i]='#';
         } else {
             posicion[fila+i][columna]='#';
