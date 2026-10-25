@@ -25,27 +25,33 @@ El tamaño del tablero y la cantidad y longitud de los barcos deberían definirs
 ```text
 .
 ├── docs/
+│   ├── contrato-ranking.md
 │   └── proyecto.md
 ├── include/
 │   ├── app.h
-│   ├── ui.h
-│   ├── game.h
-│   ├── board.h
-│   ├── ai.h
-│   └── ranking.h
+│   ├── config.h
+│   ├── ranking.h
+│   ├── tablero.h
+│   └── ui_cli.h
 ├── src/
 │   ├── main.c
 │   ├── app.c
 │   ├── ui_cli.c
-│   ├── game.c
-│   ├── board.c
-│   ├── ai.c
-│   └── ranking.c
+│   ├── tablero.c
+│   ├── ranking.c
+│   └── demo_ranking.c
 ├── data/                 # Se crea o contiene ranking.dat
+├── files/                # Reglamento.txt
 ├── tests/
+│   ├── test_ranking.c
+│   └── test_tablero.c
 ├── Makefile
-└── README.md
+└── README_gian.md
 ```
+
+`game.c` (motor de partida) y `ai.c` (maquina) se agregaran en la proxima
+etapa; por ahora el esqueleto compila y ejecuta presentacion, reglamento y
+menu.
 
 La futura interfaz gráfica puede agregarse como `ui_gui.c`, usando las mismas operaciones públicas que la interfaz de consola. No es necesario implementarla para empezar el motor ni el flujo de consola.
 
@@ -56,9 +62,9 @@ La futura interfaz gráfica puede agregarse como `ui_gui.c`, usando las mismas o
 | `main.c` | Punto de entrada. Inicializa la aplicación y llama a `app_run()`. Debe mantenerse pequeño. |
 | `app.c` | Coordina el recorrido de pantallas, el menú, los turnos y el final de la partida. Decide qué paso sigue. |
 | `ui_cli.c` | Presenta información en consola y recoge entradas del usuario. Más adelante, `ui_gui.c` ofrecerá la misma interacción mediante una GUI. |
-| `game.c` | Mantiene las reglas y el estado de la partida: turnos, disparos y condición de victoria. |
-| `board.c` | Maneja las casillas, la colocación de barcos, los disparos recibidos y los barcos hundidos. |
-| `ai.c` | Elige los disparos de la máquina a partir de los resultados de sus disparos anteriores. |
+| `game.c` | Mantiene las reglas y el estado de la partida: turnos, disparos y condición de victoria. (Pendiente de integración.) |
+| `tablero.c` | Maneja las casillas, la colocación de barcos, los disparos recibidos y los barcos hundidos. |
+| `ai.c` | Elige los disparos de la máquina a partir de los resultados de sus disparos anteriores. (Pendiente de integración.) |
 | `ranking.c` | Actualiza, consulta, muestra y guarda las victorias por jugador en `ranking.dat`. |
 
 La separación principal es: `app.c` coordina el flujo, la interfaz interactúa con los jugadores y el motor (`game.c` y `board.c`) aplica las reglas. Las interfaces no deberían implementar reglas del juego.
@@ -100,11 +106,11 @@ La máquina nunca debe repetir un disparo ni elegir una coordenada fuera del tab
 
 El ranking registra el nombre de cada jugador y sus victorias acumuladas. Al terminar una partida, se suma una victoria al ganador y se guarda el ranking. Si `ranking.dat` todavía no existe, el juego puede iniciar con un ranking vacío.
 
-Para que el archivo sea más portable entre compiladores y sistemas, no conviene guardar directamente estructuras C completas con `fwrite`. Es preferible escribir y leer los campos del formato de manera explícita, con longitudes y límites definidos. El programa debe informar si no puede leer o guardar el archivo.
+El grupo eligió la **Opción A**: guardar un volcado binario directo del struct `Ranking` con `fwrite`/`fread`. Es simple y evita el parseo de texto, pero no es portable entre arquitecturas y no detecta corrupción fina (un byte alterado que siga siendo un valor válido). El contrato completo, el layout de 3604 bytes, las reglas de validación y las limitaciones están en `docs/contrato-ranking.md`.
 
 ## 9. Portabilidad
 
-- Usar C estándar y mantener las reglas independientes del sistema operativo.
+- Usar C99 (`-std=c99 -pedantic -Wall -Wextra`) y mantener las reglas independientes del sistema operativo. C99 permite comentarios `//` y declaraciones dentro de `for`; todos los módulos se compilan con el mismo estándar.
 - Concentrar las diferencias de consola entre Windows y Linux en la interfaz, no en el motor.
 - Leer entradas con funciones que permitan validar la línea completa antes de convertirla.
 - Definir dónde se guarda `ranking.dat` y documentar cómo se ejecuta el programa desde ese directorio.

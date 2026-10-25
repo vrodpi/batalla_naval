@@ -1,117 +1,203 @@
+/*
+ * tablero.c - Reglas de tablero y colocacion de barcos.
+ *
+ * ---------------------------------------------------------------------------
+ * RESPONSABILIDAD
+ * ---------------------------------------------------------------------------
+ * Mantiene el estado de las casillas y decide si un barco puede colocarse.
+ * No pide datos por teclado ni muestra menus: eso es ui_cli.c. No decide
+ * turnos ni victoria: eso sera game.c.
+ *
+ * Convencion interna:
+ *   - filas y columnas se cuentan desde 0;
+ *   - el tablero propio guarda '~' (agua) y '#' (barco);
+ *   - el tablero de disparos guarda '~' (sin disparar), '/' (agua) y
+ *     'X' (impacto). Los caracteres salen del enum Estado.
+ *
+ * ---------------------------------------------------------------------------
+ * REGLA DE COLOCACION
+ * ---------------------------------------------------------------------------
+ * Un barco es valido si:
+ *   1. su Casilla inicial esta dentro del tablero;
+ *   2. con la orientacion elegida entra completo (rango);
+ *   3. todas sus casillas y las de alrededor estan en agua (libre).
+ *
+ * El punto 3 implementa la regla "dejar un espacio entre barcos" que
+ * figuraba en el codigo original. Si el equipo decide que los barcos
+ * pueden tocarse, basta con reducir el rectangulo de libre() al cuerpo
+ * del barco (quitar el -1/+1 de los extremos).
+ *
+ * Complejidad: rango es O(1); libre recorre a lo sumo un rectangulo de
+ * (largo+2) x 3 casillas, O(largo), con largo <= 5 por defecto.
+ *
+ * ---------------------------------------------------------------------------
+ * ESTANDAR
+ * ---------------------------------------------------------------------------
+ * C99 (-std=c99 -pedantic -Wall -Wextra). Se usan declaraciones dentro
+ * de los for y comentarios //. Los tamanios salen de config.h.
+ */
+
 #include <stdio.h>
 
-#include "../include/tablero.h"
+#include "tablero.h"
 
+void inicializar_tablero(char posicion[CONFIG_FILAS][CONFIG_COLUMNAS],
+                         char posicion_disparos[CONFIG_FILAS][CONFIG_COLUMNAS])
+{
+    int i;
+    int j;
 
-
-
-
-// Que el tablero solo tenga agua
-void inicializar_tablero (char posicion[FIL][COL], char posicion_disparos[FIL][COL]) {
-    for (int i = 0; i < FIL; i++){
-        for (int j = 0; j < COL; j++){
-            posicion[i][j] = '~';
-            posicion_disparos[i][j] = '~';
+    if (posicion == NULL || posicion_disparos == NULL) {
+        return;
+    }
+    for (i = 0; i < CONFIG_FILAS; i++) {
+        for (j = 0; j < CONFIG_COLUMNAS; j++) {
+            posicion[i][j] = (char)agua;
+            posicion_disparos[i][j] = (char)agua;
         }
     }
 }
 
-// para determinar si la coordenada ingresada es válida (que la coordenada esté dentro del tablero)); 
-int rango(int filas, int columnas, Orientacion orientacion, Tamanio tamanio, char posicion[FIL][COL]) {
-    // filas
-    for (int i=0; i<fil; i++) {
-        if(filas>=0 && filas<=FIL && columnas>=0 && columnas<=COL) {   // coordenada válida?  (dentro de la función); 
-            if(Orientacion==horizontal) {                             // si es horizontal
-                if((columnas + tamanio)<=COL) {        // si coordenada columna + tamaño es menor o igual a 10, entonces el barco entra completo, es válido.  
-                    return 1; // indica que esta dentro del rango. Coordenada válida
-                } 
-            } else if (Orientacion==vertical) {
-                if((filas + tamanio)<=FIL) {        // si coordenada columna + tamaño es menor o igual a 10, entonces el barco entra completo, es válido.  
-                    return 1; // indica que esta dentro del rango. Coordenada válida
-                } 
-            }
+int rango(int filas, int columnas, Orientacion orientacion, Tamanio tamanio)
+{
+    int largo;
 
-        }
-           
+    if (orientacion != horizontal && orientacion != vertical) {
+        return 0;
     }
-    return 0; 
+    if (filas < 0 || filas >= CONFIG_FILAS) {
+        return 0;
+    }
+    if (columnas < 0 || columnas >= CONFIG_COLUMNAS) {
+        return 0;
+    }
+
+    largo = (int)tamanio;
+    if (largo <= 0) {
+        return 0;
+    }
+
+    /*
+     * Si empieza en la columna c y mide `largo`, la ultima casilla es
+     * c + largo - 1. Para que no se salga: c + largo <= CONFIG_COLUMNAS.
+     * Lo mismo para las filas en vertical.
+     */
+    if (orientacion == horizontal) {
+        return (columnas + largo <= CONFIG_COLUMNAS);
+    }
+    return (filas + largo <= CONFIG_FILAS);
 }
 
-// que los barcos no se superpongan y que haya un espacio entre los barcos. 
-int libre(int filas, int columnas, Orientacion orientacion, Tamanio tamanio, char posicion[FIL][COL]) {
+int libre(int filas, int columnas, Orientacion orientacion, Tamanio tamanio,
+          char posicion[CONFIG_FILAS][CONFIG_COLUMNAS])
+{
+    int largo;
+    int f;
+    int c;
+    int fila_ini;
+    int fila_fin;
+    int col_ini;
+    int col_fin;
 
+    if (posicion == NULL) {
+        return 0;
+    }
+    if (!rango(filas, columnas, orientacion, tamanio)) {
+        return 0;
+    }
 
-    if (orientacacion == horizontal) {
-        for(int i=0; i<tamanio<;i++) {
-            if(posicion[filas][columnas +i] !='~') {    // comprobar si el barco completo entra en un espacio en donde solo hay agua
-                return 0;
+    largo = (int)tamanio;
+    if (orientacion == horizontal) {
+        fila_ini = filas;
+        fila_fin = filas;
+        col_ini = columnas;
+        col_fin = columnas + largo - 1;
+    } else {
+        fila_ini = filas;
+        fila_fin = filas + largo - 1;
+        col_ini = columnas;
+        col_fin = columnas;
+    }
+
+    /*
+     * Recorrer el rectangulo expandido un casillero en todas las
+     * direcciones. Incluye el cuerpo del barco (debe ser agua) y el anillo
+     * exterior (evita que dos barcos se toquen, incluso en diagonal).
+     * Las casillas fuera del tablero simplemente se ignoran.
+     */
+    for (f = fila_ini - 1; f <= fila_fin + 1; f++) {
+        for (c = col_ini - 1; c <= col_fin + 1; c++) {
+            if (f < 0 || f >= CONFIG_FILAS || c < 0 || c >= CONFIG_COLUMNAS) {
+                continue;
             }
-            if(filas>0 && posicion[filas-1][columnas +i] !='~') {    // comprobar los cuadrantes de arriba del barco
+            if (posicion[f][c] != (char)agua) {
                 return 0;
-            }
-            if(filas < FIL -1 && posicion[filas+1][columnas +i] !='~') {       // comprobar los cuadrantes de abajo del barco
-                return 0;
-            }
-            if(columas > 0 && posicion[filas][columnas - 1] !='~'){           // comprobar el cuadrante anterior inmediato a la izquierda
-                return 0;
-            }
-            if(columnas + tamanio < COL &&  posicion[filas][columnas + tamanio] != '~') {    // Siempre que esté por dentro del rango, comprobar el cuadrante inmediato a la derecha
-                return 0:
             }
         }
-    } else { 
-         for(int i=0; i<tamanio<;i++) {
-            if(posicion[filas + i][columnas] !='~') {    // comprobar si el barco completo entra en un espacio en donde solo hay agua
-                return 0;
-            }
-            if(columnas > 0 && posicion[filas + i ][columnas - 1] !='~') {    // comprobar los cuadrantes a la derecha
-                return 0;
-            }
-            if(columnas < COL -1 && posicion[filas+i][columnas +1] !='~') {       // comprobar los cuadrantes a la izquierda
-                return 0;
-            }
-            if(filas > 0 && posicion[filas -1][columnas ] !='~'){           // comprobar el cuadrante anterior inmediato 
-                return 0;
-            }
-            if(filas + tamanio < FIL &&  posicion[filas + tamanio][columnas] != '~') {    // Siempre que esté por dentro del rango, comprobar el cuadrante  posterior inmediato 
-                return 0:
-            }
-         }
-         return 1; // no hay impedimentos, en el lugar donde va el barco y sus alrededores está vacio, apto para ingresarlo al tablero.
     }
+    return 1;
 }
 
-// para cambiar ~ (agua) por # (barco)
-void ingresar_barco(int filas, int columnas, Orientacion orientacion, Tamanio tamanio, char posicion[FIL][COL]){
-    for(int i =0; i<tamanio<i++){
-        if(orientacion==horizontal) {
-            posicion[filas][columnas+i]='#';
+void ingresar_barco(int filas, int columnas, Orientacion orientacion,
+                    Tamanio tamanio, char posicion[CONFIG_FILAS][CONFIG_COLUMNAS])
+{
+    int i;
+    int largo;
+
+    if (posicion == NULL) {
+        return;
+    }
+    /*
+     * Validacion defensiva: el llamador deberia haber llamado a rango() y
+     * libre(). Si no lo hizo, no se escribe fuera del tablero.
+     */
+    if (!rango(filas, columnas, orientacion, tamanio)) {
+        return;
+    }
+
+    largo = (int)tamanio;
+    for (i = 0; i < largo; i++) {
+        if (orientacion == horizontal) {
+            posicion[filas][columnas + i] = (char)barco;
         } else {
-            posicion[filas+i][columnas]='#';
+            posicion[filas + i][columnas] = (char)barco;
         }
     }
 }
 
+void mostrar_tablero(char posicion[CONFIG_FILAS][CONFIG_COLUMNAS],
+                     char posicion_disparos[CONFIG_FILAS][CONFIG_COLUMNAS])
+{
+    int i;
+    int k;
 
-// muestra los dos tableros, el del barcos del jugador de turno y el tablero de disparos al oponente
-void mostrar_tablero(char posicion[FIL][COL], char posicion_disparos[FIL][COL]) {
-    printf("\n---MI FLOTA---\n   ");
-    for(int k=0; k<COL;k++) printf("%c ",'A'+k);
+    if (posicion == NULL || posicion_disparos == NULL) {
+        printf("Tablero no inicializado.\n");
+        return;
+    }
+
+    printf("\n--- MI FLOTA ---\n   ");
+    for (k = 0; k < CONFIG_COLUMNAS; k++) {
+        printf("%c ", 'A' + k);
+    }
     printf("\n");
-    for(int i=0; i<FIL;i++) {
-        printf("%2d ",i+1);
-        for(int k=0; k<COL;k++) {
-            printf("%c ",posicion[i][k]);
+    for (i = 0; i < CONFIG_FILAS; i++) {
+        printf("%2d ", i + 1);
+        for (k = 0; k < CONFIG_COLUMNAS; k++) {
+            printf("%c ", posicion[i][k]);
         }
         printf("\n");
     }
-    printf("\n---DISPAROS A FLOTA ENEMIGA---\n   ");
-    for(int k=0; k<COL;k++) printf("%c ",'A'+k);
+
+    printf("\n--- DISPAROS A FLOTA ENEMIGA ---\n   ");
+    for (k = 0; k < CONFIG_COLUMNAS; k++) {
+        printf("%c ", 'A' + k);
+    }
     printf("\n");
-    for(int i=0; i<FIL;i++) {
-        printf("%2d ",i+1);
-        for(int k=0; k<COL;k++) {
-            printf("%c ",posicion_disparos[i][k]);
+    for (i = 0; i < CONFIG_FILAS; i++) {
+        printf("%2d ", i + 1);
+        for (k = 0; k < CONFIG_COLUMNAS; k++) {
+            printf("%c ", posicion_disparos[i][k]);
         }
         printf("\n");
     }

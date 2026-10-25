@@ -9,6 +9,10 @@
  * (opcion A, fwrite/fread del struct completo). Es el modulo del
  * integrante 4 (ranking, datos y compilacion).
  *
+ * Estandar del proyecto: C99 (-std=c99 -pedantic -Wall -Wextra). Este
+ * archivo no necesita caracteristicas de C99, asi que sigue siendo valido
+ * tambien en C89; se compila junto al resto en el modo C99 del Makefile.
+ *
  * Separacion logica / interfaz (Anexo A):
  *   - ESTE archivo decide reglas: que nombre vale, quien es el mismo
  *     jugador, en que orden se lista y como se lee/escribe el archivo.
@@ -166,11 +170,11 @@ static void recortar_extremos(const char *origen, char *destino, int tam_destino
  * comparar_insensible: compara dos strings ignorando mayusculas,
  * como strcasecmp() pero portable.
  *
- * Por que no usar strcasecmp/stricmp: ninguna es ANSI C. strcasecmp
- * es POSIX (Linux) y stricmp es de Windows: usarlas romperia la
- * portabilidad que exige la consigna. Esta version solo usa tolower()
- * de <ctype.h>, que si es estandar, y baja cada caracter a minuscula
- * antes de comparar.
+ * Por que no usar strcasecmp/stricmp: ninguna es C estandar (ni C89 ni
+ * C99). strcasecmp es POSIX (Linux) y stricmp es de Windows: usarlas
+ * romperia la portabilidad que exige la consigna. Esta version solo usa
+ * tolower() de <ctype.h>, que si es estandar, y baja cada caracter a
+ * minuscula antes de comparar.
  *
  * Devuelve 0 si son iguales, negativo si a<b, positivo si a>b
  * (misma convencion que strcmp). Los NULL se ordenan antes que
@@ -425,7 +429,7 @@ int ranking_obtener_victorias(const Ranking *r, const char *nombre)
  * su hueco. Con n <= 100 el costo O(n^2) del peor caso (~10.000
  * comparaciones) es instantaneo, y el codigo es corto y facil de
  * seguir en la defensa. La copia `tmp = r->entradas[i]` es asignacion
- * de structs, valida en ANSI C.
+ * de structs, valida en C99 (y ya lo era en C89).
  */
 void ranking_ordenar(Ranking *r)
 {

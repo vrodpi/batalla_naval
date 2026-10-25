@@ -4,8 +4,8 @@
  * ---------------------------------------------------------------------------
  * ESTRATEGIA DE PRUEBA (sin frameworks externos)
  * ---------------------------------------------------------------------------
- * La materia trabaja con C estandar y sin dependencias: por eso no se usa
- * CUnit, Unity ni nada parecido. El "framework" son dos piezas minimas:
+ * El proyecto trabaja con C99 y sin dependencias externas: por eso no se
+ * usa CUnit, Unity ni nada parecido. El "framework" son dos piezas minimas:
  *   - `pruebas` cuenta cuantas aserciones se ejecutaron;
  *   - `fallos` cuenta cuantas fallaron;
  *   - chequear(condicion, "nombre del caso") imprime "ok" o "FALLO" y
@@ -40,7 +40,7 @@
  * por .gitignore) y borran con remove() al terminar, ganado o perdido,
  * para no dejar basura ni contaminar el ranking.dat real.
  *
- * Compilar: gcc -ansi -pedantic -Wall -Wextra -Iinclude \
+ * Compilar: gcc -std=c99 -pedantic -Wall -Wextra -Iinclude \
  *               tests/test_ranking.c src/ranking.c -o build/test_ranking
  * Ejecutar desde la raiz: ./build/test_ranking (o build\test_ranking.exe)
  * Devuelve 0 si todo pasa, 1 si algo falla.
@@ -76,7 +76,7 @@ static void chequear(int condicion, const char *nombre)
  * tamano_archivo: devuelve el tamano en bytes o -1 si no puede abrirlo.
  * Se usa para verificar que el archivo binario mida EXACTAMENTE
  * sizeof(Ranking): si midiera otra cosa, el formato no es el esperado.
- * Implementado con fseek(SEEK_END) + ftell, portable en ANSI C.
+ * Implementado con fseek(SEEK_END) + ftell, portable en C99 (y C89).
  */
 static long tamano_archivo(const char *ruta)
 {

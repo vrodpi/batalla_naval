@@ -27,16 +27,20 @@ BUILD = build
 BIN_BATALLA = $(BUILD)/batalla-naval
 BIN_DEMO = $(BUILD)/demo_ranking
 BIN_TEST = $(BUILD)/test_ranking
+BIN_TEST_TABLERO = $(BUILD)/test_tablero
 
 # Fuentes del modulo de ranking (demo y pruebas).
 SRC_DEMO = src/demo_ranking.c src/ranking.c
 SRC_TEST = tests/test_ranking.c src/ranking.c
 
+# Fuentes del modulo tablero.
+SRC_TEST_TABLERO = tests/test_tablero.c src/tablero.c
+
 # Fuentes de la integracion completa.
 SRC_APP = src/main.c src/app.c src/ui_cli.c src/tablero.c src/ranking.c
 
 # Por defecto: todo lo que debe compilar la entrega.
-all: $(BIN_BATALLA) $(BIN_TEST) $(BIN_DEMO)
+all: $(BIN_BATALLA) $(BIN_TEST) $(BIN_TEST_TABLERO) $(BIN_DEMO)
 
 $(BUILD):
 	mkdir -p $(BUILD)
@@ -47,13 +51,23 @@ $(BIN_DEMO): $(SRC_DEMO) include/ranking.h include/config.h | $(BUILD)
 $(BIN_TEST): $(SRC_TEST) include/ranking.h | $(BUILD)
 	$(CC) $(CFLAGS) $(SRC_TEST) -o $(BIN_TEST)
 
+$(BIN_TEST_TABLERO): $(SRC_TEST_TABLERO) include/tablero.h include/config.h | $(BUILD)
+	$(CC) $(CFLAGS) $(SRC_TEST_TABLERO) -o $(BIN_TEST_TABLERO)
+
 $(BIN_BATALLA): $(SRC_APP) include/app.h include/ranking.h include/config.h include/ui_cli.h include/tablero.h | $(BUILD)
 	$(CC) $(CFLAGS) $(SRC_APP) -o $(BIN_BATALLA)
 
 app: $(BIN_BATALLA)
 
-test: $(BIN_TEST)
+test: $(BIN_TEST) $(BIN_TEST_TABLERO)
 	./$(BIN_TEST)
+	./$(BIN_TEST_TABLERO)
+
+test-ranking: $(BIN_TEST)
+	./$(BIN_TEST)
+
+test-tablero: $(BIN_TEST_TABLERO)
+	./$(BIN_TEST_TABLERO)
 
 demo: $(BIN_DEMO)
 	@echo "Ejecute desde la raiz: ./$(BIN_DEMO) [NombreGanador]"
@@ -62,8 +76,8 @@ run: $(BIN_BATALLA)
 	./$(BIN_BATALLA)
 
 clean:
-	rm -f $(BIN_BATALLA) $(BIN_DEMO) $(BIN_TEST)
+	rm -f $(BIN_BATALLA) $(BIN_DEMO) $(BIN_TEST) $(BIN_TEST_TABLERO)
 	rm -f $(BUILD)/*.o $(BUILD)/*.exe
 	rm -f data/ranking_test_*.dat
 
-.PHONY: all app test demo run clean
+.PHONY: all app test test-ranking test-tablero demo run clean

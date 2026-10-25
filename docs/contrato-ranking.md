@@ -25,9 +25,9 @@ nadie las descubra en la defensa.
 | `data/ranking.dat` | Datos binarios (3604 bytes). No editar a mano. |
 
 Dependencias: solo `<stdio.h>`, `<string.h>` y `<ctype.h>`. No usa
-`windows.h`, `unistd.h`, `conio.h` ni `stdint.h`; sigue siendo ANSI C
-(C89). El objetivo de compilacion acordado es Linux (probado tambien en
-Windows con LLVM-MinGW).
+`windows.h`, `unistd.h`, `conio.h` ni `stdint.h`; es C99 estricto
+(`-std=c99 -pedantic -Wall -Wextra`). El objetivo de compilacion acordado
+es Linux (probado tambien en Windows con LLVM-MinGW).
 
 ## 2. Modelo en memoria
 
@@ -269,7 +269,7 @@ esa limitacion.
 Desde la raiz del proyecto:
 
 ```sh
-make            # compila build/test_ranking y build/demo_ranking
+make            # compila el juego, build/test_ranking y build/demo_ranking
 make test       # ejecuta las pruebas (68 aserciones)
 make demo       # recuerda como correr la demo
 
@@ -285,15 +285,25 @@ mas, campos invalidos, carga parcial, fusion de duplicados y determinismo
 del guardado (dos copias con basura distinta en los slots libres producen
 archivos identicos). Ver `tests/test_ranking.c`.
 
-## 12. Integracion pendiente
+## 12. Integracion actual
 
-`make app` compila el juego completo, pero a la fecha de este commit
-`src/app.c`, `src/ui_cli.c`, `src/tablero.c` y `src/main.c` todavia no
-compilan en `-ansi` (comentarios `//`, declaraciones dentro de bloques,
-errores de sintaxis y retornos de variables locales). Esos archivos
-pertenecen a otros integrantes y no se modificaron desde este modulo.
+`make app` compila `src/main.c`, `src/app.c`, `src/ui_cli.c`,
+`src/tablero.c` y `src/ranking.c` con `-std=c99 -pedantic -Wall -Wextra`.
+El esqueleto ejecuta presentacion, reglamento y menu; el motor de partida
+(`game.c`) y la IA (`ai.c`) todavia no existen.
 
-Mientras tanto, `make` y `make test` cubren el ranking de punta a punta.
+Cuando el motor detecte una victoria, `app.c` llamara a:
+
+```c
+ranking_inicializar(&ranking);
+rc = ranking_cargar(&ranking, CONFIG_RANKING_RUTA);
+ranking_registrar_victoria(&ranking, ganador);
+ranking_guardar(&ranking, CONFIG_RANKING_RUTA);
+ranking_mostrar(&ranking);
+```
+
+La interfaz no suma victorias ni modifica `entradas`: solo pasa el nombre
+del ganador y muestra los mensajes de `ranking_mensaje_error`.
 
 ## 13. Historial de decision
 
@@ -304,3 +314,7 @@ Mientras tanto, `make` y `make test` cubren el ranking de punta a punta.
    version, por decision del grupo. Se conservan de B las reglas de
    nombres, orden y topes; se eliminan `RANKING_ERROR_VERSION` y
    `RANKING_ERROR_INTEGRIDAD`.
+4. **C99 (actual):** el proyecto pasa de `-ansi` (C89) a
+   `-std=c99 -pedantic -Wall -Wextra` para aceptar `//` y declaraciones
+   dentro de `for` en los modulos de interfaz y tablero. `ranking.c` no
+   necesitaba C99, pero se compila con el mismo estandar que el resto.
