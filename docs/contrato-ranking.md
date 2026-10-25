@@ -1,12 +1,17 @@
-# Contrato del modulo ranking (BNR1 v1)
+# Contrato del modulo ranking (binario, Opcion A)
 
 Este documento es el acuerdo de integracion entre `ranking.c` y el resto
 del equipo (app / ui / tablero). Define la API, las reglas, el formato
 binario del archivo, el manejo de errores y las decisiones tomadas por el
 grupo.
 
-El grupo eligio la **Opcion B**: serializacion binaria explicita,
-versionada y con checksum. No se guarda el `struct` con `fwrite`.
+El grupo eligio la **Opcion A**: el archivo `data/ranking.dat` es un
+**volcado directo del struct `Ranking`** (`fwrite`/`fread`), sin
+serializacion byte a byte, sin magic number, sin version y sin checksum.
+La Opcion B (BNR1 v1 + CRC32 + escritura atomica) fue evaluada e
+implementada en un momento, y luego reemplazada por esta decision del
+grupo. Las consecuencias de A estan documentadas en la seccion 9 para que
+nadie las descubra en la defensa.
 
 ## 1. Archivos del modulo
 
@@ -17,11 +22,12 @@ versionada y con checksum. No se guarda el `struct` con `fwrite`.
 | `src/demo_ranking.c` | Demo de fin de partida (maqueta de integracion). |
 | `tests/test_ranking.c` | Pruebas automaticas sin frameworks externos. |
 | `include/config.h` | `CONFIG_RANKING_RUTA` = `data/ranking.dat`. |
-| `data/ranking.dat` | Datos en formato BNR1 v1. No editar a mano. |
+| `data/ranking.dat` | Datos binarios (3604 bytes). No editar a mano. |
 
 Dependencias: solo `<stdio.h>`, `<string.h>` y `<ctype.h>`. No usa
 `windows.h`, `unistd.h`, `conio.h` ni `stdint.h`; sigue siendo ANSI C
-(C89). El destino de compilacion es Linux con GCC/Clang.
+(C89). El objetivo de compilacion acordado es Linux (probado tambien en
+Windows con LLVM-MinGW).
 
 ## 2. Modelo en memoria
 
@@ -41,7 +47,8 @@ Invariantes:
 
 1. Solo las primeras `cantidad` posiciones son validas.
 2. Tras registrar o cargar, el arreglo queda ordenado de mejor a peor.
-3. `nombre` conserva la primera grafia guardada, ya recortada.
+3. `nombre` de cada entrada usada tiene `'\0'` dentro de sus 32 bytes y
+   conserva la primera grafia guardada, ya recortada.
 
 ## 3. API publica
 
@@ -70,13 +77,11 @@ cuenta. Toda regla (validar, comparar, ordenar, persistir) vive en
 | Codigo | Valor | Significado |
 |---|---:|---|
 | `RANKING_OK` | 0 | Exito. |
-| `RANKING_ERROR_ARGUMENTO` | 1 | Puntero NULL o struct inconsistente. |
+| `RANKING_ERROR_ARGUMENTO` | 1 | Puntero NULL. |
 | `RANKING_ERROR_NOMBRE_INVALIDO` | 2 | Nombre vacio, largo o con controles. |
 | `RANKING_ERROR_LLENO` | 3 | Ya hay 100 jugadores. |
 | `RANKING_ERROR_ARCHIVO` | 4 | No se pudo abrir, leer o escribir. |
-| `RANKING_ERROR_FORMATO` | 5 | Estructura binaria invalida. |
-| `RANKING_ERROR_INTEGRIDAD` | 6 | El CRC32 no coincide. |
-| `RANKING_ERROR_VERSION` | 7 | Magic o version desconocidos. |
+| `RANKING_ERROR_FORMATO` | 5 | Archivo binario invalido o corrupto. |
 
 ## 4. Recorrido de fin de partida
 
@@ -84,14 +89,12 @@ cuenta. Toda regla (validar, comparar, ordenar, persistir) vive en
 tablero detecta victoria -> app/ui obtiene el nombre del ganador ->
   ranking_inicializar(&r)
   rc = ranking_cargar(&r, CONFIG_RANKING_RUTA)
-       ARCHIVO   -> primera partida: seguir con ranking vacio (no fatal)
-       VERSION   -> ranking.dat viejo o de otra version: informar
-       INTEGRIDAD-> archivo corrupto: informar, arrancar vacio
-       FORMATO   -> datos invalidos: informar, arrancar vacio
+       ARCHIVO -> primera partida o archivo ilegible: seguir con vacio
+       FORMATO -> archivo corrupto o de otro formato: informar y seguir
   rc = ranking_registrar_victoria(&r, ganador)
        NOMBRE_INVALIDO / LLENO -> ui muestra ranking_mensaje_error(rc)
   rc = ranking_guardar(&r, CONFIG_RANKING_RUTA)
-       ARCHIVO   -> ui informa "no se pudo guardar"
+       ARCHIVO -> ui informa "no se pudo guardar"
   ranking_mostrar(&r)   [o la UI recorre cantidad/obtener]
   ui espera ENTER -> menu/salir
 ```
@@ -112,74 +115,69 @@ if (rc == RANKING_OK) {
 ranking_mostrar(&r);
 ```
 
-## 5. Formato BNR1 v1
+## 5. Formato del archivo (Opcion A)
 
-Little-endian, offsets en bytes, sin padding implicito.
+Un solo bloque de `sizeof(Ranking)` bytes, little-endian en x86,
+**sin** cabecera, magic, version ni checksum:
 
 | Offset | Tamano | Campo |
 |---:|---:|---|
-| 0 | 4 | Magic: `'B' 'N' 'R' '1'` |
-| 4 | 2 | Version: `1` (uint16 LE) |
-| 6 | 2 | Cantidad de jugadores (uint16 LE, `0..100`) |
-| 8 | `36*n` | Entradas, ordenadas de mejor a peor |
-| `8+36*n` | 4 | CRC32 LE de todos los bytes anteriores |
+| 0 | 3600 | `entradas[0..99]`, 100 x 36 bytes |
+| 3600 | 4 | `cantidad` (`int`, 0..100) |
 
 Cada entrada de 36 bytes:
 
 | Offset relativo | Tamano | Campo |
 |---:|---:|---|
-| +0 | 32 | Nombre: NUL + relleno de ceros |
-| +32 | 4 | Victorias (uint32 LE, `0..1000000`) |
+| +0 | 32 | Nombre: ASCII, `'\0'` final, resto en ceros |
+| +32 | 4 | Victorias (`int`, 0..1000000) |
 
-- Tamano total: `12 + 36*n`.
-- Minimo (`n=0`): 12 bytes.
-- Maximo (`n=100`): 3612 bytes.
+- Tamano total: **3604 bytes siempre**, haya 0 o 100 jugadores.
+- No se guarda cuantos bytes siguen: `cantidad` es la unica guia.
+- El layout no tiene relleno (padding) en x86_64 con `int` de 4 bytes.
+  `ranking.c` incluye dos `typedef char ...[...]` de "assert" que hacen
+  fallar la compilacion si un compilador inserta padding o cambia el
+  tamano de `int`. Es la unica proteccion posible sin cambiar el formato.
+- Se abre SIEMPRE en modo binario (`"wb"`/`"rb"`). En modo texto,
+  Windows traduce `0x0A` a `0x0D 0x0A` y corromperia los enteros (por
+  ejemplo, 10 victorias).
 
-La serializacion se hace byte a byte con `unsigned long` (al menos 32
-bits en C89). No se escribe el `struct` directamente: el archivo no
-depende del padding, del `sizeof(int)` ni del endianness de la maquina.
+### Escritura deterministicamente cero
 
-### CRC32
+`ranking_guardar()` no hace `fwrite(r)` directo. Copia el struct a una
+variable local, la pone toda a cero con `memset` y copia solo los datos
+validos (nombre hasta el `'\0'`, con tope de 31, y victorias). Motivo:
+los slots libres `entradas[cantidad..99]` y la cola de cada nombre
+contienen basura de la pila; volcarlos haria que el archivo cambie en
+cada partida y filtraria memoria del proceso. El layout en disco es el
+mismo; solo se garantiza que los bytes no usados sean cero (y por lo
+tanto, mismos datos -> mismos bytes).
 
-- Especificacion: IEEE 802.3.
-- Polinomio reflejado: `0xEDB88320`.
-- Valor inicial: `0xFFFFFFFF`.
-- XOR final: `0xFFFFFFFF`.
-- Se calcula sobre todos los bytes del archivo **excepto** los 4 del CRC.
-- Valor de control: `CRC32("123456789") = 0xCBF43926`.
+## 6. Validacion al cargar
 
-### Ejemplo real
+`ranking_cargar()` es tolerante por entrada, pero estricta con el
+contenedor:
 
-`Ana` con 1 victoria genera un archivo de 48 bytes:
-
-```
-00000000: 424e 5231 0100 0100 416e 6100 0000 0000  BNR1....Ana.....
-00000010: 0000 0000 0000 0000 0000 0000 0000 0000  ................
-00000020: 0000 0000 0000 0000 0100 0000 9944 f1fd  .............D..
-```
-
-Lectura: `BNR1`, version 1, cantidad 1, `"Ana"` + relleno, victorias
-`01 00 00 00` y CRC `fd f1 44 99` (little-endian).
-
-## 6. Escritura atomica
-
-`ranking_guardar()` no abre el archivo destino. Escribe primero
-`ruta.tmp` en el mismo directorio y despues hace `rename()` sobre la
-ruta final:
-
-```
-1. serializar todo en memoria y calcular CRC;
-2. fopen("data/ranking.dat.tmp", "wb");
-3. fwrite exacto + fclose comprobado;
-4. rename("data/ranking.dat.tmp", "data/ranking.dat");
-5. si algo falla: remove(tmp) y devolver RANKING_ERROR_ARCHIVO.
-```
-
-En Linux `rename()` reemplaza el destino de forma atomica dentro del
-mismo filesystem. Si el proceso muere a mitad de escritura, el ranking
-anterior queda intacto y solo se pierde el temporal. No se hace `fsync()`:
-la garantia es frente a procesos interrumpidos, no frente a un corte de
-energia.
+1. Abre en `"rb"`. Si no existe -> `RANKING_ERROR_ARCHIVO` (no fatal).
+2. `fread` de un struct completo:
+   - error de E/S -> `ARCHIVO`;
+   - archivo vacio o truncado -> `FORMATO`.
+3. `fgetc` extra: si hay **cualquier** byte despues del struct, el
+   archivo es de otro tamano/version -> `FORMATO`.
+4. `cantidad` fuera de `0..100` -> `FORMATO` y ranking vacio (no se
+   recorre memoria invalida).
+5. Por cada entrada declarada:
+   - se exige un `'\0'` dentro de `nombre[32]` (si no, `strlen` se
+     saldria del struct);
+   - se valida el nombre con las reglas normales;
+   - se validan las victorias en `0..1000000`;
+   - entrada invalida: se descarta y se marca `FORMATO`, pero se sigue
+     con las demas (carga parcial: las validas quedan cargadas).
+6. Duplicados insensibles a mayusculas dentro del archivo se fusionan
+   sumando con tope. `ranking_guardar()` nunca los genera; solo pueden
+   aparecer en un archivo manipulado.
+7. Al final se ordena. Devuelve `OK`, o `FORMATO` si hubo al menos una
+   entrada descartada.
 
 ## 7. Reglas de negocio
 
@@ -188,13 +186,10 @@ energia.
 - Se recortan espacios de los extremos.
 - Largo valido: 1 a 31 caracteres.
 - Se rechazan caracteres de control (`< 32`): `\n`, `\r`, `\t`, etc.
-- El `;` **si** se permite: en binario no hay separadores.
+- El `;` **si** se permite: en binario no hay separadores de campo.
 - La comparacion de identidad es insensible a mayusculas:
   `Ana == ANA == " ana "`.
 - Se conserva la primera grafia guardada.
-- Al leer se exige la forma canonica (sin espacios en los extremos) y
-  relleno de ceros; un archivo con `"Ana "` o padding distinto de cero
-  se rechaza con `RANKING_ERROR_FORMATO`.
 
 ### Orden
 
@@ -210,85 +205,87 @@ energia.
 - Un jugador nuevo entra con 1 victoria.
 - Maximo 100 jugadores; el jugador 101 devuelve `RANKING_ERROR_LLENO`.
 
-## 8. Validacion al cargar
+## 8. Migracion desde el formato texto
 
-Estrategia **todo o nada**: se lee el archivo completo en un buffer
-acotado (maximo 3612 bytes), se valida el CRC y recien despues se parsean
-las entradas en un `Ranking` temporal. Ante cualquier error, el ranking
-del llamador queda vacio; nunca queda a medio llenar.
-
-Orden de validacion:
-
-1. Tamano mayor al maximo -> `FORMATO`.
-2. Magic `BNR1` y version 1 -> `VERSION`.
-3. Cantidad `0..100` y tamano exacto `12 + 36*n` -> `FORMATO`.
-4. CRC32 -> `INTEGRIDAD`.
-5. Cada entrada: nombre canonico, victorias en rango, sin duplicados
-   insensibles a mayusculas -> `FORMATO`.
-
-## 9. Migracion desde el formato texto
-
-La version anterior guardaba `nombre;victorias` en texto. Un
-`data/ranking.dat` de ese formato no empieza con `BNR1`, por lo que
-`ranking_cargar()` devuelve `RANKING_ERROR_VERSION`.
-
-**No hay migracion automatica.** Como el archivo esta ignorado por git y
-solo contiene victorias de prueba, la accion indicada es borrarlo:
+La version anterior guardaba `nombre;victorias` en texto. Ese archivo no
+mide 3604 bytes, por lo que `ranking_cargar()` devuelve
+`RANKING_ERROR_FORMATO`. **No hay migracion automatica.** Como el archivo
+esta ignorado por git y solo contiene victorias de prueba, la accion
+indicada es borrarlo:
 
 ```sh
-rm -f data/ranking.dat data/ranking.dat.tmp
+rm -f data/ranking.dat
 ```
 
 La demo avisa cuando detecta esta situacion.
 
-## 10. Modelo de amenaza
+## 9. Modelo de amenaza y limitaciones de la Opcion A
 
-El CRC32 detecta **corrupcion accidental**: un archivo truncado, un
-sector defectuoso, una edicion torpe o una copia incompleta.
+**Que protege:** evita que el archivo se edite por accidente con un
+editor de texto y que un cambio de formato pase desapercibido por el
+tamano (3604 bytes exactos).
 
-**No es seguridad.** El codigo fuente se entrega y el jugador es dueno
-del archivo; cualquiera puede recompilar el formato y recalcular el CRC.
-El anti-trampa real requeriria validacion en un servidor, fuera del
-alcance de este trabajo. Esta distincion es deliberada y se documenta
-para no prometer una garantia que el diseno no puede dar.
+**Que NO protege:**
 
-## 11. Casos limite cubiertos
+- **No detecta corrupcion fina.** Un byte alterado dentro de un nombre o
+  de las victorias puede seguir siendo un valor "valido" (por ejemplo,
+  cambiar 3 victorias por 4). Sin checksum no hay forma de saberlo. La
+  unica deteccion es por rango y por nombres sin `'\0'`.
+- **No es portable entre arquitecturas.** Solo funciona donde el struct
+  mida 3604 bytes y el `int` sea de 4 bytes little-endian (Windows x64 y
+  Linux x86_64). En otra plataforma el archivo no es intercambiable.
+- **No tiene version.** Si el struct cambia (otro tamano de nombre, otro
+  campo), los archivos viejos no se pueden distinguir de un archivo
+  corrupto: ambos dan `FORMATO`.
+- **No es seguridad.** El codigo fuente se entrega y el jugador es dueno
+  del archivo; reescribir el binario es trivial. El anti-trampa real
+  requeriria validacion en un servidor, fuera del alcance del trabajo.
+
+Estas limitaciones son el motivo por el que existio la Opcion B
+(BNR1 v1 + CRC32 + escritura atomica). Fue descartada por decision del
+grupo; si en la defensa preguntan "¿como detectan un archivo alterado?",
+la respuesta correcta es: **no se detecta**, y explicar por que se acepto
+esa limitacion.
+
+## 10. Casos limite cubiertos
 
 - `ranking.dat` no existe -> vacio + `RANKING_ERROR_ARCHIVO`.
-- Archivo de 0 bytes / menor al minimo -> `FORMATO`.
-- Solo el magic `BNR1` -> `FORMATO` (truncado).
-- Version distinta o magic alterado -> `VERSION`.
-- Ranking de texto viejo -> `VERSION`.
-- CRC alterado -> `INTEGRIDAD`.
-- Byte extra, archivo truncado o cantidad mayor a 100 -> `FORMATO`.
-- Nombre vacio, con control o no canonico -> `FORMATO`.
-- Duplicados insensibles a mayusculas dentro del archivo -> `FORMATO`.
-- Victorias fuera de rango -> `FORMATO`.
+- Archivo de 0 bytes -> `FORMATO`.
+- Archivo truncado (menos de 3604 bytes) -> `FORMATO`.
+- Archivo con bytes de mas -> `FORMATO`.
+- `cantidad` = -1 o 101 -> `FORMATO`, ranking vacio.
+- Nombre sin `'\0'` dentro de sus 32 bytes -> entrada descartada + `FORMATO`.
+- Victorias negativas o mayores al tope -> entrada descartada + `FORMATO`.
+- Entrada mala + entrada buena -> carga parcial: la buena se conserva.
+- Ranking de texto viejo -> `FORMATO` (tamano distinto).
+- Duplicados insensibles a mayusculas -> se fusionan sumando.
 - `NULL` en cualquier puntero -> `ARGUMENTO`.
-- Guardar con struct inconsistente -> `ARGUMENTO`, sin tocar el disco.
-- Guardar en un directorio inexistente -> `ARCHIVO`; no queda `.tmp`.
+- Guardar con `cantidad` inconsistente -> se acota a `0..100` antes de
+  escribir; nunca se genera un archivo con cabecera invalida.
+- Guardar en un directorio inexistente -> `ARCHIVO`.
 
-## 12. Como probar solo este modulo
+## 11. Como probar solo este modulo
 
 Desde la raiz del proyecto:
 
 ```sh
 make            # compila build/test_ranking y build/demo_ranking
-make test       # ejecuta las pruebas (132 aserciones)
+make test       # ejecuta las pruebas (68 aserciones)
 make demo       # recuerda como correr la demo
 
 rm -f data/ranking.dat
 ./build/demo_ranking "Ana"
-xxd data/ranking.dat
+ls -l data/ranking.dat     # 3604 bytes
 ./build/demo_ranking "ANA"
-xxd data/ranking.dat      # Ana acumula 2 victorias
+./build/demo_ranking "Ana" # Ana acumula 3 victorias
 ```
 
-La suite verifica el formato con un CRC32 independiente del modulo, para
-que un error en `ranking.c` no quede oculto por un roundtrip que use la
-misma funcion para escribir y leer. Ver `tests/test_ranking.c`.
+La suite verifica tamano exacto, archivos vacios/truncados/con bytes de
+mas, campos invalidos, carga parcial, fusion de duplicados y determinismo
+del guardado (dos copias con basura distinta en los slots libres producen
+archivos identicos). Ver `tests/test_ranking.c`.
 
-## 13. Integracion pendiente
+## 12. Integracion pendiente
 
 `make app` compila el juego completo, pero a la fecha de este commit
 `src/app.c`, `src/ui_cli.c`, `src/tablero.c` y `src/main.c` todavia no
@@ -297,3 +294,13 @@ errores de sintaxis y retornos de variables locales). Esos archivos
 pertenecen a otros integrantes y no se modificaron desde este modulo.
 
 Mientras tanto, `make` y `make test` cubren el ranking de punta a punta.
+
+## 13. Historial de decision
+
+1. Version texto `nombre;victorias` (portable, legible).
+2. Opcion B: BNR1 v1, serializacion explicita, CRC32 y escritura
+   atomica (commit `d524db5` de esta rama).
+3. **Opcion A (actual):** volcado directo del struct, sin checksum ni
+   version, por decision del grupo. Se conservan de B las reglas de
+   nombres, orden y topes; se eliminan `RANKING_ERROR_VERSION` y
+   `RANKING_ERROR_INTEGRIDAD`.

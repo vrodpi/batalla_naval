@@ -1,5 +1,5 @@
 /*
- * demo_ranking.c - Demo ejecutable del ranking binario BNR1.
+ * demo_ranking.c - Demo ejecutable del ranking binario (Opcion A).
  *
  * ---------------------------------------------------------------------------
  * PARA QUE SIRVE
@@ -7,21 +7,23 @@
  * Es la maqueta del final de partida que luego vivira en app.c + ui_cli.c.
  * Permite probar el modulo ranking de punta a punta sin el juego completo:
  *   pedir nombre -> saludar -> cargar ranking binario -> sumar 1 victoria ->
- *   guardar de forma atomica -> mostrar tabla -> esperar ENTER.
+ *   guardar -> mostrar tabla -> esperar ENTER.
  *
  * Trazabilidad de una victoria (cada flecha es una llamada real):
  *   jugador escribe el nombre
  *     -> leer_linea()               [captura la linea completa]
- *     -> ranking_cargar()           [BNR1 v1 o vacio si no existe]
+ *     -> ranking_cargar()           [volcado binario o vacio si no existe]
  *     -> ranking_registrar_victoria() [valida, suma, ordena]
- *     -> ranking_guardar()          [BNR1 v1 + CRC32, atomico]
+ *     -> ranking_guardar()          [volcado binario completo]
  *     -> ranking_mostrar()          [tabla ordenada]
  *     -> esperar_tecla()            [congela la pantalla final]
  *
- * El formato es binario: el archivo NO se puede editar con un editor de
- * texto. Si existe un ranking.dat de la version texto anterior, cargar
- * devuelve RANKING_ERROR_VERSION y hay que borrarlo (no hay migracion
- * automatica en esta demo).
+ * El formato es binario (Opcion A): una copia cruda del struct Ranking,
+ * SIN magic number, version ni checksum. El archivo NO se puede editar con
+ * un editor de texto comun, pero tampoco demuestra integridad: si esta
+ * truncado o corrupto, cargar devuelve RANKING_ERROR_FORMATO y se arranca
+ * con ranking vacio. Un ranking.dat del formato texto viejo se rechaza por
+ * tamano (no hay migracion automatica): borrarlo a mano si existe.
  *
  * Uso:
  *   demo_ranking            pide el nombre por teclado
@@ -97,22 +99,17 @@ int main(int argc, char *argv[])
     printf("\nHola, %s. Gracias por jugar.\n", ganador);
 
     /* Paso 3: cargar el ranking binario previo. Un archivo inexistente
-       no es fatal: es la primera partida y se arranca vacio. */
+       no es fatal: es la primera partida y se arranca vacio. Un archivo
+       ilegible o corrupto se informa y tambien se arranca vacio. */
     ranking_inicializar(&ranking);
     rc = ranking_cargar(&ranking, CONFIG_RANKING_RUTA);
     if (rc == RANKING_ERROR_ARCHIVO) {
         printf("(Aviso: no existia %s, se inicia un ranking vacio.)\n",
                CONFIG_RANKING_RUTA);
-    } else if (rc == RANKING_ERROR_VERSION) {
-        printf("(Aviso: %s es de otro formato/version; se inicia vacio.)\n",
+    } else if (rc == RANKING_ERROR_FORMATO) {
+        printf("(Aviso: %s esta corrupto o es de otro formato; se inicia vacio.)\n",
                CONFIG_RANKING_RUTA);
         printf("(Si es el ranking.dat de texto viejo, borrelo: el nuevo es binario.)\n");
-    } else if (rc == RANKING_ERROR_INTEGRIDAD) {
-        printf("(Aviso: %s esta corrupto; se inicia vacio.)\n",
-               CONFIG_RANKING_RUTA);
-    } else if (rc == RANKING_ERROR_FORMATO) {
-        printf("(Aviso: %s tiene datos invalidos; se inicia vacio.)\n",
-               CONFIG_RANKING_RUTA);
     } else if (rc != RANKING_OK) {
         printf("No se pudo leer el ranking: %s\n", ranking_mensaje_error(rc));
     }
@@ -127,7 +124,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    /* Paso 5: guardar BNR1 v1 de forma atomica. Si falla (permisos, disco,
+    /* Paso 5: guardar el volcado binario. Si falla (permisos, disco,
        carpeta data/ inexistente) se avisa, pero se muestra el ranking en
        memoria para no perder la pantalla final. */
     rc = ranking_guardar(&ranking, CONFIG_RANKING_RUTA);

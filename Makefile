@@ -1,18 +1,18 @@
-# Makefile - Batalla Naval (modulo ranking con formato binario BNR1 v1)
+# Makefile - Batalla Naval (modulo ranking con formato binario, Opcion A)
 #
 # Requiere GCC o Clang y make. El objetivo de compilacion acordado es Linux.
 #
 # Uso, desde la raiz del proyecto (donde esta data/):
 #   make            -> compila y deja listos demo y tests del ranking
-#   make test       -> ejecuta las pruebas del ranking (BNR1 v1)
+#   make test       -> ejecuta las pruebas del ranking
 #   make demo       -> compila la demo de fin de partida
 #   make app        -> compila el juego completo (pendiente de integracion
 #                      de app.c/ui_cli.c/tablero.c; ver nota abajo)
 #   make clean      -> borra binarios y temporales de prueba
 #
 # Estandar: -ansi -pedantic -Wall -Wextra garantiza ANSI C (C89) en el
-# modulo de ranking. El formato binario fija 32 bits escribiendo bytes a
-# mano, sin stdint.h, para no depender de C99.
+# modulo de ranking. El archivo de datos es un volcado binario del struct
+# Ranking (sin serializacion byte a byte): ver docs/contrato-ranking.md.
 #
 # NOTA DE INTEGRACION: src/main.c, src/app.c, src/ui_cli.c y src/tablero.c
 # pertenecen a otros integrantes y a la fecha de este commit todavia no
@@ -63,6 +63,6 @@ demo: $(BIN_DEMO)
 clean:
 	rm -f $(BIN_BATALLA) $(BIN_DEMO) $(BIN_TEST)
 	rm -f $(BUILD)/*.o $(BUILD)/*.exe
-	rm -f data/ranking_test_*.dat data/ranking.dat.tmp
+	rm -f data/ranking_test_*.dat
 
 .PHONY: all app test demo clean

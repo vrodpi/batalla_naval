@@ -25,6 +25,7 @@
 
 /* Ruta por defecto del ranking (relativa a la raiz del proyecto). */
 /* El programa debe ejecutarse desde la raiz para que exista ./data/. */
+/* El archivo es BINARIO (volcado del struct): no editarlo a mano. */
 #define CONFIG_RANKING_RUTA "data/ranking.dat"
 
 #endif

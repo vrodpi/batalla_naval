@@ -1,78 +1,97 @@
 /*
- * ranking.c - Ranking de victorias por jugador (logica + persistencia BNR1).
+ * ranking.c - Ranking de victorias por jugador (logica + persistencia).
  *
- * ===========================================================================
- * 1. VISION GENERAL
- * ===========================================================================
- * Este archivo implementa el contrato de ranking.h. Se ocupa de:
- *   - decidir que nombres son validos y cuando dos nombres son el mismo
- *     jugador (sin distinguir mayusculas ni espacios de los extremos);
- *   - sumar victorias y mantener el orden del ranking;
- *   - serializar el ranking en un archivo binario versionado (BNR1 v1);
- *   - verificar el CRC32 al leer y escribir de forma atomica.
+ * ---------------------------------------------------------------------------
+ * QUE HACE ESTE MODULO
+ * ---------------------------------------------------------------------------
+ * Mantiene cuantas partidas gano cada jugador y lo guarda en
+ * "data/ranking.dat" como BINARIO: una copia cruda del struct Ranking
+ * (opcion A, fwrite/fread del struct completo). Es el modulo del
+ * integrante 4 (ranking, datos y compilacion).
  *
- * No pide datos por teclado ni imprime menus: eso es responsabilidad de
- * ui_cli.c. La unica funcion que imprime es ranking_mostrar(), a pedido
- * explicito de la consigna (pantalla de ranking).
+ * Separacion logica / interfaz (Anexo A):
+ *   - ESTE archivo decide reglas: que nombre vale, quien es el mismo
+ *     jugador, en que orden se lista y como se lee/escribe el archivo.
+ *   - La interfaz (ui_cli.c, futura ui_gui.c) SOLO pide el nombre por
+ *     teclado y muestra mensajes. Jamas suma victorias, ordena ni escribe
+ *     el archivo por su cuenta.
  *
- * ===========================================================================
- * 2. MODELO EN MEMORIA
- * ===========================================================================
- *   typedef struct { char nombre[32]; int victorias; } RankingEntrada;
- *   typedef struct { RankingEntrada entradas[100]; int cantidad; } Ranking;
+ * ---------------------------------------------------------------------------
+ * QUE CAMBIO RESPECTO DE LA VERSION TEXTO
+ * ---------------------------------------------------------------------------
+ * Antes: texto "nombre;victorias\n", legible y trivial de parsear.
+ * Ahora: 3604 bytes binarios = struct Ranking tal cual esta en memoria.
+ * Motivo: indicacion de la catedra de teoria ("la informacion importante
+ * o sensible debe ir en archivos binarios"). Decision del grupo.
  *
- * - El Ranking vive en la pila de app.c; no hay malloc/free.
- * - INVARIANTE 1: solo las primeras `cantidad` posiciones son validas.
- * - INVARIANTE 2: despues de registrar o cargar, el arreglo queda
- *   ordenado de mejor a peor. Por eso mostrar() solo recorre e imprime.
- * - `nombre` conserva la grafia original (recortada). Las comparaciones
- *   usan comparar_insensible(), que baja a minusculas con tolower().
+ * Que se gana: el archivo no se abre/edita por accidente con un editor
+ * de texto y no hay que parsear numeros ni lineas.
+ * Que NO se gana: seguridad. Con el codigo fuente a mano, reescribir el
+ * binario es trivial. Ademas no hay magic number, version ni checksum:
+ * el archivo no tiene forma de demostrar que fue generado por este
+ * programa. Ver "modelo de amenaza" en docs/contrato-ranking.md.
  *
- * ===========================================================================
- * 3. FORMATO BINARIO BNR1 v1 (little-endian)
- * ===========================================================================
- *   offset  tam     campo
- *   0       4       'B' 'N' 'R' '1'
- *   4       2       version = 1            (uint16 LE)
- *   6       2       cantidad 0..100        (uint16 LE)
- *   8       36*n    entradas:
- *                     +0   32  nombre (NUL + relleno de ceros)
- *                     +32   4  victorias 0..1000000 (uint32 LE)
- *   8+36*n  4       CRC32 LE de los bytes [0, 8+36*n)
+ * ---------------------------------------------------------------------------
+ * LAYOUT EN DISCO (lo que realmente se escribe)
+ * ---------------------------------------------------------------------------
+ * sizeof(Ranking) = 3604 bytes en x86_64 con int de 4 bytes:
  *
- * Tamano total = 12 + 36*n; maximo 3612 bytes (n=100).
- * No se hace fwrite() del struct: se arma un buffer byte a byte. Asi el
- * archivo no depende del padding, del sizeof(int) ni del endianness de la
- * maquina. El CRC32 es el de IEEE 802.3 (polinomio reflejado 0xEDB88320).
+ *   offset    0: entradas[0..99], 100 x 36 bytes        = 3600
+ *                 +0   char nombre[32]  ASCII + '\0'
+ *                 +32  int  victorias   4 bytes little-endian
+ *   offset 3600: cantidad               int, 4 bytes
  *
- * ===========================================================================
- * 4. ESCRITURA ATOMICA
- * ===========================================================================
- * ranking_guardar() escribe en "ruta.tmp" y despues rename() sobre "ruta".
- * En Linux rename() reemplaza el destino de forma atomica dentro del mismo
- * filesystem. Si falla cualquier paso, se borra el temporal y el archivo
- * anterior queda intacto. No se hace fsync(): se protege contra procesos
- * interrumpidos, no contra un corte de energia (eso requeriria POSIX).
+ * Los dos typedefs de "assert" de abajo verifican EN TIEMPO DE
+ * COMPILACION que no exista relleno (padding): si un compilador agrega
+ * bytes entre nombre y victorias, o al final del struct, la compilacion
+ * falla con "size of array is negative" en lugar de generar un archivo
+ * incompatible en silencio. Es la unica proteccion posible sin cambiar
+ * el formato (un magic/version/checksum seria la opcion B).
  *
- * ===========================================================================
- * 5. MAPA DE FUNCIONES
- * ===========================================================================
+ * ---------------------------------------------------------------------------
+ * DETALLES CRITICOS DE LA IMPLEMENTACION BINARIA
+ * ---------------------------------------------------------------------------
+ * 1. MODO BINARIO: fopen("wb")/fopen("rb"), nunca "w"/"r". En modo
+ *    texto, Windows convierte cada 0x0A en 0x0D 0x0A al escribir y al
+ *    reves al leer: un int con valor 10 (0x0A 0x00 0x00 0x00) se
+ *    corromperia. Con "wb"/"rb" los bytes van y vuelven intactos en
+ *    Windows y Linux.
+ * 2. ESCRITURA DETERMINISTA: no se hace fwrite(r) directo. Se copia el
+ *    struct a una variable local, se pone TODO a cero con memset y se
+ *    copian solo los datos validos. Si se escribiera el struct original,
+ *    los slots libres (entradas[cantidad..99]) y la cola de cada nombre
+ *    contendrian basura de la pila: el archivo cambiaria en cada guardado
+ *    (imposible comparar/depurar) y filtraria memoria del proceso. El
+ *    layout en disco es identico; solo se garantiza que los bytes no
+ *    usados sean cero.
+ * 3. LECTURA VALIDADA: un archivo binario corrupto no se puede "parsear
+ *    con tolerancia" como el texto, asi que despues de fread se verifica
+ *    tamano exacto, cantidad en rango, '\0' dentro de cada nombre y
+ *    victorias dentro de 0..RANKING_VICTORIAS_MAX. Las entradas validas
+ *    se conservan y las invalidas se descartan (carga parcial).
+ * 4. TAMANO EXACTO: si sobran bytes (archivo de otra version) o faltan
+ *    (truncado), se devuelve RANKING_ERROR_FORMATO. No se intenta
+ *    adivinar el formato.
+ *
+ * ---------------------------------------------------------------------------
+ * INVARIANTES EN MEMORIA
+ * ---------------------------------------------------------------------------
+ * INVARIANTE 1: solo las primeras `cantidad` entradas son validas.
+ * INVARIANTE 2: tras registrar/cargar, el arreglo queda ordenado.
+ * INVARIANTE 3: `nombre` de cada entrada usada tiene '\0' dentro de sus
+ *               32 bytes (lo garantizan registrar y cargar).
+ *
+ * ---------------------------------------------------------------------------
+ * MAPA DE FUNCIONES (orden de lectura sugerido)
+ * ---------------------------------------------------------------------------
  * Ayudas internas (static):
- *   recortar_extremos      -> trim de espacios;
- *   comparar_insensible    -> strcasecmp portable;
- *   nombre_normalizado     -> valida y canoniza un nombre;
- *   escribir_u16/u32       -> enteros a bytes little-endian;
- *   leer_u16/u32           -> bytes little-endian a enteros;
- *   crc32_calcular         -> CRC32 IEEE;
- *   escribir_nombre        -> nombre a 32 bytes fijos;
- *   leer_nombre            -> 32 bytes fijos a nombre validado;
- *   construir_ruta_temporal-> "ruta" + ".tmp";
- *   leer_archivo_binario   -> lectura completa y acotada del archivo.
- *
- * API publica: ranking_inicializar, ranking_cantidad, ranking_obtener,
- * ranking_buscar, ranking_obtener_victorias, ranking_ordenar,
- * ranking_registrar_victoria, ranking_cargar, ranking_guardar,
- * ranking_mensaje_error, ranking_mostrar_en, ranking_mostrar.
+ *   recortar_extremos, comparar_insensible, nombre_normalizado,
+ *   entrada_valida
+ * API publica (ranking.h):
+ *   ranking_inicializar, ranking_cantidad, ranking_obtener,
+ *   ranking_buscar, ranking_obtener_victorias, ranking_ordenar,
+ *   ranking_registrar_victoria, ranking_cargar, ranking_guardar,
+ *   ranking_mensaje_error, ranking_mostrar_en, ranking_mostrar
  */
 
 #include <stdio.h>
@@ -82,29 +101,34 @@
 #include "ranking.h"
 
 /*
- * Buffer maximo para construir "ruta.tmp". 512 alcanza para cualquier
- * ruta razonable del proyecto; si no alcanza, guardar devuelve
- * RANKING_ERROR_ARCHIVO sin tocar el archivo original.
+ * Asserts de layout (ver explicacion en el encabezado).
+ * - RankingEntrada debe medir exactamente 32 + sizeof(int) (sin relleno).
+ * - Ranking debe medir 100 * sizeof(RankingEntrada) + sizeof(int).
+ * Si alguna condicion es falsa, el tamano del arreglo es -1 y el
+ * compilador se detiene con un error claro.
  */
-#define RANKING_RUTA_MAX 512
+typedef char ranking_assert_entrada_sin_relleno[
+    (sizeof(RankingEntrada) == (RANKING_NOMBRE_MAX + sizeof(int))) ? 1 : -1];
 
-/* ===========================================================================
- * AYUDAS DE TEXTO
- * =========================================================================== */
+typedef char ranking_assert_ranking_sin_relleno[
+    (sizeof(Ranking) == (RANKING_MAX_JUGADORES * sizeof(RankingEntrada)
+                         + sizeof(int))) ? 1 : -1];
 
 /*
- * recortar_extremos: copia `origen` en `destino` sin espacios en blanco
- * de los extremos ("  Ana \t" -> "Ana").
+ * recortar_extremos: copia `origen` en `destino` sin los espacios en
+ * blanco de los extremos ("  Ana \t" -> "Ana").
  *
- * Algoritmo con dos punteros:
- *   1. `ini` avanza mientras isspace() sea verdadero.
- *   2. Si solo habia espacios, el resultado es "".
- *   3. `fin` retrocede desde el '\0' mientras haya espacios.
- *   4. Se copian los bytes [ini, fin), truncando a tam_destino-1 si no
- *      entran, y siempre se agrega '\0'.
+ * Algoritmo (dos punteros sobre el mismo string):
+ *  1. `ini` avanza mientras haya espacios (isspace: ' ', '\t', etc.).
+ *  2. Si solo habia espacios, el resultado es "" y se termina.
+ *  3. `fin` retrocede desde el '\0' mientras haya espacios.
+ *  4. Se copian los [ini, fin) caracteres, truncando a tam_destino-1
+ *     si hiciera falta, y siempre se agrega el '\0' final.
  *
- * isspace() se llama con (unsigned char) porque pasarle un char negativo
- * (letras acentuadas en Latin-1/UTF-8) seria comportamiento indefinido.
+ * Detalle tecnico: isspace() exige un valor representable como
+ * `unsigned char` (o EOF). Pasar un `char` negativo (letras con tilde
+ * en Latin-1/UTF-8) seria comportamiento indefinido; por eso cada
+ * caracter se convierte con (unsigned char) antes de llamar.
  */
 static void recortar_extremos(const char *origen, char *destino, int tam_destino)
 {
@@ -139,13 +163,18 @@ static void recortar_extremos(const char *origen, char *destino, int tam_destino
 }
 
 /*
- * comparar_insensible: compara dos strings ignorando mayusculas.
- * Es el equivalente portable de strcasecmp(): ninguna de esas funciones
- * es ANSI C (strcasecmp es POSIX y stricmp es de Windows), asi que se
- * implementa con tolower() de <ctype.h>.
+ * comparar_insensible: compara dos strings ignorando mayusculas,
+ * como strcasecmp() pero portable.
  *
- * Devuelve 0 si son iguales, <0 si a<b, >0 si a>b (convencion strcmp).
- * Los NULL se ordenan antes que cualquier string para no romper.
+ * Por que no usar strcasecmp/stricmp: ninguna es ANSI C. strcasecmp
+ * es POSIX (Linux) y stricmp es de Windows: usarlas romperia la
+ * portabilidad que exige la consigna. Esta version solo usa tolower()
+ * de <ctype.h>, que si es estandar, y baja cada caracter a minuscula
+ * antes de comparar.
+ *
+ * Devuelve 0 si son iguales, negativo si a<b, positivo si a>b
+ * (misma convencion que strcmp). Los NULL se ordenan antes que
+ * cualquier string, para no romper nunca por un puntero nulo.
  */
 static int comparar_insensible(const char *a, const char *b)
 {
@@ -180,23 +209,25 @@ static int comparar_insensible(const char *a, const char *b)
 }
 
 /*
- * nombre_normalizado: valida un nombre y devuelve su forma canonica.
+ * nombre_normalizado: valida un nombre de jugador y produce su forma
+ * canonica (recortada, con mayusculas originales).
  *
- * Reglas (compartidas por registrar, buscar y cargar):
- *  1. Recortar espacios de los extremos.
- *  2. Largo real 1..31 (RANKING_NOMBRE_MAX-1).
- *  3. Sin caracteres de control (< 32): eso incluye '\n', '\r' y '\t'.
- *     El ';' SI se permite: en binario no hay separadores; cada nombre
- *     ocupa 32 bytes fijos. (En la version texto anterior estaba prohibido
- *     porque era el separador del archivo.)
+ * Reglas que aplica, en orden:
+ *  1. Recorta espacios de los extremos.
+ *  2. El largo real (sin contar esos espacios) debe ser 1..31.
+ *  3. No puede contener '\n', '\r' ni ningun caracter de control
+ *     (< 32). El ';' SI se permite: en binario no es un separador (a
+ *     diferencia del formato texto anterior).
  *
- * Por que se mide dos veces: recortar_extremos() trunca en silencio si el
- * texto no entra en el buffer. Si solo midieramos `tmp`, un nombre de 200
- * caracteres pasaria como valido de 31. La segunda pasada mide el largo
- * real sobre el original (punteros ini/fin, sin copiar) y rechaza todo lo
- * que sea <=0 o >= RANKING_NOMBRE_MAX.
+ * Por que DOS pasadas de medicion: recortar_extremos() trunca en
+ * silencio si el texto no entra en el buffer. Si midieramos solo el
+ * resultado recortado, un nombre de 200 caracteres pasaria como valido
+ * de 31. Por eso la segunda pasada mide el largo REAL sobre el string
+ * original (con punteros ini/fin, sin copiar nada) y rechaza todo lo
+ * que sea <= 0 o >= RANKING_NOMBRE_MAX antes de aceptar.
  *
- * Devuelve 1 y completa `salida` si es valido; 0 si no.
+ * Devuelve 1 + `salida` con el nombre listo para guardar, o 0 si el
+ * nombre es invalido (en ese caso `salida` no debe usarse).
  */
 static int nombre_normalizado(const char *nombre, char *salida, int tam_salida)
 {
@@ -209,11 +240,12 @@ static int nombre_normalizado(const char *nombre, char *salida, int tam_salida)
     }
     recortar_extremos(nombre, tmp, (int)sizeof(tmp));
 
+    /* Si el recorte trunco por longitud, el original era demasiado largo. */
+    /* Verificamos con el largo del origen recortado sin truncar. */
     {
         const char *ini;
         const char *fin;
         int real;
-
         ini = nombre;
         while (*ini != '\0' && isspace((unsigned char)*ini)) {
             ini++;
@@ -237,6 +269,7 @@ static int nombre_normalizado(const char *nombre, char *salida, int tam_salida)
             return 0;
         }
     }
+    /* Copia segura a la salida. */
     for (i = 0; i <= largo; i++) {
         if (i < tam_salida) {
             salida[i] = tmp[i];
@@ -248,260 +281,51 @@ static int nombre_normalizado(const char *nombre, char *salida, int tam_salida)
     return 1;
 }
 
-/* ===========================================================================
- * AYUDAS DE SERIALIZACION BINARIA
- * =========================================================================== */
-
 /*
- * escribir_u16: guarda `v` en 2 bytes little-endian.
- * Se enmascara con 0xFF para no depender del tamano de unsigned int.
- */
-static void escribir_u16(unsigned char *p, unsigned int v)
-{
-    p[0] = (unsigned char)(v & 0xFFU);
-    p[1] = (unsigned char)((v >> 8) & 0xFFU);
-}
-
-/*
- * escribir_u32: guarda `v` en 4 bytes little-endian.
- * `unsigned long` tiene al menos 32 bits en C89; se escriben los 4 bytes
- * bajos y se descarta cualquier bit alto. Asi el formato queda fijo en
- * 32 bits aunque en Linux long sea de 64 bits.
- */
-static void escribir_u32(unsigned char *p, unsigned long v)
-{
-    p[0] = (unsigned char)(v & 0xFFUL);
-    p[1] = (unsigned char)((v >> 8) & 0xFFUL);
-    p[2] = (unsigned char)((v >> 16) & 0xFFUL);
-    p[3] = (unsigned char)((v >> 24) & 0xFFUL);
-}
-
-/* leer_u16: reconstruye un unsigned int desde 2 bytes little-endian. */
-static unsigned int leer_u16(const unsigned char *p)
-{
-    return ((unsigned int)p[0]) |
-           (((unsigned int)p[1]) << 8);
-}
-
-/* leer_u32: reconstruye un unsigned long desde 4 bytes little-endian. */
-static unsigned long leer_u32(const unsigned char *p)
-{
-    return ((unsigned long)p[0]) |
-           (((unsigned long)p[1]) << 8) |
-           (((unsigned long)p[2]) << 16) |
-           (((unsigned long)p[3]) << 24);
-}
-
-/*
- * crc32_calcular: CRC32 IEEE 802.3 de `n` bytes.
+ * entrada_valida: verifica que una entrada leida del archivo binario sea
+ * usable y devuelve su nombre normalizado en `nombre`.
  *
- * Parametros: polinomio reflejado 0xEDB88320, valor inicial 0xFFFFFFFF
- * y XOR final 0xFFFFFFFF. Se procesa byte por byte, bit por bit, sin
- * tabla: para archivos de hasta 3.6 KB el costo es despreciable y el
- * codigo queda corto y auditable. Valor de control: CRC32("123456789")
- * = 0xCBF43926.
+ * Por que existe: al leer bytes crudos, un archivo corrupto o de otra
+ * version puede contener cualquier cosa. Antes de llamar a
+ * nombre_normalizado() hay que garantizar que exista un '\0' DENTRO de
+ * los 32 bytes; si no, strlen() leería fuera del struct (comportamiento
+ * indefinido, posible caida). Se recorre el arreglo con un tope fijo y
+ * recien despues se valida el nombre con las reglas normales.
+ * Tambien se rechazan victorias negativas o mayores que el tope.
  *
- * El resultado se enmascara a 32 bits porque en Linux unsigned long es
- * de 64 bits; el formato guarda exactamente 4 bytes.
+ * Devuelve 1 si la entrada es valida, 0 si debe descartarse.
  */
-static unsigned long crc32_calcular(const unsigned char *datos, int n)
-{
-    unsigned long crc;
-    int i;
-    int bit;
-
-    crc = 0xFFFFFFFFUL;
-    for (i = 0; i < n; i++) {
-        crc ^= (unsigned long)datos[i];
-        for (bit = 0; bit < 8; bit++) {
-            if (crc & 1UL) {
-                crc = (crc >> 1) ^ 0xEDB88320UL;
-            } else {
-                crc = crc >> 1;
-            }
-        }
-    }
-    return (crc ^ 0xFFFFFFFFUL) & 0xFFFFFFFFUL;
-}
-
-/*
- * escribir_nombre: copia un nombre a un campo fijo de 32 bytes.
- * Primero llena todo con 0 (relleno canonico) y luego copia hasta 31
- * caracteres. El escritor ya valido el nombre, asi que el truncado es
- * solo una defensa extra.
- */
-static void escribir_nombre(unsigned char *destino, const char *nombre)
+static int entrada_valida(const RankingEntrada *e, char *nombre)
 {
     int i;
-    int n;
+    int tiene_fin;
 
-    for (i = 0; i < RANKING_NOMBRE_BYTES; i++) {
-        destino[i] = 0;
-    }
-    n = (int)strlen(nombre);
-    if (n > RANKING_NOMBRE_BYTES - 1) {
-        n = RANKING_NOMBRE_BYTES - 1;
-    }
-    for (i = 0; i < n; i++) {
-        destino[i] = (unsigned char)nombre[i];
-    }
-}
-
-/*
- * leer_nombre: convierte 32 bytes fijos en un nombre validado.
- *
- * Pasos:
- *  1. Buscar el primer NUL. Debe existir y no estar en la posicion 0
- *     (un nombre vacio no es valido). Si no hay NUL en 32 bytes, el
- *     campo esta corrupto.
- *  2. Exigir que todos los bytes posteriores al NUL sean 0. Esto es el
- *     relleno canonico que escribe escribir_nombre(); si hay basura,
- *     el archivo no lo genero este programa y se rechaza.
- *  3. Copiar a `crudo`, validar con nombre_normalizado() y exigir que
- *     la forma canonica sea identica a `crudo` (sin espacios extremos).
- *     Asi " Ana" o "Ana " se rechazan: el escritor nunca los produce.
- *
- * Devuelve 1 si el nombre es valido y canonico; 0 si no.
- */
-static int leer_nombre(const unsigned char *origen, char *destino, int tam_destino)
-{
-    char crudo[RANKING_NOMBRE_MAX];
-    char norm[RANKING_NOMBRE_MAX];
-    int fin;
-    int i;
-
-    if (origen == NULL || destino == NULL || tam_destino < RANKING_NOMBRE_MAX) {
+    if (e == NULL || nombre == NULL) {
         return 0;
     }
-    fin = -1;
-    for (i = 0; i < RANKING_NOMBRE_BYTES; i++) {
-        if (origen[i] == 0) {
-            fin = i;
+    tiene_fin = 0;
+    for (i = 0; i < RANKING_NOMBRE_MAX; i++) {
+        if (e->nombre[i] == '\0') {
+            tiene_fin = 1;
             break;
         }
     }
-    if (fin < 1) {
+    if (!tiene_fin) {
         return 0;
     }
-    for (i = fin; i < RANKING_NOMBRE_BYTES; i++) {
-        if (origen[i] != 0) {
-            return 0;
-        }
-    }
-    for (i = 0; i < fin; i++) {
-        crudo[i] = (char)origen[i];
-    }
-    crudo[fin] = '\0';
-    if (!nombre_normalizado(crudo, norm, (int)sizeof(norm))) {
+    if (!nombre_normalizado(e->nombre, nombre, RANKING_NOMBRE_MAX)) {
         return 0;
     }
-    if (strcmp(crudo, norm) != 0) {
+    if (e->victorias < 0 || e->victorias > RANKING_VICTORIAS_MAX) {
         return 0;
-    }
-    for (i = 0; i <= fin; i++) {
-        destino[i] = norm[i];
     }
     return 1;
 }
 
 /*
- * construir_ruta_temporal: arma "ruta.tmp" en `destino`.
- * El temporal debe quedar en el MISMO directorio que el destino para que
- * rename() sea atomico (rename entre filesystems distintos no lo es).
- * Devuelve 1 si entra en el buffer; 0 si la ruta es demasiado larga.
- */
-static int construir_ruta_temporal(const char *ruta, char *destino, int tam_destino)
-{
-    int n;
-    int i;
-
-    if (ruta == NULL || destino == NULL || tam_destino <= 0) {
-        return 0;
-    }
-    n = (int)strlen(ruta);
-    if (n + 4 >= tam_destino) {
-        return 0;
-    }
-    for (i = 0; i < n; i++) {
-        destino[i] = ruta[i];
-    }
-    destino[n] = '.';
-    destino[n + 1] = 't';
-    destino[n + 2] = 'm';
-    destino[n + 3] = 'p';
-    destino[n + 4] = '\0';
-    return 1;
-}
-
-/*
- * leer_archivo_binario: lee el archivo COMPLETO en `buf`, de forma
- * acotada. Como el formato tiene un tamano maximo conocido (3612 bytes),
- * se puede leer todo en memoria y verificar el CRC antes de aceptar una
- * sola entrada. Esto evita dejar el ranking a medio cargar si el archivo
- * esta corrupto.
- *
- * Pasos:
- *  1. Abrir en modo binario "rb" (en Linux es equivalente a "r", pero
- *     deja explicita la intencion y evita traducciones en otros sistemas).
- *  2. fseek al final + ftell para conocer el tamano.
- *  3. Rechazar solo tamanos mayores al maximo. Los archivos chicos se
- *     leen igual para poder distinguir "formato viejo" (magic distinto)
- *     de "archivo truncado" (magic correcto pero faltan bytes).
- *  4. Volver al inicio y fread exacto. Un short read es error de archivo.
- *
- * Devuelve RANKING_OK y `tam_leido`, o un codigo de error.
- */
-static int leer_archivo_binario(const char *ruta, unsigned char *buf,
-                                int tam_max, int *tam_leido)
-{
-    FILE *f;
-    long tam;
-    size_t leidos;
-
-    if (ruta == NULL || buf == NULL || tam_leido == NULL) {
-        return RANKING_ERROR_ARGUMENTO;
-    }
-    f = fopen(ruta, "rb");
-    if (f == NULL) {
-        return RANKING_ERROR_ARCHIVO;
-    }
-    if (fseek(f, 0L, SEEK_END) != 0) {
-        fclose(f);
-        return RANKING_ERROR_ARCHIVO;
-    }
-    tam = ftell(f);
-    if (tam < 0L) {
-        fclose(f);
-        return RANKING_ERROR_ARCHIVO;
-    }
-    if (tam > (long)tam_max) {
-        fclose(f);
-        return RANKING_ERROR_FORMATO;
-    }
-    if (fseek(f, 0L, SEEK_SET) != 0) {
-        fclose(f);
-        return RANKING_ERROR_ARCHIVO;
-    }
-    leidos = fread(buf, 1, (size_t)tam, f);
-    if (leidos != (size_t)tam) {
-        fclose(f);
-        return RANKING_ERROR_ARCHIVO;
-    }
-    if (fclose(f) != 0) {
-        return RANKING_ERROR_ARCHIVO;
-    }
-    *tam_leido = (int)tam;
-    return RANKING_OK;
-}
-
-/* ===========================================================================
- * API PUBLICA: ESTADO EN MEMORIA
- * =========================================================================== */
-
-/*
- * ranking_inicializar: deja cantidad = 0.
- * Es lo que garantiza el INVARIANTE 1: las posiciones >= cantidad no se
- * leen hasta que registrar/cargar las complete.
+ * ranking_inicializar: deja el ranking vacio (cantidad = 0).
+ * Debe llamarse antes de cualquier otro uso: es lo que garantiza el
+ * INVARIANTE 1 (solo las primeras `cantidad` entradas son validas).
  */
 void ranking_inicializar(Ranking *r)
 {
@@ -511,7 +335,11 @@ void ranking_inicializar(Ranking *r)
     r->cantidad = 0;
 }
 
-/* ranking_cantidad: cuantos jugadores hay; 0 si r es NULL. */
+/*
+ * ranking_cantidad: cuantos jugadores distintos hay (0 si r es NULL).
+ * Se usa para recorrer con ranking_obtener(0..cantidad-1) y para que
+ * la futura GUI dibuje tantas filas como haga falta.
+ */
 int ranking_cantidad(const Ranking *r)
 {
     if (r == NULL) {
@@ -521,9 +349,11 @@ int ranking_cantidad(const Ranking *r)
 }
 
 /*
- * ranking_obtener: acceso de solo lectura al puesto `indice`.
- * Valida el rango para que la interfaz nunca lea basura. El puntero
- * devuelto apunta al arreglo interno: no se libera ni se modifica.
+ * ranking_obtener: acceso de SOLO LECTURA a la entrada del puesto
+ * `indice` (0 = lider). Devuelve NULL si el indice esta fuera de
+ * rango, para que la interfaz no lea basura del arreglo. El puntero
+ * apunta a memoria interna del Ranking: no debe liberarse ni
+ * modificarse (toda modificacion pasa por registrar_victoria).
  */
 const RankingEntrada *ranking_obtener(const Ranking *r, int indice)
 {
@@ -537,10 +367,12 @@ const RankingEntrada *ranking_obtener(const Ranking *r, int indice)
 }
 
 /*
- * ranking_buscar: busqueda lineal por identidad insensible a mayusculas.
- * Con maximo 100 jugadores, O(n) es despreciable y evita estructuras
- * extra. Un nombre invalido nunca puede estar guardado, por eso devuelve
- * -1 sin recorrer.
+ * ranking_buscar: busca un nombre con la misma regla de identidad que
+ * el resto del modulo (recorte + insensible a mayusculas). Recorre el
+ * arreglo linealmente de 0 a cantidad-1: con maximo 100 jugadores el
+ * costo O(n) es despreciable y evita estructuras mas complejas.
+ * Devuelve el indice o -1 si no existe (o si el nombre es invalido,
+ * porque un nombre invalido nunca puede estar guardado).
  */
 int ranking_buscar(const Ranking *r, const char *nombre)
 {
@@ -561,11 +393,14 @@ int ranking_buscar(const Ranking *r, const char *nombre)
     return -1;
 }
 
-/* ranking_obtener_victorias: consulta directa; 0 si no figura. */
+/*
+ * ranking_obtener_victorias: atajo de consulta para la interfaz
+ * ("¿cuantas lleva Ana?"). Devuelve 0 si el jugador no figura, que es
+ * el valor correcto para alguien que aun no gano nada.
+ */
 int ranking_obtener_victorias(const Ranking *r, const char *nombre)
 {
     int idx;
-
     idx = ranking_buscar(r, nombre);
     if (idx < 0) {
         return 0;
@@ -574,18 +409,23 @@ int ranking_obtener_victorias(const Ranking *r, const char *nombre)
 }
 
 /*
- * ranking_ordenar: ordenamiento por insercion, in situ.
+ * ranking_ordenar: ordena el arreglo in situ de mejor a peor puesto.
  *
- * Criterio compuesto:
- *   1. mas victorias primero;
- *   2. a igual victorias, nombre ascendente insensible a mayusculas;
- *   3. a igual todo lo anterior, strcmp sensible para determinismo.
+ * Criterio compuesto (primero el que desempata, despues el otro):
+ *  1. mas victorias primero;
+ *  2. a igual victorias, nombre ascendente insensible a mayusculas;
+ *  3. a igual victorias E igual nombre insensible, strcmp sensible,
+ *     solo para que el resultado sea determinista (mismo input, mismo
+ *     output) en cualquier compilador.
  *
- * Invariante: antes de procesar la posicion i, el prefijo [0..i-1] ya
- * esta ordenado. Se guarda entradas[i] en `tmp`, se desplazan a la
- * derecha los anteriores que van despues, y se inserta tmp en el hueco.
- * Con n <= 100 el peor caso (~10.000 comparaciones) es instantaneo.
- * La asignacion de structs es valida en ANSI C.
+ * Algoritmo: ordenamiento por INSERCION. Invariante del bucle: antes
+ * de la iteracion i, el prefijo [0..i-1] ya esta ordenado. Se toma la
+ * entrada i como `tmp` y se desplazan a la derecha todos los
+ * anteriores que "deben ir despues" (peor criterio), hasta encontrar
+ * su hueco. Con n <= 100 el costo O(n^2) del peor caso (~10.000
+ * comparaciones) es instantaneo, y el codigo es corto y facil de
+ * seguir en la defensa. La copia `tmp = r->entradas[i]` es asignacion
+ * de structs, valida en ANSI C.
  */
 void ranking_ordenar(Ranking *r)
 {
@@ -596,13 +436,13 @@ void ranking_ordenar(Ranking *r)
     if (r == NULL) {
         return;
     }
+    /* Insercion: victorias desc, nombre asc insensible, desempate sensible. */
     for (i = 1; i < r->cantidad; i++) {
         tmp = r->entradas[i];
         j = i - 1;
         while (j >= 0) {
             int debe_mover;
             int cmp;
-
             debe_mover = 0;
             if (r->entradas[j].victorias < tmp.victorias) {
                 debe_mover = 1;
@@ -627,20 +467,20 @@ void ranking_ordenar(Ranking *r)
 }
 
 /*
- * ranking_registrar_victoria: suma UNA victoria al jugador.
+ * ranking_registrar_victoria: suma UNA victoria al jugador `nombre`.
+ * Es la unica via para modificar el ranking (la interfaz no toca el
+ * arreglo directamente). Flujo:
+ *   1. valida punteros y normaliza el nombre (rechaza invalidos);
+ *   2. busca si ya existe:
+ *      - existe: incrementa en 1, con tope en RANKING_VICTORIAS_MAX
+ *        (en vez de desbordar el int, se queda en el maximo);
+ *      - no existe: si hay lugar lo agrega con victorias = 1 y
+ *        cantidad++, si no hay lugar devuelve RANKING_ERROR_LLENO;
+ *   3. reordena SIEMPRE (mantiene el INVARIANTE 2).
  *
- * Flujo:
- *  1. Validar punteros y canonizar el nombre. Si es invalido, no se toca
- *     el ranking y se devuelve RANKING_ERROR_NOMBRE_INVALIDO.
- *  2. Buscar (insensible a mayusculas). Si existe, incrementar con tope
- *     en RANKING_VICTORIAS_MAX: al llegar al maximo se queda ahi en vez
- *     de desbordar el int.
- *  3. Si no existe y hay lugar, copiar el nombre canonico, victorias=1
- *     y cantidad++. Si esta lleno, RANKING_ERROR_LLENO.
- *  4. Reordenar siempre para mantener el INVARIANTE 2.
- *
- * La copia del nombre se hace caracter por caracter; el buffer de destino
- * tiene RANKING_NOMBRE_MAX y el nombre ya fue validado con ese limite.
+ * Al crear la entrada se copia el nombre caracter por caracter y se
+ * agrega el '\0': no se usa strcpy para no depender de que el origen
+ * este bien terminado y para que quede claro el limite del buffer.
  */
 int ranking_registrar_victoria(Ranking *r, const char *nombre)
 {
@@ -675,208 +515,176 @@ int ranking_registrar_victoria(Ranking *r, const char *nombre)
     return RANKING_OK;
 }
 
-/* ===========================================================================
- * API PUBLICA: PERSISTENCIA BINARIA
- * =========================================================================== */
-
 /*
- * ranking_cargar: lee y valida un archivo BNR1 v1.
+ * ranking_cargar: lee el archivo binario `ruta` y reconstruye el ranking.
  *
- * Estrategia "todo o nada": se lee el archivo completo en un buffer
- * acotado, se validan magic/version/cantidad/tamano/CRC y recien despues
- * se parsean las entradas en un Ranking temporal. Si algo falla, el
- * Ranking del llamador queda vacio (nunca a medio llenar). Al final se
- * ordena y se copia el temporal al llamador con una asignacion de struct.
+ * Protocolo:
+ *  1. Vacia el ranking (cantidad = 0): cargar SIEMPRE parte de cero.
+ *  2. Abre en "rb". Si no existe -> RANKING_ERROR_ARCHIVO (no fatal:
+ *     app.c lo trata como primera partida y arranca vacio).
+ *  3. fread de UN struct completo. Si no lee exactamente uno:
+ *     - ferror() verdadero -> problema de E/S -> RANKING_ERROR_ARCHIVO;
+ *     - si no, el archivo esta vacio/truncado -> RANKING_ERROR_FORMATO.
+ *  4. fgetc extra: si hay CUALQUIER byte despues del struct, el archivo
+ *     es de otro tamano/version -> RANKING_ERROR_FORMATO. No se intenta
+ *     interpretar un formato desconocido.
+ *  5. Valida `cantidad` en 0..RANKING_MAX_JUGADORES. Fuera de rango ->
+ *     FORMATO y ranking vacio (no se recorre memoria invalida).
+ *  6. Por cada entrada declarada:
+ *     a. Verifica que haya '\0' dentro de nombre[32] y que el nombre
+ *        pase las reglas (entrada_valida). Si no, la descarta y marca
+ *        error de formato, pero SIGUE con las demas.
+ *     b. Verifica victorias en 0..RANKING_VICTORIAS_MAX; si no, descarta.
+ *     c. Fusiona duplicados insensibles a mayusculas sumando con tope
+ *        (solo puede pasar con archivos manipulados: guardar nunca
+ *        escribe dos veces al mismo jugador).
+ *  7. Ordena y devuelve OK, o FORMATO si hubo al menos una entrada
+ *     descartada (las validas quedan cargadas: carga parcial).
  *
- * Orden de validacion (importa para el mensaje de error):
- *   1. Tamano del archivo (lectura acotada).
- *   2. Magic "BNR1" y version 1 -> RANKING_ERROR_VERSION.
- *   3. Cantidad <= 100 y tamano exacto 12+36*n -> RANKING_ERROR_FORMATO.
- *   4. CRC32 -> RANKING_ERROR_INTEGRIDAD.
- *   5. Cada entrada: nombre canonico, victorias en rango, sin duplicados
- *      insensibles a mayusculas -> RANKING_ERROR_FORMATO.
- *
- * Un ranking.dat de la version texto anterior ("Ana;1\n") no empieza con
- * "BNR1", por lo que se informa RANKING_ERROR_VERSION. No hay migracion
- * automatica: el archivo viejo debe borrarse (o migrarse aparte).
+ * Nota: no se valida la basura de los slots libres. El layout se
+ * garantiza por tamano exacto + cantidad valida + asserts de ranking.c.
  */
 int ranking_cargar(Ranking *r, const char *ruta)
 {
-    unsigned char buf[RANKING_ARCHIVO_MAX_BYTES];
-    Ranking tmp;
-    int tam;
-    int rc;
-    int count;
+    FILE *f;
+    Ranking disco;
+    size_t leidos;
+    int sobrante;
+    int hubo_formato;
     int i;
-    int off;
-    unsigned long crc_leido;
-    unsigned long crc_calc;
 
     if (r == NULL || ruta == NULL) {
         return RANKING_ERROR_ARGUMENTO;
     }
     r->cantidad = 0;
-    rc = leer_archivo_binario(ruta, buf, RANKING_ARCHIVO_MAX_BYTES, &tam);
-    if (rc != RANKING_OK) {
-        return rc;
+    f = fopen(ruta, "rb");
+    if (f == NULL) {
+        return RANKING_ERROR_ARCHIVO;
     }
-    /* Un archivo de menos de 4 bytes no puede tener ni el magic. */
-    if (tam < 4) {
+    leidos = fread(&disco, sizeof(disco), 1, f);
+    if (leidos != 1) {
+        int fallo_io;
+        fallo_io = ferror(f);
+        fclose(f);
+        return fallo_io ? RANKING_ERROR_ARCHIVO : RANKING_ERROR_FORMATO;
+    }
+    /* Cualquier byte extra significa otro formato/version: se rechaza. */
+    sobrante = fgetc(f);
+    fclose(f);
+    if (sobrante != EOF) {
         return RANKING_ERROR_FORMATO;
     }
-    if (memcmp(buf, RANKING_ARCHIVO_MAGIC, 4) != 0) {
-        return RANKING_ERROR_VERSION;
-    }
-    /* Con el magic correcto, faltan version/cantidad: archivo truncado. */
-    if (tam < RANKING_CABECERA_BYTES) {
+    if (disco.cantidad < 0 || disco.cantidad > RANKING_MAX_JUGADORES) {
         return RANKING_ERROR_FORMATO;
-    }
-    if (leer_u16(buf + 4) != (unsigned int)RANKING_ARCHIVO_VERSION) {
-        return RANKING_ERROR_VERSION;
-    }
-    count = (int)leer_u16(buf + 6);
-    if (count < 0 || count > RANKING_MAX_JUGADORES) {
-        return RANKING_ERROR_FORMATO;
-    }
-    if (tam != RANKING_CABECERA_BYTES + (count * RANKING_ENTRADA_BYTES) +
-               RANKING_CHECKSUM_BYTES) {
-        return RANKING_ERROR_FORMATO;
-    }
-    crc_leido = leer_u32(buf + tam - RANKING_CHECKSUM_BYTES);
-    crc_calc = crc32_calcular(buf, tam - RANKING_CHECKSUM_BYTES);
-    if (crc_leido != crc_calc) {
-        return RANKING_ERROR_INTEGRIDAD;
     }
 
-    tmp.cantidad = 0;
-    off = RANKING_CABECERA_BYTES;
-    for (i = 0; i < count; i++) {
+    hubo_formato = 0;
+    for (i = 0; i < disco.cantidad; i++) {
         char nombre[RANKING_NOMBRE_MAX];
-        unsigned long victorias;
+        int idx;
         int k;
 
-        if (!leer_nombre(buf + off, nombre, (int)sizeof(nombre))) {
-            return RANKING_ERROR_FORMATO;
+        if (!entrada_valida(&disco.entradas[i], nombre)) {
+            hubo_formato = 1;
+            continue;
         }
-        victorias = leer_u32(buf + off + RANKING_NOMBRE_BYTES);
-        if (victorias > (unsigned long)RANKING_VICTORIAS_MAX) {
-            return RANKING_ERROR_FORMATO;
-        }
-        for (k = 0; k < tmp.cantidad; k++) {
-            if (comparar_insensible(tmp.entradas[k].nombre, nombre) == 0) {
-                return RANKING_ERROR_FORMATO;
+        idx = -1;
+        for (k = 0; k < r->cantidad; k++) {
+            if (comparar_insensible(r->entradas[k].nombre, nombre) == 0) {
+                idx = k;
+                break;
             }
         }
-        strcpy(tmp.entradas[tmp.cantidad].nombre, nombre);
-        tmp.entradas[tmp.cantidad].victorias = (int)victorias;
-        tmp.cantidad++;
-        off += RANKING_ENTRADA_BYTES;
+        if (idx >= 0) {
+            /* Fusiona duplicados sumando, con tope para no desbordar. */
+            long suma;
+            suma = (long)r->entradas[idx].victorias
+                 + (long)disco.entradas[i].victorias;
+            if (suma > RANKING_VICTORIAS_MAX) {
+                suma = RANKING_VICTORIAS_MAX;
+            }
+            r->entradas[idx].victorias = (int)suma;
+        } else if (r->cantidad < RANKING_MAX_JUGADORES) {
+            strcpy(r->entradas[r->cantidad].nombre, nombre);
+            r->entradas[r->cantidad].victorias = disco.entradas[i].victorias;
+            r->cantidad++;
+        } else {
+            hubo_formato = 1;
+        }
     }
-    ranking_ordenar(&tmp);
-    *r = tmp;
+    ranking_ordenar(r);
+    if (hubo_formato) {
+        return RANKING_ERROR_FORMATO;
+    }
     return RANKING_OK;
 }
 
 /*
- * ranking_guardar: serializa y escribe el ranking de forma atomica.
+ * ranking_guardar: escribe TODO el ranking en `ruta` en binario.
  *
- * Pasos:
- *  1. Validar argumentos y el INVARIANTE del struct (cantidad en rango,
- *     cada nombre canonico y cada victoria en rango). Si algo no cuadra,
- *     RANKING_ERROR_ARGUMENTO y no se toca el disco.
- *  2. Armar el buffer completo en memoria:
- *       cabecera (magic, version, cantidad),
- *       cada entrada (nombre 32B + victorias 4B LE),
- *       CRC32 de todo lo anterior.
- *  3. Construir "ruta.tmp" en el mismo directorio.
- *  4. fopen(temp, "wb"), fwrite exacto, fclose comprobado.
- *  5. rename(temp, ruta). En Linux es atomico dentro del mismo FS.
- *  6. Ante cualquier fallo: borrar el temporal y devolver ARCHIVO. El
- *     archivo anterior nunca se trunca porque no se abre el destino.
+ * Por que no es un simple fwrite(r, sizeof *r, 1, f):
+ *  - `r` tiene 100 slots y solo `cantidad` son validos; el resto
+ *    contiene basura de la pila. Volcarla haria que el archivo cambie
+ *    en cada guardado y filtraria memoria del proceso.
+ *  - La cola de cada nombre (bytes despues del '\0' dentro de los 32)
+ *    tambien puede tener restos.
+ * Solucion: se trabaja sobre una copia local `copia`, se pone TODO a
+ * cero con memset, se copia `cantidad` y, por cada entrada usada, se
+ * copia el nombre byte a byte con tope de 31 mas el '\0' (nunca
+ * strcpy: si el origen no tuviera '\0', strcpy se desbordaria). Asi
+ * todos los bytes no usados quedan en cero y el archivo es
+ * deterministico: mismos datos -> mismos bytes.
  *
- * No se modifica el ranking en memoria.
+ * Se abre en "wb" (ver encabezado: el modo texto corromperia enteros con
+ * byte 0x0A). Se controla fwrite y tambien fclose, porque la escritura
+ * es con buffer y el error real puede aparecer al volcar al disco.
+ * No modifica el ranking en memoria (copia local + const).
  */
 int ranking_guardar(const Ranking *r, const char *ruta)
 {
-    unsigned char buf[RANKING_ARCHIVO_MAX_BYTES];
-    char temp[RANKING_RUTA_MAX];
-    char norm[RANKING_NOMBRE_MAX];
     FILE *f;
-    int count;
+    Ranking copia;
     int i;
-    int off;
-    int total;
-    unsigned long crc;
 
     if (r == NULL || ruta == NULL) {
         return RANKING_ERROR_ARGUMENTO;
     }
-    count = r->cantidad;
-    if (count < 0 || count > RANKING_MAX_JUGADORES) {
-        return RANKING_ERROR_ARGUMENTO;
+    memset(&copia, 0, sizeof(copia));
+    copia.cantidad = r->cantidad;
+    if (copia.cantidad < 0) {
+        copia.cantidad = 0;
     }
-    for (i = 0; i < count; i++) {
-        if (!nombre_normalizado(r->entradas[i].nombre, norm, (int)sizeof(norm))) {
-            return RANKING_ERROR_ARGUMENTO;
+    if (copia.cantidad > RANKING_MAX_JUGADORES) {
+        copia.cantidad = RANKING_MAX_JUGADORES;
+    }
+    for (i = 0; i < copia.cantidad; i++) {
+        int j;
+        for (j = 0; j < RANKING_NOMBRE_MAX - 1
+                    && r->entradas[i].nombre[j] != '\0'; j++) {
+            copia.entradas[i].nombre[j] = r->entradas[i].nombre[j];
         }
-        if (strcmp(norm, r->entradas[i].nombre) != 0) {
-            return RANKING_ERROR_ARGUMENTO;
-        }
-        if (r->entradas[i].victorias < 0 ||
-            r->entradas[i].victorias > RANKING_VICTORIAS_MAX) {
-            return RANKING_ERROR_ARGUMENTO;
-        }
+        copia.entradas[i].victorias = r->entradas[i].victorias;
     }
 
-    buf[0] = (unsigned char)'B';
-    buf[1] = (unsigned char)'N';
-    buf[2] = (unsigned char)'R';
-    buf[3] = (unsigned char)'1';
-    escribir_u16(buf + 4, (unsigned int)RANKING_ARCHIVO_VERSION);
-    escribir_u16(buf + 6, (unsigned int)count);
-
-    off = RANKING_CABECERA_BYTES;
-    for (i = 0; i < count; i++) {
-        escribir_nombre(buf + off, r->entradas[i].nombre);
-        escribir_u32(buf + off + RANKING_NOMBRE_BYTES,
-                     (unsigned long)r->entradas[i].victorias);
-        off += RANKING_ENTRADA_BYTES;
-    }
-    crc = crc32_calcular(buf, off);
-    escribir_u32(buf + off, crc);
-    total = off + RANKING_CHECKSUM_BYTES;
-
-    if (!construir_ruta_temporal(ruta, temp, (int)sizeof(temp))) {
-        return RANKING_ERROR_ARCHIVO;
-    }
-    f = fopen(temp, "wb");
+    f = fopen(ruta, "wb");
     if (f == NULL) {
         return RANKING_ERROR_ARCHIVO;
     }
-    if (fwrite(buf, 1, (size_t)total, f) != (size_t)total) {
+    if (fwrite(&copia, sizeof(copia), 1, f) != 1) {
         fclose(f);
-        remove(temp);
         return RANKING_ERROR_ARCHIVO;
     }
     if (fclose(f) != 0) {
-        remove(temp);
-        return RANKING_ERROR_ARCHIVO;
-    }
-    if (rename(temp, ruta) != 0) {
-        remove(temp);
         return RANKING_ERROR_ARCHIVO;
     }
     return RANKING_OK;
 }
 
-/* ===========================================================================
- * API PUBLICA: PRESENTACION
- * =========================================================================== */
-
 /*
- * ranking_mensaje_error: traduce codigos a texto para la interfaz.
- * La logica devuelve numeros; la UI muestra estos mensajes. Un unico
- * lugar para los textos evita duplicarlos en consola y en una futura GUI.
+ * ranking_mensaje_error: traduce un codigo de retorno a texto en
+ * espanol para mostrar en pantalla. La logica devuelve numeros y la
+ * interfaz los convierte con esta funcion: asi los mensajes viven en
+ * un solo lugar y la futura GUI puede reutilizarlos o reemplazarlos.
  */
 const char *ranking_mensaje_error(int codigo)
 {
@@ -888,25 +696,25 @@ const char *ranking_mensaje_error(int codigo)
         case RANKING_ERROR_NOMBRE_INVALIDO:
             return "Nombre invalido (1 a 31 caracteres, sin controles)";
         case RANKING_ERROR_LLENO:
-            return "Ranking lleno (maximo 100 jugadores)";
+            return "Ranking lleno";
         case RANKING_ERROR_ARCHIVO:
             return "No se pudo leer o guardar el archivo";
         case RANKING_ERROR_FORMATO:
-            return "Archivo con formato invalido";
-        case RANKING_ERROR_INTEGRIDAD:
-            return "Archivo corrupto: el checksum no coincide";
-        case RANKING_ERROR_VERSION:
-            return "Archivo de ranking de otra version o formato";
+            return "Archivo binario invalido o corrupto";
         default:
             return "Error desconocido";
     }
 }
 
 /*
- * ranking_mostrar_en: imprime la tabla ordenada en `salida`.
- * No ordena: confia en el INVARIANTE 2. El formato %-31s alinea nombres
- * de hasta 31 caracteres. Si el ranking esta vacio, lo informa.
- * Devuelve RANKING_ERROR_ARGUMENTO si salida o r son NULL.
+ * ranking_mostrar_en: imprime la tabla del ranking en el FILE dado.
+ * Formato: encabezado con cantidad ("1 jugador" / "N jugadores") y
+ * una fila por puesto, " 1. Ana                            2".
+ * El %-31s alinea los nombres en columna. Si esta vacio avisa en vez
+ * de no imprimir nada (asi la pantalla final nunca queda en blanco).
+ * Existe esta variante con FILE (y no solo printf) para poder probar
+ * la salida redirigiendola y para que la futura GUI use las funciones
+ * de consulta en vez de esta impresion.
  */
 int ranking_mostrar_en(FILE *salida, const Ranking *r)
 {
@@ -928,7 +736,11 @@ int ranking_mostrar_en(FILE *salida, const Ranking *r)
     return RANKING_OK;
 }
 
-/* ranking_mostrar: atajo sobre stdout (pantalla final de consola). */
+/*
+ * ranking_mostrar: atajo que imprime en pantalla (stdout). Es lo que
+ * llama app.c para la pantalla final de consola exigida por la
+ * consigna. No hace nada mas: delega todo en ranking_mostrar_en.
+ */
 void ranking_mostrar(const Ranking *r)
 {
     if (r == NULL) {
