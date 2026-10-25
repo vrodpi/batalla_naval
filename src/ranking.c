@@ -9,9 +9,9 @@
  * (opcion A, fwrite/fread del struct completo). Es el modulo del
  * integrante 4 (ranking, datos y compilacion).
  *
- * Estandar del proyecto: C99 (-std=c99 -pedantic -Wall -Wextra). Este
- * archivo no necesita caracteristicas de C99, asi que sigue siendo valido
- * tambien en C89; se compila junto al resto en el modo C99 del Makefile.
+ * Estandar unico del proyecto: C99 (-std=c99 -pedantic -Wall -Wextra).
+ * Este modulo se compila con el mismo estandar que el resto de la rama;
+ * no se mantiene un modo de compilacion alternativo.
  *
  * Separacion logica / interfaz (Anexo A):
  *   - ESTE archivo decide reglas: que nombre vale, quien es el mismo
@@ -170,11 +170,11 @@ static void recortar_extremos(const char *origen, char *destino, int tam_destino
  * comparar_insensible: compara dos strings ignorando mayusculas,
  * como strcasecmp() pero portable.
  *
- * Por que no usar strcasecmp/stricmp: ninguna es C estandar (ni C89 ni
- * C99). strcasecmp es POSIX (Linux) y stricmp es de Windows: usarlas
- * romperia la portabilidad que exige la consigna. Esta version solo usa
- * tolower() de <ctype.h>, que si es estandar, y baja cada caracter a
- * minuscula antes de comparar.
+ * Por que no usar strcasecmp/stricmp: ninguna forma parte de C99.
+ * strcasecmp es POSIX (Linux) y stricmp es de Windows: usarlas romperia
+ * la portabilidad que exige la consigna. Esta version solo usa tolower()
+ * de <ctype.h>, que si es C99, y baja cada caracter a minuscula antes de
+ * comparar.
  *
  * Devuelve 0 si son iguales, negativo si a<b, positivo si a>b
  * (misma convencion que strcmp). Los NULL se ordenan antes que
@@ -429,7 +429,7 @@ int ranking_obtener_victorias(const Ranking *r, const char *nombre)
  * su hueco. Con n <= 100 el costo O(n^2) del peor caso (~10.000
  * comparaciones) es instantaneo, y el codigo es corto y facil de
  * seguir en la defensa. La copia `tmp = r->entradas[i]` es asignacion
- * de structs, valida en C99 (y ya lo era en C89).
+ * de structs, valida en C99.
  */
 void ranking_ordenar(Ranking *r)
 {

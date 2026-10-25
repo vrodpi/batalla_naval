@@ -33,8 +33,8 @@
  * ---------------------------------------------------------------------------
  * ESTANDAR
  * ---------------------------------------------------------------------------
- * C99 (-std=c99 -pedantic -Wall -Wextra). Se usan declaraciones dentro
- * de los for y comentarios //. Los tamanios salen de config.h.
+ * C99 (-std=c99 -pedantic -Wall -Wextra). Este modulo se compila con el
+ * estandar unico del proyecto. Los tamanios salen de config.h.
  */
 
 #include <stdio.h>

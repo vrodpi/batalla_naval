@@ -76,7 +76,7 @@ static void chequear(int condicion, const char *nombre)
  * tamano_archivo: devuelve el tamano en bytes o -1 si no puede abrirlo.
  * Se usa para verificar que el archivo binario mida EXACTAMENTE
  * sizeof(Ranking): si midiera otra cosa, el formato no es el esperado.
- * Implementado con fseek(SEEK_END) + ftell, portable en C99 (y C89).
+ * Implementado con fseek(SEEK_END) + ftell, portable en C99.
  */
 static long tamano_archivo(const char *ruta)
 {

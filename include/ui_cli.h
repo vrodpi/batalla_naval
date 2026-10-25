@@ -23,8 +23,8 @@
  * ---------------------------------------------------------------------------
  * ESTANDAR
  * ---------------------------------------------------------------------------
- * C99 (-std=c99 -pedantic -Wall -Wextra). Se usan comentarios // y
- * declaraciones dentro de los bucles, permitidos desde C99.
+ * C99 (-std=c99 -pedantic -Wall -Wextra). Este modulo se compila con el
+ * estandar unico del proyecto, sin extensiones del compilador.
  *
  * ---------------------------------------------------------------------------
  * CONTRATO DE ENTRADA

@@ -110,7 +110,7 @@ El grupo eligió la **Opción A**: guardar un volcado binario directo del struct
 
 ## 9. Portabilidad
 
-- Usar C99 (`-std=c99 -pedantic -Wall -Wextra`) y mantener las reglas independientes del sistema operativo. C99 permite comentarios `//` y declaraciones dentro de `for`; todos los módulos se compilan con el mismo estándar.
+- Usar C99 (`-std=c99 -pedantic -Wall -Wextra`) como estándar único y mantener las reglas independientes del sistema operativo. Todos los módulos se compilan con el mismo estándar y sin extensiones del compilador.
 - Concentrar las diferencias de consola entre Windows y Linux en la interfaz, no en el motor.
 - Leer entradas con funciones que permitan validar la línea completa antes de convertirla.
 - Definir dónde se guarda `ranking.dat` y documentar cómo se ejecuta el programa desde ese directorio.

@@ -4,9 +4,9 @@
 /*
  * ranking.h - Ranking de victorias por jugador.
  *
- * El proyecto se compila como C99 (`-std=c99 -pedantic -Wall -Wextra`).
- * Este modulo no necesita caracteristicas de C99: sigue siendo valido en
- * C89, lo que facilita integrarlo con el resto de los modulos.
+ * Estandar unico del proyecto: C99 (`-std=c99 -pedantic -Wall -Wextra`).
+ * Este modulo se compila con el mismo estandar que el resto de la rama;
+ * no se mantiene un modo de compilacion alternativo.
  *
  * ---------------------------------------------------------------------------
  * RESPONSABILIDAD

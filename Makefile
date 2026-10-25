@@ -11,10 +11,9 @@
 #   make run        -> compila y ejecuta el juego
 #   make clean      -> borra binarios y temporales de prueba
 #
-# Estandar: -std=c99 -pedantic -Wall -Wextra. Se adopto C99 para todo el
-# proyecto porque permite comentarios // y declaraciones dentro de for,
-# que ya usan los modulos de interfaz y tablero. -pedantic mantiene el
-# codigo dentro del estandar, sin extensiones del compilador.
+# Estandar unico: -std=c99 -pedantic -Wall -Wextra para todos los modulos
+# (logica, interfaz, persistencia y pruebas). C99 es un estandar ISO de C;
+# -pedantic evita extensiones del compilador y mantiene el codigo portable.
 #
 # El archivo de datos del ranking es un volcado binario del struct Ranking
 # (sin serializacion byte a byte): ver docs/contrato-ranking.md.

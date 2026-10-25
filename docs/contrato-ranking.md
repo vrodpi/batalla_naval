@@ -314,7 +314,6 @@ del ganador y muestra los mensajes de `ranking_mensaje_error`.
    version, por decision del grupo. Se conservan de B las reglas de
    nombres, orden y topes; se eliminan `RANKING_ERROR_VERSION` y
    `RANKING_ERROR_INTEGRIDAD`.
-4. **C99 (actual):** el proyecto pasa de `-ansi` (C89) a
-   `-std=c99 -pedantic -Wall -Wextra` para aceptar `//` y declaraciones
-   dentro de `for` en los modulos de interfaz y tablero. `ranking.c` no
-   necesitaba C99, pero se compila con el mismo estandar que el resto.
+4. **C99 (actual):** estandar unico de la rama para logica, interfaz,
+   persistencia y pruebas: `-std=c99 -pedantic -Wall -Wextra`. No se
+   mantiene un modo de compilacion alternativo.
