@@ -1,18 +1,24 @@
-# Makefile - Batalla Naval (ANSI C, portable Windows/Linux)
+# Makefile - Batalla Naval (modulo ranking con formato binario BNR1 v1)
 #
-# Requiere GCC o Clang y `make`.
-#  Linux:   sudo apt install gcc make   (o equivalente)
-#  Windows: instalar LLVM-MinGW (o MinGW-w64) y usar `mingw32-make`.
-#           Verificado con LLVM-MinGW 22 + `mingw32-make CC=clang`.
-#           Ejecutar desde Git Bash/MSYS2. Ver README.md.
+# Requiere GCC o Clang y make. El objetivo de compilacion acordado es Linux.
 #
-# Uso (desde la raiz del proyecto, donde esta data/):
-#   make            -> compila todo en build/
-#   make test       -> compila y ejecuta tests/test_ranking
-#   make demo       -> compila demo y muestra ayuda de ejecucion
-#   make clean      -> borra build/ y archivos temporales de prueba
+# Uso, desde la raiz del proyecto (donde esta data/):
+#   make            -> compila y deja listos demo y tests del ranking
+#   make test       -> ejecuta las pruebas del ranking (BNR1 v1)
+#   make demo       -> compila la demo de fin de partida
+#   make app        -> compila el juego completo (pendiente de integracion
+#                      de app.c/ui_cli.c/tablero.c; ver nota abajo)
+#   make clean      -> borra binarios y temporales de prueba
 #
-# Estandar: -ansi -pedantic garantiza ANSI C (C89).
+# Estandar: -ansi -pedantic -Wall -Wextra garantiza ANSI C (C89) en el
+# modulo de ranking. El formato binario fija 32 bits escribiendo bytes a
+# mano, sin stdint.h, para no depender de C99.
+#
+# NOTA DE INTEGRACION: src/main.c, src/app.c, src/ui_cli.c y src/tablero.c
+# pertenecen a otros integrantes y a la fecha de este commit todavia no
+# compilan en -ansi (usan comentarios //, declaraciones dentro de for y
+# tienen errores de sintaxis). Por eso `app` no forma parte de `all`:
+# no bloquea el modulo de ranking, que es el que se prueba con `make test`.
 
 CC ?= gcc
 CFLAGS = -ansi -pedantic -Wall -Wextra -Iinclude
@@ -23,25 +29,30 @@ BIN_BATALLA = $(BUILD)/batalla-naval
 BIN_DEMO = $(BUILD)/demo_ranking
 BIN_TEST = $(BUILD)/test_ranking
 
-# Fuentes actuales. Cuando existan app.c, ui_cli.c, game.c, board.c, ai.c,
-# agregarlos a SRC_BATALLA.
-SRC_BATALLA = src/main.c src/ranking.c
+# Fuentes del modulo de ranking (las que se compilan y prueban aca).
 SRC_DEMO = src/demo_ranking.c src/ranking.c
 SRC_TEST = tests/test_ranking.c src/ranking.c
 
-all: $(BIN_BATALLA) $(BIN_DEMO) $(BIN_TEST)
+# Fuentes de la integracion completa. Se usan solo en `make app`.
+SRC_APP = src/main.c src/app.c src/ui_cli.c src/tablero.c src/ranking.c
+
+# Por defecto: entregables del ranking (no bloquean por modulos ajenos).
+all: $(BIN_TEST) $(BIN_DEMO)
 
 $(BUILD):
 	mkdir -p $(BUILD)
-
-$(BIN_BATALLA): $(SRC_BATALLA) include/ranking.h include/config.h | $(BUILD)
-	$(CC) $(CFLAGS) $(SRC_BATALLA) -o $(BIN_BATALLA)
 
 $(BIN_DEMO): $(SRC_DEMO) include/ranking.h include/config.h | $(BUILD)
 	$(CC) $(CFLAGS) $(SRC_DEMO) -o $(BIN_DEMO)
 
 $(BIN_TEST): $(SRC_TEST) include/ranking.h | $(BUILD)
 	$(CC) $(CFLAGS) $(SRC_TEST) -o $(BIN_TEST)
+
+# Integracion completa. Requiere que app/ui/tablero compilen; ver nota.
+$(BIN_BATALLA): $(SRC_APP) include/ranking.h include/config.h include/ui_cli.h include/tablero.h | $(BUILD)
+	$(CC) $(CFLAGS) $(SRC_APP) -o $(BIN_BATALLA)
+
+app: $(BIN_BATALLA)
 
 test: $(BIN_TEST)
 	./$(BIN_TEST)
@@ -52,6 +63,6 @@ demo: $(BIN_DEMO)
 clean:
 	rm -f $(BIN_BATALLA) $(BIN_DEMO) $(BIN_TEST)
 	rm -f $(BUILD)/*.o $(BUILD)/*.exe
-	rm -f data/ranking_test_*.dat
+	rm -f data/ranking_test_*.dat data/ranking.dat.tmp
 
-.PHONY: all test demo clean
+.PHONY: all app test demo clean

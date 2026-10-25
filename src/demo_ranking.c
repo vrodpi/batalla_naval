@@ -1,15 +1,31 @@
 /*
- * demo_ranking.c - Ejemplo de integracion del ranking segun la consigna.
+ * demo_ranking.c - Demo ejecutable del ranking binario BNR1.
  *
- * Flujo que luego vivira en app.c + ui_cli.c:
- *  1. pide el nombre, saluda y presenta reglas,
- *  2. simula el fin de una partida (ganador),
- *  3. carga ranking, suma 1 victoria, guarda,
- *  4. muestra el ranking y espera una tecla antes de salir.
+ * ---------------------------------------------------------------------------
+ * PARA QUE SIRVE
+ * ---------------------------------------------------------------------------
+ * Es la maqueta del final de partida que luego vivira en app.c + ui_cli.c.
+ * Permite probar el modulo ranking de punta a punta sin el juego completo:
+ *   pedir nombre -> saludar -> cargar ranking binario -> sumar 1 victoria ->
+ *   guardar de forma atomica -> mostrar tabla -> esperar ENTER.
+ *
+ * Trazabilidad de una victoria (cada flecha es una llamada real):
+ *   jugador escribe el nombre
+ *     -> leer_linea()               [captura la linea completa]
+ *     -> ranking_cargar()           [BNR1 v1 o vacio si no existe]
+ *     -> ranking_registrar_victoria() [valida, suma, ordena]
+ *     -> ranking_guardar()          [BNR1 v1 + CRC32, atomico]
+ *     -> ranking_mostrar()          [tabla ordenada]
+ *     -> esperar_tecla()            [congela la pantalla final]
+ *
+ * El formato es binario: el archivo NO se puede editar con un editor de
+ * texto. Si existe un ranking.dat de la version texto anterior, cargar
+ * devuelve RANKING_ERROR_VERSION y hay que borrarlo (no hay migracion
+ * automatica en esta demo).
  *
  * Uso:
- *   demo_ranking            (pide el nombre por teclado)
- *   demo_ranking "Ana"      (usa el nombre dado, util para pruebas)
+ *   demo_ranking            pide el nombre por teclado
+ *   demo_ranking "Ana"      toma el ganador de argv[1] (pruebas)
  */
 
 #include <stdio.h>
@@ -18,14 +34,21 @@
 #include "ranking.h"
 #include "config.h"
 
-/* Lee una linea completa por teclado (portable, sin scanf). */
+/*
+ * leer_linea: lee UNA linea completa del teclado en `dest`.
+ *
+ * Se usa fgets() y no scanf("%s") porque scanf corta en el primer espacio
+ * ("Ana Maria" quedaria "Ana") y no controla el desborde. gets() esta
+ * prohibido. Si hay EOF o error, se devuelve string vacio para que el
+ * llamador lo trate como nombre invalido. Luego se quitan '\n' y '\r'
+ * finales (el '\r' aparece si la entrada viene con finales Windows).
+ */
 static void leer_linea(char *dest, int tam)
 {
     if (fgets(dest, tam, stdin) == NULL) {
         dest[0] = '\0';
         return;
     }
-    /* Quita salto de linea. */
     {
         int largo;
         largo = (int)strlen(dest);
@@ -36,6 +59,12 @@ static void leer_linea(char *dest, int tam)
     }
 }
 
+/*
+ * esperar_tecla: cumple el requisito "permanecera en esa pantalla hasta
+ * que el usuario presione una tecla". Se usa ENTER (una linea) y no
+ * getch()/conio.h porque conio.h no existe en Linux. fflush(stdout) es
+ * necesario para que el mensaje aparezca antes de bloquearse.
+ */
 static void esperar_tecla(void)
 {
     char buf[16];
@@ -50,11 +79,13 @@ int main(int argc, char *argv[])
     char ganador[RANKING_NOMBRE_MAX];
     int rc;
 
+    /* Paso 1: presentacion y reglas (en el juego final lo hace ui_cli). */
     printf("=== BATALLA NAVAL ===\n");
     printf("Reglas resumidas: tablero de %dx%d, %d barcos por jugador\n",
            CONFIG_FILAS, CONFIG_COLUMNAS, CONFIG_NUM_BARCOS);
     printf("de longitudes 5, 4, 3, 2 y 1. Gana quien hunde toda la flota rival.\n\n");
 
+    /* Paso 2: nombre del ganador (argv[1] en pruebas, teclado en uso real). */
     if (argc > 1) {
         strncpy(ganador, argv[1], (int)sizeof(ganador) - 1);
         ganador[sizeof(ganador) - 1] = '\0';
@@ -63,21 +94,31 @@ int main(int argc, char *argv[])
         fflush(stdout);
         leer_linea(ganador, (int)sizeof(ganador));
     }
-
     printf("\nHola, %s. Gracias por jugar.\n", ganador);
 
+    /* Paso 3: cargar el ranking binario previo. Un archivo inexistente
+       no es fatal: es la primera partida y se arranca vacio. */
     ranking_inicializar(&ranking);
     rc = ranking_cargar(&ranking, CONFIG_RANKING_RUTA);
     if (rc == RANKING_ERROR_ARCHIVO) {
         printf("(Aviso: no existia %s, se inicia un ranking vacio.)\n",
                CONFIG_RANKING_RUTA);
+    } else if (rc == RANKING_ERROR_VERSION) {
+        printf("(Aviso: %s es de otro formato/version; se inicia vacio.)\n",
+               CONFIG_RANKING_RUTA);
+        printf("(Si es el ranking.dat de texto viejo, borrelo: el nuevo es binario.)\n");
+    } else if (rc == RANKING_ERROR_INTEGRIDAD) {
+        printf("(Aviso: %s esta corrupto; se inicia vacio.)\n",
+               CONFIG_RANKING_RUTA);
     } else if (rc == RANKING_ERROR_FORMATO) {
-        printf("(Aviso: %s tenia lineas invalidas; se cargaron las validas.)\n",
+        printf("(Aviso: %s tiene datos invalidos; se inicia vacio.)\n",
                CONFIG_RANKING_RUTA);
     } else if (rc != RANKING_OK) {
         printf("No se pudo leer el ranking: %s\n", ranking_mensaje_error(rc));
     }
 
+    /* Paso 4: registrar la victoria. Si el nombre es invalido se informa
+       el motivo y se sale con codigo 1 (no hay partida que registrar). */
     rc = ranking_registrar_victoria(&ranking, ganador);
     if (rc != RANKING_OK) {
         printf("No se pudo registrar la victoria: %s\n",
@@ -86,14 +127,18 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    /* Paso 5: guardar BNR1 v1 de forma atomica. Si falla (permisos, disco,
+       carpeta data/ inexistente) se avisa, pero se muestra el ranking en
+       memoria para no perder la pantalla final. */
     rc = ranking_guardar(&ranking, CONFIG_RANKING_RUTA);
     if (rc != RANKING_OK) {
         printf("No se pudo guardar el ranking en %s: %s\n",
                CONFIG_RANKING_RUTA, ranking_mensaje_error(rc));
     } else {
-        printf("Ranking guardado en %s.\n\n", CONFIG_RANKING_RUTA);
+        printf("Ranking binario guardado en %s.\n\n", CONFIG_RANKING_RUTA);
     }
 
+    /* Paso 6: pantalla final y espera de ENTER. */
     ranking_mostrar(&ranking);
     esperar_tecla();
     return 0;

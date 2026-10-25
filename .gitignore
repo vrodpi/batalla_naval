@@ -7,10 +7,13 @@ build/
 
 # Temporales de pruebas del ranking
 data/ranking_test_*.dat
+data/ranking_test_*.dat.tmp
 
 # El ranking real se puede versionar o no; por defecto se ignora
 # para no subir victorias de prueba. Quitar la linea si se quiere entregar.
 data/ranking.dat
+# Temporal de la escritura atomica (rename sobre data/ranking.dat).
+data/ranking.dat.tmp
 
 # Editores / SO
 .vscode/
