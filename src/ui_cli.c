@@ -1,98 +1,88 @@
 #include "../include/ui_cli.h"
+#include "../include/tablero.h"
+#include "../include/game.h"
 
-#define MAX_CARACTERES_NICKS 21
-
-typedef enum {
-    SALIR,
-    Jugador_vs_Jugador,
-    Jugador_vs_Maquina
-} MENU_PRINCIPAL;
-
-char nombres_jugadores[2];
-int cantidad_de_jugadores = 0;
-
-#ifdef _WIN32 // funciones escritas para Windows
-
-void limpiar_pantalla_cli(void) {
-        system("cls");            
+void limpiar_pantalla_cli(void){
+    #if defined(_WIN32) && !defined(__CYGWIN__)
+        system("cls");
+    #else
+        system("clear");
+    #endif
 }
 
-#elif defined(__linux__) // funciones escritas para Linux
-
-void limpiar_pantalla_cli(void) {
-    system("clear");
-}
-
-#endif
-    
 void esperar_usuario(void){
     printf("Presione 'enter' para continuar.\n");
     getchar();
 }
 
-char *pedir_nombre_jugador(int numero_de_jugador){
+void pedir_nombre_jugador(char jugador[]){
 
-    char nick_jugador[MAX_CARACTERES_NICKS];
-    
-    printf("Ingrese el nombre del jugador %d: ", numero_de_jugador + 1);
-    fgets(nick_jugador, MAX_CARACTERES_NICKS, stdin);
-    nick_jugador[strcspn(nick_jugador, "\n")] = '\0';
+    printf("Ingrese el nombre del jugador: ");
+    fgets(jugador, sizeof(jugador), stdin);
+    jugador[strcspn(jugador, "\n")] = '\0';
 
-    return nick_jugador;
 }
 
-void saludar_jugador(char *nombre_jugador){
-    printf("Bienvenido %s!\n", nombre_jugador);
+void saludar_jugador(char jugador[]){
+    printf("Bienvenido %s!\n", jugador);
 }
 
-void ingresar_jugador(void){
+void ingresar_y_saludar_jugador(char jugador[]){
 
-    nombres_jugadores[cantidad_de_jugadores] = pedir_nombre_jugador(cantidad_de_jugadores);
+    pedir_nombre_jugador(jugador);
 
-    saludar_jugador(nombres_jugadores[cantidad_de_jugadores]);
-
-    cantidad_de_jugadores++;
+    saludar_jugador(jugador);
 }
 
 void mostrar_archivo_de_texto(const char *ruta_al_archivo){
     
-    FILE *reglamento = fopen(ruta_al_archivo, "r");
+    FILE *archivo = fopen(ruta_al_archivo, "r");
 
-    if (reglamento == NULL) {
+    if (archivo == NULL) {
         printf("No se pudo abrir el archivo \"%s\"\n", ruta_al_archivo);
         return 1;
     }
 
     int c;
 
-    while ((c = fgetc(reglamento)) != EOF) {
+    while ((c = fgetc(archivo)) != EOF) {
         putchar(c);
     }
 
-    fclose(reglamento);
+    fclose(archivo);
 }
 
-void mostrar_presentacion_y_reglamento(void){
+void mostrar_presentacion_y_reglamento(char jugador[]){
     limpiar_pantalla_cli();
 
-    ingresar_jugador();
+    ingresar_y_saludar_jugador(jugador);
 
     limpiar_pantalla_cli();
 
     char ruta_reglamento[] = "../files/Reglamento.txt";
 
     mostrar_archivo_de_texto(ruta_reglamento);
-    esperar_usuario();
-    
+    esperar_usuario();    
 }
 
 void mostrar_menu_principal(void){
     imprimir_linea();
     printf("MENÚ PRINCIPAL\n");
     imprimir_linea();
-    printf("    %d. Jugador vs Jugador\n", Jugador_vs_Jugador);
-    printf("    %d. Jugador vs Máquina\n", Jugador_vs_Maquina);
-    printf("    %d. Salir del juego.\n", SALIR);
+    printf("Seleccionar modo de juego:\n");
+    printf("    1. Jugador vs Jugador\n");
+    printf("    2. Jugador vs IA\n");
+    imprimir_linea();
+    printf("3. Mostrar ranking.\n");
+    printf("0. Salir del juego.\n");
+    imprimir_linea();
+}
+
+void mostrar_menu_de_dificultad(void){
+    imprimir_linea();
+    printf("Seleccione el nivel de dificultad:\n");
+    printf("    1. Modo normal\n");
+    printf("    2. Modo Tormenta\n");
     imprimir_linea();
 }
 
@@ -109,20 +99,40 @@ void elegir_modo_de_juego(void){
 
         mostrar_menu_principal();
         printf("Ingrese una opción: ");
-        scanf("%d", opcion_menu);
+        scanf("%d", &opcion_menu);
         getchar();
 
         switch (opcion_menu){
-            case Jugador_vs_Jugador:
+            case 1:
+                /*
+                mostrar_menu_de_dificultad();
+                printf("Ingrese una opción: ");
+                scanf("%d", opcion_menu);
+                getchar();
+                */
+
+                // iniciar partida vs Jugador
                 break;
-            case Jugador_vs_Maquina:
+            case 2:
+                // seleccionar dificultad
+                // iniciar artida vs IA
                 break;
-            case SALIR:
+            case 3:
+                // mostrar ranking
+                break;
+            case 0:
+                printf("Saliendo...\n");
                 break;
             default:
                 printf("No se reconoce la opción ingresada.\n");
                 break;
         }
     } while (opcion_menu != 0);
-    
 }
+/*
+void pedir_posicion_del_barco(Jugador jugador, Tamanio barco_a_colocar){
+    int barcos_colocados = 1;
+
+    printf();
+}
+    */
