@@ -3,16 +3,33 @@
 #include "tablero.h"
 #define BARCOS_MODO_NORMAL 5
 
-#include <stdio.h>
+#include "tablero.h"
 
+typedef enum { 
+    PVP, // N normal
+    PVIA // Persona vs IA (normal)
+} Modo_de_juego;
 
+typedef enum {
+    NORMAL,
+    TORMENTA
+} Dificultad;
 
-typedef enum  { 
-    PvP_N, // N normal
-    PvIA_N, // Persona vs IA (normal)
-    PvP_T, // Persona vs persona (tormenta)
-    PvIA_T, // T tormenta
-}Modo;
+typedef enum {
+    PJ1,
+    PJ2
+} Turno;
+
+typedef struct {
+    Jugador jugador1;
+    Jugador jugador2;
+    Turno turno;
+    int cantidad_turnos;
+    Modo_de_juego modo_de_juego;
+    Dificultad dificultad;
+    int victoria;
+    int ganador;
+} Partida;
 
 typedef struct  {
     Tableros tableros;
@@ -22,18 +39,8 @@ typedef struct  {
     int hits;                     //( impactos acertados; ranking)
 } Jugador;
 
-typedef struct {
-    Jugador jugador1;               // usar strncpy para cargas los nombres
-    Jugador jugador2;
-    int turno;
-    int victoria;
-    int cantidad_turnos;
-    Modo modo_de_juego;
-    int ganador;
-}Partida;
 
-
-void inicializar_partida( Partida *partida, Modo modo);
+void inicializar_partida( Partida *partida, Modo_de_juego modo);
 void jugar(Partida *partida);
 int fin_juego(Partida *partida);
 void barco_hundido(Jugador *defensor);

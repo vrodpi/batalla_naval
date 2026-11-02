@@ -1,8 +1,8 @@
 #ifndef TABLERO_H
 #define TABLERO_H
+ 
 #define FIL 10
 #define COL 10
-
 
 typedef enum {              // orientación del barco a ingresar
     horizontal,
