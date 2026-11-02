@@ -1,51 +1,39 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <stdio.h>
 #include "tablero.h"
 
+typedef enum { 
+    PVP, // N normal
+    PVIA // Persona vs IA (normal)
+} Modo_de_juego;
 
-enum Modo { 
-    PvP_N, // N normal
-    PvIA_N, // Persona vs IA (normal)
-    PvP_T, // Persona vs persona (tormenta)
-    PvIA_T, // T tormenta
-};
+typedef enum {
+    NORMAL,
+    TORMENTA
+} Dificultad;
 
-typedef struct Jugador {
-    Tablero tableros;
-    char Nombres[50];
-    int Barcos_vivos; 
-    int Hits;  //(ranking)
-}Jugador;
-
-typedef struct Partida {
-    Jugador jugador1;
-    Jugador jugador2;
-    int Turno;
-    int Victoria;
-    int Cantidad_turnos;
-    enum Modo modo_de_juego;
-    int Ganador;
-}Partida;
-
-typedef enum {              // orientación del barco a ingresar
-    horizontal,
-    vertical
-} Orientacion;
-
-typedef enum {              // Tipo y tamaño del barco
-    porta_aviones=5,
-    buque=4,
-    submarino=3,
-    lancha=2,
-    velero=1
-} Tamanio;
+typedef enum {
+    PJ1,
+    PJ2
+} Turno;
 
 typedef struct {
-    Tamanio tamanio;
-    Orientacion orientacion;
-    int fila;
-    int columna;
-} Barco;
+    Tablero tableros;
+    char nombre[50];
+    int barcos_vivos; 
+    int hits;  //(ranking)
+} Jugador;
+
+typedef struct {
+    Jugador jugador1;
+    Jugador jugador2;
+    Turno turno;
+    int cantidad_turnos;
+    Modo_de_juego modo_de_juego;
+    Dificultad dificultad;
+    int victoria;
+    int ganador;
+} Partida;
+
 #endif
