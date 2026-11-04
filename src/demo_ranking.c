@@ -1,29 +1,26 @@
-/*
- * demo_ranking.c - Demo ejecutable del ranking binario (Opcion A).
+/**
+ * @file demo_ranking.c
+ * @brief Demo ejecutable del ranking binario (Opcion A).
  *
- * ---------------------------------------------------------------------------
- * PARA QUE SIRVE
- * ---------------------------------------------------------------------------
  * Es la maqueta del final de partida que luego vivira en app.c + ui_cli.c.
  * Permite probar el modulo ranking de punta a punta sin el juego completo:
- *   pedir nombre -> saludar -> cargar ranking binario -> sumar 1 victoria ->
- *   guardar -> mostrar tabla -> esperar ENTER.
+ * pedir nombre -> saludar -> cargar ranking binario -> sumar 1 victoria ->
+ * guardar -> mostrar tabla -> esperar ENTER.
  *
  * Trazabilidad de una victoria (cada flecha es una llamada real):
  *   jugador escribe el nombre
- *     -> leer_linea()               [captura la linea completa]
- *     -> ranking_cargar()           [volcado binario o vacio si no existe]
+ *     -> leer_linea()                 [captura la linea completa]
+ *     -> ranking_cargar()             [volcado binario o vacio si no existe]
  *     -> ranking_registrar_victoria() [valida, suma, ordena]
- *     -> ranking_guardar()          [volcado binario completo]
- *     -> ranking_mostrar()          [tabla ordenada]
- *     -> esperar_tecla()            [congela la pantalla final]
+ *     -> ranking_guardar()            [volcado binario completo]
+ *     -> ranking_mostrar()            [tabla ordenada]
+ *     -> esperar_tecla()              [congela la pantalla final]
  *
- * El formato es binario (Opcion A): una copia cruda del struct Ranking,
- * SIN magic number, version ni checksum. El archivo NO se puede editar con
- * un editor de texto comun, pero tampoco demuestra integridad: si esta
- * truncado o corrupto, cargar devuelve RANKING_ERROR_FORMATO y se arranca
- * con ranking vacio. Un ranking.dat del formato texto viejo se rechaza por
- * tamano (no hay migracion automatica): borrarlo a mano si existe.
+ * @note El formato es binario (Opcion A): una copia cruda del struct Ranking,
+ *       SIN magic number, version ni checksum. Si esta truncado o corrupto,
+ *       cargar devuelve RANKING_ERROR_FORMATO y se arranca con ranking vacio.
+ * @note Un ranking.dat del formato texto viejo se rechaza por tamano (no hay
+ *       migracion automatica): borrarlo a mano si existe.
  *
  * Uso:
  *   demo_ranking            pide el nombre por teclado
@@ -36,24 +33,35 @@
 #include "ranking.h"
 #include "config.h"
 
-/*
- * leer_linea: lee UNA linea completa del teclado en `dest`.
+/**
+ * @brief Lee una linea completa del teclado en `dest`.
  *
  * Se usa fgets() y no scanf("%s") porque scanf corta en el primer espacio
  * ("Ana Maria" quedaria "Ana") y no controla el desborde. gets() esta
- * prohibido. Si hay EOF o error, se devuelve string vacio para que el
- * llamador lo trate como nombre invalido. Luego se quitan '\n' y '\r'
- * finales (el '\r' aparece si la entrada viene con finales Windows).
+ * prohibido. Si hay EOF o error, se deja un string vacio para que el llamador
+ * lo trate como nombre invalido. Luego se quitan '\n' y '\r' finales (el '\r'
+ * aparece si la entrada viene con finales Windows).
+ *
+ * @param dest Buffer donde se guarda la linea.
+ * @param tam Tamano total del buffer.
+ * @return No devuelve valor.
+ * @note Si hay EOF o error, deja un string vacio para que el llamador lo
+ *       trate como nombre invalido.
  */
 static void leer_linea(char *dest, int tam)
 {
+    /* EOF o error: dejar la cadena vacia para que el nombre sea invalido. */
     if (fgets(dest, tam, stdin) == NULL) {
         dest[0] = '\0';
         return;
     }
+
     {
-        int largo;
+        int largo; /* Largo actual de la cadena leida. */
+
         largo = (int)strlen(dest);
+
+        /* Quitar todos los saltos de linea y retornos de carro finales. */
         while (largo > 0 && (dest[largo - 1] == '\n' || dest[largo - 1] == '\r')) {
             dest[largo - 1] = '\0';
             largo--;
@@ -61,25 +69,41 @@ static void leer_linea(char *dest, int tam)
     }
 }
 
-/*
- * esperar_tecla: cumple el requisito "permanecera en esa pantalla hasta
- * que el usuario presione una tecla". Se usa ENTER (una linea) y no
- * getch()/conio.h porque conio.h no existe en Linux. fflush(stdout) es
- * necesario para que el mensaje aparezca antes de bloquearse.
+/**
+ * @brief Espera ENTER para congelar la pantalla final.
+ *
+ * Cumple el requisito "permanecera en esa pantalla hasta que el usuario
+ * presione una tecla". Se usa ENTER (una linea) y no getch()/conio.h porque
+ * conio.h no existe en Linux.
+ *
+ * @return No devuelve valor.
+ * @note fflush(stdout) es necesario para que el mensaje aparezca antes de
+ *       bloquearse esperando la entrada.
  */
 static void esperar_tecla(void)
 {
-    char buf[16];
+    char buf[16]; /* Buffer temporal para consumir la linea. */
+
     printf("\nPresione ENTER para finalizar...");
     fflush(stdout);
     leer_linea(buf, (int)sizeof(buf));
 }
 
+/**
+ * @brief Ejecuta la demo completa de fin de partida.
+ *
+ * @param argc Cantidad de argumentos de linea de comandos.
+ * @param argv Argumentos; si argc > 1, argv[1] es el nombre del ganador.
+ * @return 0 si la demo termino normalmente; 1 si el nombre es invalido y no
+ *         se pudo registrar la victoria.
+ * @note Sin argumento, el nombre se pide por teclado. El programa debe
+ *       ejecutarse desde la raiz para que exista data/ranking.dat.
+ */
 int main(int argc, char *argv[])
 {
-    Ranking ranking;
-    char ganador[RANKING_NOMBRE_MAX];
-    int rc;
+    Ranking ranking;                    /* Ranking cargado en memoria. */
+    char ganador[RANKING_NOMBRE_MAX];   /* Nombre del ganador. */
+    int rc;                             /* Codigo de retorno de ranking.c. */
 
     /* Paso 1: presentacion y reglas (en el juego final lo hace ui_cli). */
     printf("=== BATALLA NAVAL ===\n");
@@ -89,6 +113,7 @@ int main(int argc, char *argv[])
 
     /* Paso 2: nombre del ganador (argv[1] en pruebas, teclado en uso real). */
     if (argc > 1) {
+        /* Copia acotada: nunca se escribe mas alla del buffer. */
         strncpy(ganador, argv[1], (int)sizeof(ganador) - 1);
         ganador[sizeof(ganador) - 1] = '\0';
     } else {
