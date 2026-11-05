@@ -15,18 +15,26 @@ int main(void){
         case PVP: 
             printf("JvJ\n");
             pedir_nombre_jugador(partida.jugador2.nombre);
+
+            imprimir_linea();
+
+            printf("Estas jugando contra %s\n", partida.jugador2.nombre);
             break;
         case PVIA:
             printf("JvIA\n");
             strcpy(partida.jugador2.nombre, "IA");
+
+            imprimir_linea();
+
+            printf("Estas jugando contra %s\n", partida.jugador2.nombre);
             break;
     }
     switch (partida.dificultad){
         case NORMAL:
-            printf("Normal\n");
+            printf("Dificultad: Normal\n");
             break;
         case TORMENTA:
-            printf("Tormenta\n");
+            printf("Dificultad: Tormenta\n");
             break;
     }
     /*

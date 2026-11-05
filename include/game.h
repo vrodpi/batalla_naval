@@ -1,6 +1,6 @@
 #ifndef GAME_H
 #define GAME_H
-#include "tablero.h"
+
 #define BARCOS_MODO_NORMAL 5
 
 #include "tablero.h"
@@ -20,6 +20,14 @@ typedef enum {
     PJ2
 } Turno;
 
+typedef struct  {
+    Tableros tableros;
+    char nombre[50];
+    Barco barco [BARCOS_MODO_NORMAL];
+    int barcos_vivos;              //  comienza en 5, contador. barcos aun en juego.
+    int hits;                     //( impactos acertados; ranking)
+} Jugador;
+
 typedef struct {
     Jugador jugador1;
     Jugador jugador2;
@@ -30,14 +38,6 @@ typedef struct {
     int victoria;
     int ganador;
 } Partida;
-
-typedef struct  {
-    Tableros tableros;
-    char nombres[50];
-    Barco barco [BARCOS_MODO_NORMAL];
-    int barcos_vivos;              //  comienza en 5, contador. barcos aun en juego.
-    int hits;                     //( impactos acertados; ranking)
-} Jugador;
 
 
 void inicializar_partida( Partida *partida, Modo_de_juego modo);
