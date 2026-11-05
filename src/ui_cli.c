@@ -252,11 +252,45 @@ int validar_entrada_fila_y_columna(int fila){
     return 0;
 }
 
-int solicitar_entrada_de_columna(void){
-    int opcion;
+int solicitar_entrada_de_fila(void){
+    int fila = pedir_opcion_al_usuario();
 
+    if (validar_entrada_fila_y_columna(fila) == 0){
+        printf("La columna elegida está fuera del tablero.\n");
+
+        return -1;
+    }
+
+    return fila;
+}
+
+int solicitar_entrada_de_columna(void){
+    
     printf("Ingrese una opción: ");
-    opcion = getchar();
+    int columna = getchar(); // toma el primer caracter ingresado
+
+    // consume el resto de la línea
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF){
+    }
+
+    // lee si se ingresó una columna dentro del rango del tablero 
+    // y convierte la columna al valor numérico correspondiente 
+    if (columna >= 'A' && columna <= 'J'){
+        columna -= 65;
+    }
+    else if (columna >= 'a' && columna <= 'j'){
+        columna -= 97;
+    }
+
+    // si la entrada no es válida devuelve -1
+    if(validar_entrada_fila_y_columna(columna) == 0){
+        printf("La columna elegida está fuera del tablero.\n");
+
+        return -1;
+    }
+
+    return columna;
 }
 
 void pedir_posicion_del_barco(Jugador *jugador, Tamanio barco){
