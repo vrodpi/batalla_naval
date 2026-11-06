@@ -2,14 +2,12 @@
 #include "tablero.h"
 #include <stdio.h>
 
-void inicializar_partida(Partida *partida, Modo_de_juego modo, Dificultad dificultad) {
+void inicializar_partida(Partida *partida) {
       
     partida->turno = 1;
     partida->ganador = 0;
     partida->victoria = 0;
     partida->cantidad_turnos = 0;
-    partida->modo_de_juego = modo;
-    partida->dificultad = dificultad;
 
     // Inicializar los barcos vivos
     partida->jugador1.barcos_vivos = BARCOS_MODO_NORMAL;        // cada jugador empieza con 5 barcos
