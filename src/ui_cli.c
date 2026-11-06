@@ -255,6 +255,8 @@ int validar_entrada_fila_y_columna(int fila){
 int solicitar_entrada_de_fila(void){
     int fila = pedir_opcion_al_usuario();
 
+    fila--;
+
     if (validar_entrada_fila_y_columna(fila) == 0){
         printf("La columna elegida está fuera del tablero.\n");
 
@@ -293,16 +295,7 @@ int solicitar_entrada_de_columna(void){
     return columna;
 }
 
-void pedir_posicion_del_barco(Jugador *jugador, Tamanio barco){
+void pedir_posicion_del_barco(Jugador *jugador, Tamanio barco, Orientacion orientacion, char tablero[FIL][COL]){
     
-    int opcion;
-
-    printf("Barco: %s\n", nombres_barcos[barco - 1]);
-    printf("Fila: ");
-
-    do {
-        opcion = pedir_opcion_al_usuario();
-        opcion--;
-    } while (!validar_entrada_fila_y_columna(opcion));
     
 }
