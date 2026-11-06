@@ -39,9 +39,10 @@ typedef enum {
 
 
 void inicializar_tablero(char tablero[FIL][COL], char tablero_disparos[FIL][COL]);
-int libre(Barco barcos, char tablero[FIL][COL]);
+int validar_rango(Barco barco);
+int libre(Barco barco, char tablero[FIL][COL]);
+void validar_ingreso_barco(Barco barco, char tablero[FIL][COL]);
 void ingresar_barco(Barco barco, char tablero[FIL][COL]);
-void mostrar_tablero(char tablero[FIL][COL], char tablero_disparos[FIL][COL]);
 
 
 #endif
