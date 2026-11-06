@@ -40,7 +40,7 @@ typedef struct {
 } Partida;
 
 
-void inicializar_partida( Partida *partida, Modo_de_juego modo);
+void inicializar_partida( Partida *partida);
 void jugar(Partida *partida);
 int fin_juego(Partida *partida);
 void barco_hundido(Jugador *defensor);
