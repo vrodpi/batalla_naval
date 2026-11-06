@@ -7,9 +7,10 @@
  *       main.c solo llama a app_run(); no contiene menus ni reglas.
  * @note Esta separacion permite que una futura interfaz grafica reemplace a
  *       ui_cli.c sin tocar main.c ni el motor del juego.
- * @note ESTADO ACTUAL: el esqueleto muestra presentacion, reglamento y menu.
- *       El motor de partida (game/ai) y el registro automatico del ganador
- *       en ranking.c quedan pendientes de integracion.
+ * @note ESTADO ACTUAL: el flujo muestra presentacion, reglamento, menu,
+ *       dificultad y nombres. El motor de partida (game.c) ya esta integrado
+ *       y probado; la colocacion manual de la flota, la IA y el registro
+ *       automatico del ganador en ranking.c quedan pendientes.
  */
 
 #ifndef BATALLA_NAVAL_APP_H

@@ -9,7 +9,7 @@
  *   - ui_cli.c  habla con el jugador (muestra/pide);
  *   - tablero.c aplica las reglas de tablero y colocacion;
  *   - ranking.c guarda las victorias;
- *   - game.c / ai.c se integraran en la proxima etapa.
+ *   - game.c ya esta integrado; ai.c se integrara en la proxima etapa.
  *
  * @note Recorrido de una ejecucion: main -> app_run (presentacion,
  *       reglamento, menu) -> ... Cuando exista el motor: partida -> victoria

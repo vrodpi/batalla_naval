@@ -3,8 +3,9 @@
  * @brief Modelo del tablero y de la flota.
  *
  * Define los tipos de datos del tablero (celdas, orientacion, tamanio de
- * barco, jugador) y las operaciones de colocacion y dibujo. No pide datos
- * por teclado ni decide el flujo de la partida: eso es ui_cli.c / app.c.
+ * barco, tableros y resultado de disparo) y las operaciones de colocacion y
+ * dibujo. No pide datos por teclado ni decide el flujo de la partida: eso es
+ * ui_cli.c / app.c.
  *
  * @note Convencion de coordenadas: `fila` y `columna` son indices
  *       0..CONFIG_FILAS-1 y 0..CONFIG_COLUMNAS-1. La interfaz muestra filas
@@ -61,15 +62,29 @@ typedef struct {
     Orientacion orientacion; /**< horizontal o vertical. */
     int fila;                /**< Fila de la proa (0..CONFIG_FILAS-1). */
     int columna;             /**< Columna de la proa (0..CONFIG_COLUMNAS-1). */
+    int hundido;             /**< 0 si sigue a flote; 1 si ya fue hundido. */
 } Barco;
 
 /**
- * @brief Datos de un jugador dentro de una partida.
+ * @brief Los dos tableros que maneja cada jugador.
+ *
+ * `tablero` guarda la flota propia y los impactos recibidos; `tablero_disparos`
+ * guarda el resultado de los disparos contra el rival.
  */
 typedef struct {
-    char nombre[CONFIG_NOMBRE_MAX]; /**< Nombre terminado en '\0'. */
-    Barco barco[CONFIG_NUM_BARCOS]; /**< Flota completa del jugador. */
-} Jugador;
+    char tablero[CONFIG_FILAS][CONFIG_COLUMNAS];          /**< Flota propia. */
+    char tablero_disparos[CONFIG_FILAS][CONFIG_COLUMNAS]; /**< Disparos al rival. */
+} Tableros;
+
+/**
+ * @brief Resultado de aplicar un disparo sobre un tablero.
+ */
+typedef enum {
+    disp_NO_valido = 0, /**< Coordenada fuera del tablero o error. */
+    disp_agua,          /**< El disparo cayo al agua. */
+    disp_impacto,       /**< El disparo acerto a un barco. */
+    disp_repetido       /**< La casilla ya habia sido disparada. */
+} Rdo_Disparo;
 
 /**
  * @brief Llena los dos tableros con agua ('~').

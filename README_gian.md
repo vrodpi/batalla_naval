@@ -38,8 +38,9 @@ Los nombres y las horas aproximadas se informan en la entrega final.
 - El programa se ejecuta siempre desde la raiz del proyecto, porque las rutas
   de `data/ranking.dat` y `files/Reglamento.txt` son relativas.
 
-El motor de partida (`game.c`) y la IA (`ai.c`) todavia no estan integrados.
-El estado actual del programa se detalla en la seccion 3.
+El motor de partida (`game.c`) ya esta integrado y probado; la IA (`ai.c`) y
+la conexion de la partida completa desde la app siguen pendientes. El estado
+actual del programa se detalla en la seccion 3.
 
 ## 3. Estado actual
 
@@ -47,21 +48,26 @@ El estado actual del programa se detalla en la seccion 3.
   rutas configurables.
 - `tablero.c` / `tablero.h`: inicializacion, validacion de rango, control de
   superposicion y contacto, colocacion y dibujo de los dos tableros.
-- `ui_cli.c` / `ui_cli.h`: presentacion, reglamento, captura robusta de nombres
-  y menu principal con validacion de opciones.
-- `app.c` / `app.h`: coordina presentacion, reglamento y menu; deja preparado el
-  punto de integracion del motor y del cierre con ranking.
+- `game.c` / `game.h`: motor de partida (inicializacion, colocacion, disparos,
+  hundimiento, turnos y condicion de victoria), adaptado a C23.
+- `ui_cli.c` / `ui_cli.h`: presentacion, reglamento, captura robusta de nombres,
+  menu principal con dificultad, ranking y reglamento, y entrada de filas y
+  columnas.
+- `app.c` / `app.h`: coordina presentacion, reglamento, menu, dificultad y
+  nombres; deja preparado el inicio de la partida completa.
 - `ranking.c` / `ranking.h`: registro de victorias, busqueda insensible a
   mayusculas, orden, persistencia binaria y validacion del archivo.
 - `main.c`: solo llama a `app_run()`. No contiene menus, reglas ni persistencia.
 - `tests/test_ranking.c`: 68 aserciones del ranking.
 - `tests/test_tablero.c`: 26 aserciones del tablero.
+- `tests/test_game.c`: 74 aserciones del motor de partida.
 - `src/demo_ranking.c`: demuestra el flujo de fin de partida y genera un
   `data/ranking.dat` real de 3604 bytes.
 
-`make app` compila el esqueleto actual y `make run` lo ejecuta: presentacion,
-reglamento y menu. La partida completa queda pendiente hasta integrar `game.c`
-y `ai.c`.
+`make app` compila el juego completo (incluido `game.c`) y `make run` lo
+ejecuta: presentacion, reglamento, menu, dificultad y nombres. La partida
+completa queda pendiente hasta conectar la colocacion manual de la flota y la
+IA.
 
 ## 4. Estandar C23
 
@@ -118,8 +124,8 @@ fuente de verdad y todos los modulos se compilan con las mismas flags.
 | 5 barcos de 5, 4, 3, 2 y 1 | `config.h` y `tablero.h` (`Tamanio`) | Completo |
 | Colocacion manual horizontal/vertical | `tablero.c` (`rango`, `libre`, `ingresar_barco`) | Completo |
 | Validacion de limites y superposicion | `rango()` y `libre()` | Completo |
-| Dos modalidades de juego | `ModoJuego` en `ui_cli.h` y menu en `app.c` | Menu completo; partida pendiente |
-| Turnos, disparos y condicion de victoria | `game.c` | Pendiente |
+| Dos modalidades de juego | `Modo_de_juego` en `game.h` y menu en `ui_cli.c` | Menu y dificultad completos; partida pendiente |
+| Turnos, disparos y condicion de victoria | `game.c` (`game_realizar_disparo`, `barco_hundido`, `fin_juego`) | Motor integrado y probado; partida completa pendiente |
 | IA que no repite disparos | `ai.c` | Pendiente |
 | Registro de victorias por nombre | `ranking.c` (`ranking_registrar_victoria`) | Completo |
 | Ranking ordenado y persistente | `ranking.c` (`ranking_ordenar`, `ranking_guardar`) | Completo |
@@ -135,11 +141,12 @@ verifica en **Windows** con LLVM-MinGW (clang 22.1.8).
 
 ```sh
 # Desde la raiz del proyecto (donde estan Makefile, data/ y files/)
-make                # compila el juego, la demo y las dos suites
+make                # compila el juego, la demo y las tres suites
 make app            # compila solo el juego
-make test           # ejecuta ranking + tablero
+make test           # ejecuta ranking + tablero + motor
 make test-ranking   # ejecuta solo ranking
 make test-tablero   # ejecuta solo tablero
+make test-game      # ejecuta solo motor de partida
 make run            # compila y ejecuta el juego
 make demo           # compila la demo de fin de partida
 make clean          # borra binarios y temporales de prueba
@@ -158,9 +165,11 @@ Flujo actual de `./build/batalla-naval`:
 
 1. pide el nombre del jugador 1;
 2. muestra `files/Reglamento.txt` y espera ENTER;
-3. muestra el menu principal;
-4. si se elige un modo, informa la eleccion y espera ENTER;
-5. si se elige `0`, sale.
+3. muestra el menu principal (modos, dificultad, ranking y reglamento);
+4. si se elige un modo, pide dificultad y el nombre del jugador 2 (o usa
+   `IA` en el modo contra la maquina);
+5. muestra un resumen y espera ENTER; la partida completa queda pendiente;
+6. si se elige `0`, sale.
 
 ### 6.1 Linux / WSL
 
@@ -178,7 +187,7 @@ desde `/mnt/c`, para evitar problemas de permisos y rendimiento):
 cp -r /mnt/c/Users/gican/Desktop/UNI_projects/demo-batallanaval ~/UNI_projects/demo-batallanaval
 cd ~/UNI_projects/demo-batallanaval
 make
-make test        # 68/68 ranking + 26/26 tablero
+make test        # 68/68 ranking + 26/26 tablero + 74/74 motor
 ```
 
 Para trabajar desde VS Code: instala la extension **WSL**, luego
@@ -192,10 +201,12 @@ Compatible con LLVM-MinGW (clang). Compilacion manual desde Git Bash:
 ```sh
 clang -std=c23 -pedantic -Wall -Wextra -Iinclude tests/test_ranking.c src/ranking.c -o build/test_ranking.exe
 clang -std=c23 -pedantic -Wall -Wextra -Iinclude tests/test_tablero.c src/tablero.c -o build/test_tablero.exe
+clang -std=c23 -pedantic -Wall -Wextra -Iinclude tests/test_game.c src/game.c src/tablero.c -o build/test_game.exe
 clang -std=c23 -pedantic -Wall -Wextra -Iinclude src/demo_ranking.c src/ranking.c -o build/demo_ranking.exe
-clang -std=c23 -pedantic -Wall -Wextra -Iinclude src/main.c src/app.c src/ui_cli.c src/tablero.c src/ranking.c -o build/batalla-naval.exe
+clang -std=c23 -pedantic -Wall -Wextra -Iinclude src/main.c src/app.c src/ui_cli.c src/game.c src/tablero.c src/ranking.c -o build/batalla-naval.exe
 ./build/test_ranking.exe
 ./build/test_tablero.exe
+./build/test_game.exe
 ./build/batalla-naval.exe
 ```
 
@@ -209,17 +220,20 @@ disponible, imprime lineas en blanco.
 ```text
 include/  app.h        punto de entrada de la aplicacion (app_run)
           ui_cli.h     interfaz de consola (pedir/mostrar)
+          game.h       tipos y funciones del motor de partida
           tablero.h    tipos y reglas de tablero
           ranking.h    contrato del ranking
           config.h     tablero, flota, nombres y rutas configurables
 src/      main.c       solo llama a app_run()
-          app.c        coordina pantallas y menu
+          app.c        coordina pantallas, menu y configuracion de partida
           ui_cli.c     limpia pantalla, pide datos, muestra textos
+          game.c       turnos, disparos, hundimiento y victoria
           tablero.c    inicializa, valida y coloca barcos
           ranking.c    logica + persistencia binaria (sin UI)
           demo_ranking.c demo de fin de partida
 tests/    test_ranking.c  pruebas del ranking sin frameworks externos
           test_tablero.c  pruebas de limites, contacto y colocacion
+          test_game.c     pruebas de turnos, disparos y victoria
 data/     ranking.dat  volcado binario del struct (no editar a mano)
 files/    Reglamento.txt  texto que muestra la presentacion
 docs/     contrato-ranking.md, proyecto.md
@@ -232,6 +246,7 @@ Arquitectura por capas:
 | Entrada | `main.c` | Llamar a `app_run()` y devolver su codigo de salida |
 | Aplicacion | `app.c`, `app.h` | Decidir el orden de las pantallas y conectar los modulos |
 | Interfaz | `ui_cli.c`, `ui_cli.h` | Pedir y mostrar; nunca aplicar reglas ni tocar datos |
+| Motor | `game.c`, `game.h` | Turnos, disparos, hundimiento y condicion de victoria |
 | Dominio | `tablero.c`, `ranking.c` | Validar, calcular y persistir segun las reglas |
 | Configuracion | `config.h` | Centralizar tamanios, flota, nombres y rutas |
 | Pruebas | `tests/` | Verificar las reglas sin frameworks externos |
@@ -244,7 +259,7 @@ flowchart LR
   A --> U[ui_cli: pide y muestra]
   A --> T[tablero: valida y coloca]
   A --> R[ranking: valida, ordena y persiste]
-  A --> G[game.c: turnos y victoria - pendiente]
+  A --> G[game.c: turnos, disparos y victoria]
   G --> T
   G --> R
 ```
@@ -278,12 +293,14 @@ TOTAL        3604 bytes
 ## 9. Pruebas
 
 ```sh
-make test           # ambas suites
+make test           # las tres suites
 make test-ranking   # solo ranking
 make test-tablero   # solo tablero
+make test-game      # solo motor de partida
 ```
 
-La suite incluye **68 aserciones de ranking** y **26 de tablero**.
+Las suites incluyen **68 aserciones de ranking**, **26 de tablero** y **74 del
+motor de partida**.
 
 Ranking: registro y acumulacion, identidad insensible a mayusculas, nombres
 invalidos, orden y desempate, roundtrip binario, archivo inexistente, archivos
@@ -295,6 +312,11 @@ Tablero: inicializacion, limites en horizontal/vertical, ultima fila/columna,
 orientacion y tamanio invalidos, superposicion, contacto lateral y diagonal,
 separacion con una casilla de agua, marcado horizontal/vertical y colocacion
 invalida que no modifica el tablero.
+
+Motor: inicializacion de la partida y de la flota estandar, colocacion valida
+e invalida, superposicion y contacto, disparos al agua/impacto/repetido/fuera
+de rango, hundimiento parcial y total, no descontar dos veces un barco, cambio
+de turno, conteo de impactos y condicion de victoria.
 
 Las pruebas no usan CUnit, Unity ni ningun framework externo: cada suite
 cuenta sus aserciones, imprime `ok`/`FALLO` y devuelve 0 o 1 segun el resultado.
@@ -308,8 +330,8 @@ flujo completo de la app se verifican manualmente.
 
 | Entorno | Compilador | Build | Pruebas | App |
 |---|---|---|---|---|
-| Linux/WSL (oficial) | GCC 15.2.0, GNU Make 4.4.1 | 4 binarios, 0 warnings | 68/68 + 26/26 | Presentacion, reglamento, menu y salida correctos |
-| Windows | LLVM-MinGW clang 22.1.8 | 4 binarios, 0 warnings | 68/68 + 26/26 | Ejecuta y encuentra `files/Reglamento.txt` |
+| Linux/WSL (oficial) | GCC 15.2.0, GNU Make 4.4.1 | 5 binarios, 0 warnings | 68/68 + 26/26 + 74/74 | Presentacion, reglamento, menu, dificultad y resumen correctos |
+| Windows | LLVM-MinGW clang 22.1.8 | 5 binarios, 0 warnings | 68/68 + 26/26 + 74/74 | Ejecuta y encuentra `files/Reglamento.txt` |
 
 Verificaciones adicionales:
 
@@ -323,14 +345,17 @@ Verificaciones adicionales:
 - [x] C23 como estandar unico de toda la rama.
 - [x] `ranking.h` / `ranking.c` con persistencia binaria y 68 pruebas.
 - [x] `tablero.h` / `tablero.c` con reglas, dibujo y 26 pruebas.
-- [x] `ui_cli.h` / `ui_cli.c` con entrada robusta y menu validado.
-- [x] `app.h` / `app.c` coordinando presentacion, reglamento y menu.
+- [x] `game.h` / `game.c` con motor de partida adaptado a C23 y 74 pruebas.
+- [x] `ui_cli.h` / `ui_cli.c` con entrada robusta, menu, dificultad y
+      opciones de ranking/reglamento.
+- [x] `app.h` / `app.c` coordinando presentacion, reglamento, menu, dificultad
+      y nombres.
 - [x] `main.c` minimo, solo llama a `app_run()`.
-- [x] `make app` compila `main.c`, `app.c`, `ui_cli.c`, `tablero.c` y
-      `ranking.c` con C23, sin warnings.
-- [x] `make test` ejecuta las dos suites.
+- [x] `make app` compila `main.c`, `app.c`, `ui_cli.c`, `game.c`, `tablero.c`
+      y `ranking.c` con C23, sin warnings.
+- [x] `make test` ejecuta las tres suites.
 - [x] Verificacion en Linux y Windows.
-- [ ] Motor de partida (`game.c`): turnos, disparos y condicion de victoria.
+- [ ] Colocacion manual de la flota conectada al flujo de `app.c`.
 - [ ] IA (`ai.c`): disparos de la maquina sin repetir coordenadas.
 - [ ] Registro automatico del ganador en el ranking al finalizar la partida.
 - [ ] Partida completa de punta a punta.
@@ -340,7 +365,7 @@ Verificaciones adicionales:
 - **Un solo estandar:** C23 para logica, interfaz, persistencia y pruebas.
   No hay un modo de compilacion alternativo ni dependencias del sistema.
 - **Separacion de capas:** `main.c` solo arranca; `app.c` coordina; `ui_cli.c`
-  pide y muestra; `tablero.c` y `ranking.c` aplican las reglas.
+  pide y muestra; `game.c`, `tablero.c` y `ranking.c` aplican las reglas.
 - **Ranking binario (Opcion A):** se eligio el volcado directo del struct por
   decision del grupo. Es simple y rapido, pero no tiene magic number, version
   ni checksum; sus limitaciones estan documentadas y asumidas.
@@ -351,8 +376,10 @@ Verificaciones adicionales:
   consumen lineas completas y se maneja EOF para evitar bucles infinitos.
 - **Pruebas sin frameworks:** dos suites minimas, con codigo de salida claro y
   ejecutables desde `make test`.
-- **Pendiente honesto:** el motor y la IA no estan integrados; el README y la
-  app lo dicen explicitamente en lugar de simular una partida completa.
+- **Pendiente honesto:** el motor ya esta integrado y probado, pero la
+  colocacion manual de la flota, la IA y el cierre automatico con el ranking
+  siguen pendientes; el README y la app lo dicen explicitamente en lugar de
+  simular una partida completa.
 
 ## 13. Documentos relacionados
 

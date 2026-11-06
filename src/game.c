@@ -1,235 +1,473 @@
-#include "game.h"
-#include "tablero.h"
+/**
+ * @file game.c
+ * @brief Implementacion del motor de partida.
+ *
+ * Conserva la estructura del motor que trajeron los companeros y la adapta
+ * al tablero propio y al estandar C23. Las reglas de colocacion y disparo se
+ * delegan en tablero.c; aca solo se coordinan turnos, contadores y victoria.
+ *
+ * @note Los barcos se guardan en `Jugador.barco` con su longitud, posicion y
+ *       estado. `game_colocar_barco()` mantiene sincronizados el tablero y
+ *       ese arreglo, que es lo que usa `barco_hundido()`.
+ */
+
+#include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-void inicializar_partida(Partida *partida) {
-      
-    partida->turno = 1;
-    partida->ganador = 0;
-    partida->victoria = 0;
-    partida->cantidad_turnos = 0;
+#include "game.h"
 
-    // Inicializar los barcos vivos
-    partida->jugador1.barcos_vivos = BARCOS_MODO_NORMAL;        // cada jugador empieza con 5 barcos
-    partida->jugador2.barcos_vivos = BARCOS_MODO_NORMAL;
+/**
+ * @brief Longitudes de la flota estandar, en el orden en que se colocan.
+ */
+static const Tamanio FLOTA[CONFIG_NUM_BARCOS] = {
+    porta_aviones, buque, submarino, lancha, velero
+};
 
-    // Inicializar los impactos
-    partida->jugador1.hits = 0;                 // cada jugador empieza con 0 impacto a barcos
-    partida->jugador2.hits = 0;
+/**
+ * @brief Deja un jugador listo para empezar: tableros en agua y flota vacia.
+ *
+ * @param jugador Jugador que se inicializa.
+ * @return No devuelve valor.
+ * @note Los barcos quedan con fila y columna -1 para indicar que todavia no
+ *       fueron colocados.
+ */
+static void preparar_jugador(Jugador *jugador)
+{
+    int i; /* Indice dentro de la flota. */
 
-    inicializar_tablero(
-        partida->jugador1.tableros.tablero, 
-        partida->jugador1.tableros.tablero_disparos
-    );
-    inicializar_tablero(
-        partida->jugador2.tableros.tablero,
-        partida->jugador2.tableros.tablero_disparos
-    );
-
-   // inicializar el estado de los barcos
-    for(int i=0; i< BARCOS_MODO_NORMAL; i++) {
-        partida->jugador1.barco[i].hundido = 0;
-        partida->jugador2.barco[i].hundido = 0;
+    if (jugador == NULL) {
+        return;
     }
 
+    jugador->nombre[0] = '\0';
+    jugador->barcos_vivos = CONFIG_NUM_BARCOS;
+    jugador->hits = 0;
+
+    /* La flota arranca con sus longitudes estandar y sin posicion. */
+    for (i = 0; i < CONFIG_NUM_BARCOS; i++) {
+        jugador->barco[i].tamanio = FLOTA[i];
+        jugador->barco[i].orientacion = horizontal;
+        jugador->barco[i].fila = -1;
+        jugador->barco[i].columna = -1;
+        jugador->barco[i].hundido = 0;
+    }
+
+    inicializar_tablero(jugador->tableros.tablero,
+                        jugador->tableros.tablero_disparos);
 }
 
+/**
+ * @brief Lee un entero completo desde stdin.
+ *
+ * @param valor Destino del numero leido.
+ * @return 1 si la linea contenia solo un entero; 0 en EOF o entrada invalida.
+ * @note Se usa fgets + strtol para no dejar restos en el buffer, a diferencia
+ *       de scanf("%d"), que falla sin limpiar la linea cuando el usuario
+ *       escribe letras.
+ */
+static int leer_entero(int *valor)
+{
+    char linea[32]; /* Linea cruda ingresada. */
+    char *fin;      /* Primer caracter no convertido. */
+    long numero;    /* Numero convertido por strtol. */
 
-
-Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo, char tablero[FIL][COL]) {
-     
-    // verificar  que las coordenadas sean válidas
-    if (fila_disparo < 0 || fila_disparo >= FIL || columna_disparo < 0 || columna_disparo >= COL) {
-        printf("COORDENADA INVALIDA \n");
-        return disp_NO_valido;
-       
+    if (valor == NULL) {
+        return 0;
     }
 
+    if (fgets(linea, (int)sizeof(linea), stdin) == NULL) {
+        return 0;
+    }
 
-    // En caso de que haya AGUA ~
-    if (tablero[fila_disparo][columna_disparo]=='~') {
+    numero = strtol(linea, &fin, 10);
 
-        tablero[fila_disparo][columna_disparo]='/';      // se disparó a agua
-        printf("AGUA\n");
+    /* Se toleran espacios y el salto de linea final. */
+    while (*fin == ' ' || *fin == '\t' || *fin == '\r' || *fin == '\n') {
+        fin++;
+    }
 
+    /* Sin digitos o con caracteres extra: no es un entero valido. */
+    if (fin == linea || *fin != '\0') {
+        return 0;
+    }
+
+    /* Evita convertir un long fuera del rango de int. */
+    if (numero < INT_MIN || numero > INT_MAX) {
+        return 0;
+    }
+
+    *valor = (int)numero;
+    return 1;
+}
+
+/**
+ * @brief Inicializa una partida vacia.
+ *
+ * @param partida Partida que se reinicia.
+ * @return No devuelve valor.
+ */
+void inicializar_partida(Partida *partida)
+{
+    if (partida == NULL) {
+        return;
+    }
+
+    partida->turno = PJ1;
+    partida->cantidad_turnos = 0;
+    partida->modo_de_juego = PVP;
+    partida->dificultad = NORMAL;
+    partida->victoria = 0;
+    partida->ganador = 0;
+
+    preparar_jugador(&partida->jugador1);
+    preparar_jugador(&partida->jugador2);
+
+    /* Los nombres se completan desde app.c / ui_cli.c. */
+    partida->jugador1.nombre[0] = '\0';
+    partida->jugador2.nombre[0] = '\0';
+}
+
+/**
+ * @brief Coloca un barco de la flota en el tablero propio.
+ *
+ * @param jugador Jugador duenio de la flota.
+ * @param indice Posicion del barco dentro de la flota.
+ * @param fila Fila de la proa.
+ * @param columna Columna de la proa.
+ * @param orientacion horizontal o vertical.
+ * @return 1 si se coloco; 0 si la posicion o el indice no son validos.
+ */
+int game_colocar_barco(Jugador *jugador, int indice, int fila, int columna,
+                       Orientacion orientacion)
+{
+    Tamanio tamanio; /* Longitud del barco que se quiere colocar. */
+
+    if (jugador == NULL || indice < 0 || indice >= CONFIG_NUM_BARCOS) {
+        return 0;
+    }
+
+    /* Un barco ya colocado no se puede mover sin reiniciar la partida. */
+    if (jugador->barco[indice].fila >= 0) {
+        return 0;
+    }
+
+    tamanio = jugador->barco[indice].tamanio;
+
+    if (!rango(fila, columna, orientacion, tamanio)) {
+        return 0;
+    }
+
+    if (!libre(fila, columna, orientacion, tamanio,
+               jugador->tableros.tablero)) {
+        return 0;
+    }
+
+    ingresar_barco(fila, columna, orientacion, tamanio,
+                   jugador->tableros.tablero);
+
+    /* Guardar la posicion para que barco_hundido() pueda recorrerla. */
+    jugador->barco[indice].orientacion = orientacion;
+    jugador->barco[indice].fila = fila;
+    jugador->barco[indice].columna = columna;
+    jugador->barco[indice].hundido = 0;
+    return 1;
+}
+
+/**
+ * @brief Aplica un disparo sobre un tablero concreto.
+ *
+ * @param fila_disparo Fila del disparo.
+ * @param columna_disparo Columna del disparo.
+ * @param tablero Tablero que recibe el disparo.
+ * @return Resultado del disparo.
+ */
+Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo,
+                            char tablero[CONFIG_FILAS][CONFIG_COLUMNAS])
+{
+    char celda; /* Contenido actual de la casilla. */
+
+    if (tablero == NULL) {
+        return disp_NO_valido;
+    }
+
+    if (fila_disparo < 0 || fila_disparo >= CONFIG_FILAS) {
+        return disp_NO_valido;
+    }
+    if (columna_disparo < 0 || columna_disparo >= CONFIG_COLUMNAS) {
+        return disp_NO_valido;
+    }
+
+    celda = tablero[fila_disparo][columna_disparo];
+
+    if (celda == (char)agua) {
+        tablero[fila_disparo][columna_disparo] = (char)disparo_a_agua;
         return disp_agua;
+    }
 
-    // si hay un BARCO...
-    } else if(tablero[fila_disparo][columna_disparo]=='#') {     // se disparo a un barco
+    if (celda == (char)barco) {
+        tablero[fila_disparo][columna_disparo] = (char)impacto;
+        return disp_impacto;
+    }
 
-        tablero[fila_disparo][columna_disparo]='X';
-        printf("IMPACTO\n");
-
-        return disp_impacto; 
-
-    } else if (tablero[fila_disparo][columna_disparo]=='/' || tablero[fila_disparo][columna_disparo]=='X') {
-
-        printf("UBICACIÓN REPETIDA\n");
-
+    if (celda == (char)disparo_a_agua || celda == (char)impacto) {
         return disp_repetido;
     }
+
+    /* Cualquier otro caracter indica un tablero corrupto. */
     return disp_NO_valido;
 }
 
+/**
+ * @brief Marca los barcos que ya recibieron todos sus impactos.
+ *
+ * @param defensor Jugador que recibio los disparos.
+ * @return No devuelve valor.
+ */
+void barco_hundido(Jugador *defensor)
+{
+    int i; /* Indice dentro de la flota. */
 
-// verificar si algún barco fue hundido
-void barco_hundido(Jugador *defensor) {
+    if (defensor == NULL) {
+        return;
+    }
 
-    for (int i = 0; i < BARCOS_MODO_NORMAL; i++) {          // 5 barcos  por jugador
+    for (i = 0; i < CONFIG_NUM_BARCOS; i++) {
+        Barco *barco_actual; /* Barco que se esta revisando. */
+        int largo;           /* Longitud del barco. */
+        int j;               /* Avance a lo largo del barco. */
+        int hundido;         /* Bandera: todos sus casilleros impactados. */
 
-       
-        if (defensor->barco[i].hundido == 0) {   // para verificiar el estado de todos los barcos que no han sido hundidos
+        barco_actual = &defensor->barco[i];
 
-            int hundido = 1;   // asumimos que el barco fue hundido (verdadero)
+        /* Un barco ya hundido o que no fue colocado no se revisa. */
+        if (barco_actual->hundido != 0 || barco_actual->fila < 0
+            || barco_actual->columna < 0) {
+            continue;
+        }
 
-          
-            for (int j = 0; j < defensor->barco[i].tamanio; j++) {        // recorrer las posiciones de los barcos (depende de sy tamanio)
+        largo = (int)barco_actual->tamanio;
+        if (largo <= 0) {
+            continue;
+        }
 
-                int fila = defensor->barco[i].fila; 
-                int columna = defensor->barco[i].columna;
+        hundido = 1;
 
-                // calcular la posición de acuerdo a la posición
-                if (defensor->barco[i].orientacion == horizontal) {
-                    columna += j;
-                } else {
-                    fila += j;
-                }
+        for (j = 0; j < largo; j++) {
+            int fila = barco_actual->fila;
+            int columna = barco_actual->columna;
 
-                // si hay alguna Posición sin impacto
-                if (defensor->tableros.tablero[fila][columna] != 'X') {
-                    hundido = 0; // entonces aún no está hundido
-                }
+            if (barco_actual->orientacion == horizontal) {
+                columna += j;
+            } else {
+                fila += j;
             }
 
-        
-            if (hundido == 1) {         // si realmente el barco fue hindido
-
-                defensor->barco[i].hundido = 1;
-
-                defensor->barcos_vivos--;       // reducir el numero de barcos vivos
-
-                printf("\n BARCO HUNDIDO!!\n");
+            /* Una posicion fuera del tablero no puede estar impactada. */
+            if (fila < 0 || fila >= CONFIG_FILAS || columna < 0
+                || columna >= CONFIG_COLUMNAS) {
+                hundido = 0;
+                break;
             }
+
+            if (defensor->tableros.tablero[fila][columna] != (char)impacto) {
+                hundido = 0;
+                break;
+            }
+        }
+
+        if (hundido != 0) {
+            barco_actual->hundido = 1;
+            if (defensor->barcos_vivos > 0) {
+                defensor->barcos_vivos--;
+            }
+            printf("\nBARCO HUNDIDO!\n");
         }
     }
 }
 
-void coordenadas_de_ataque(Jugador *atacante, Jugador *defensor) {     // si juega el jugador1 (atacante) el defensor es el jugador2
-    int fila, columna;
-    Rdo_Disparo rdo = disp_NO_valido;           // resultado, del retorno.
-    
-    // mientras  las  coordenadas  no sean validas o no estén repetidas.
-    while (rdo == disp_NO_valido || rdo == disp_repetido) {
+/**
+ * @brief Aplica un disparo del jugador del turno actual.
+ *
+ * @param partida Partida en curso.
+ * @param fila Fila del disparo.
+ * @param columna Columna del disparo.
+ * @return Resultado del disparo.
+ */
+Rdo_Disparo game_realizar_disparo(Partida *partida, int fila, int columna)
+{
+    Jugador *atacante; /* Jugador que dispara. */
+    Jugador *defensor; /* Jugador que recibe el disparo. */
+    Rdo_Disparo rdo;   /* Resultado de recibir_disparo. */
 
-        printf("\n INGRESE COORDENADAS DE ATAQUE:\n");
+    if (partida == NULL || partida->victoria != 0) {
+        return disp_NO_valido;
+    }
 
-        printf("Fila (1 a %d): ", FIL);
-        scanf("%d", &fila);
-        getchar();
+    if (partida->turno == PJ1) {
+        atacante = &partida->jugador1;
+        defensor = &partida->jugador2;
+    } else {
+        atacante = &partida->jugador2;
+        defensor = &partida->jugador1;
+    }
 
-        printf("Columna (1 a %d): ", COL);
-        scanf("%d", &columna);
-        getchar();
+    rdo = recibir_disparo(fila, columna, defensor->tableros.tablero);
 
-        rdo = recibir_disparo(fila-1, columna -1, defensor->tableros.tablero); // los arreglos empiezan desde 0, no desde 1, por eso restamos (fila va de 1 a 10; pero en arreglo es del 0 al 9)
+    if (rdo == disp_agua) {
+        atacante->tableros.tablero_disparos[fila][columna]
+            = (char)disparo_a_agua;
+    } else if (rdo == disp_impacto) {
+        atacante->tableros.tablero_disparos[fila][columna] = (char)impacto;
+        atacante->hits++;
+        barco_hundido(defensor);
+    } else {
+        /* Invalido o repetido: no se consume el turno. */
+        return rdo;
+    }
 
-        // Si disparamos a agua
-        if (rdo == disp_agua) {
-
-            atacante->tableros.tablero_disparos[fila-1][columna-1] = '/';
-        } 
-        // si impactó a un barco
-        else if (rdo == disp_impacto) {
-
-            atacante->tableros.tablero_disparos[fila-1][columna-1] = 'X';
-
-            atacante->hits++;
-
-            barco_hundido(defensor);
-        }
-
-    } 
+    partida->cantidad_turnos++;
+    partida->turno = (partida->turno == PJ1) ? PJ2 : PJ1;
+    (void)fin_juego(partida);
+    return rdo;
 }
 
+/**
+ * @brief Indica si la partida termino y registra al ganador.
+ *
+ * @param partida Partida consultada.
+ * @return 1 si hay ganador; 0 si la partida continua.
+ */
+int fin_juego(Partida *partida)
+{
+    if (partida == NULL) {
+        return 0;
+    }
 
+    if (partida->jugador1.barcos_vivos <= 0) {
+        partida->ganador = 2;
+        partida->victoria = 1;
+        return 1;
+    }
 
-// para definir de quien es el turno
-void jugar(Partida *partida){
+    if (partida->jugador2.barcos_vivos <= 0) {
+        partida->ganador = 1;
+        partida->victoria = 1;
+        return 1;
+    }
 
-    Jugador *atacante, *defensor; 
+    return 0;
+}
 
-    while (fin_juego(partida) == 0) {     // mientras que aun el juego no haya terminado hacer...
+/**
+ * @brief Pide coordenadas por consola y aplica disparos hasta acertar.
+ *
+ * @param atacante Jugador que dispara.
+ * @param defensor Jugador que recibe el disparo.
+ * @return No devuelve valor.
+ */
+void coordenadas_de_ataque(Jugador *atacante, Jugador *defensor)
+{
+    int fila;         /* Fila ingresada, base uno. */
+    int columna;      /* Columna ingresada, base uno. */
+    Rdo_Disparo rdo;  /* Resultado del disparo. */
 
+    if (atacante == NULL || defensor == NULL) {
+        return;
+    }
+
+    rdo = disp_NO_valido;
+
+    while (rdo == disp_NO_valido || rdo == disp_repetido) {
+        printf("\nINGRESE COORDENADAS DE ATAQUE:\n");
+
+        printf("Fila (1 a %d): ", CONFIG_FILAS);
+        fflush(stdout);
+        if (!leer_entero(&fila)) {
+            if (feof(stdin)) {
+                return;
+            }
+            printf("Entrada invalida. Intente de nuevo.\n");
+            continue;
+        }
+
+        printf("Columna (1 a %d): ", CONFIG_COLUMNAS);
+        fflush(stdout);
+        if (!leer_entero(&columna)) {
+            if (feof(stdin)) {
+                return;
+            }
+            printf("Entrada invalida. Intente de nuevo.\n");
+            continue;
+        }
+
+        rdo = recibir_disparo(fila - 1, columna - 1,
+                              defensor->tableros.tablero);
+
+        if (rdo == disp_agua) {
+            atacante->tableros.tablero_disparos[fila - 1][columna - 1]
+                = (char)disparo_a_agua;
+        } else if (rdo == disp_impacto) {
+            atacante->tableros.tablero_disparos[fila - 1][columna - 1]
+                = (char)impacto;
+            atacante->hits++;
+            barco_hundido(defensor);
+        } else if (rdo == disp_repetido) {
+            printf("Esa casilla ya fue disparada. Intente otra.\n");
+        } else {
+            printf("Coordenada invalida. Intente de nuevo.\n");
+        }
+    }
+}
+
+/**
+ * @brief Ejecuta la partida completa hasta que haya un ganador.
+ *
+ * @param partida Partida en curso.
+ * @return No devuelve valor.
+ */
+void jugar(Partida *partida)
+{
+    Jugador *atacante; /* Jugador del turno. */
+    Jugador *defensor; /* Rival. */
+
+    if (partida == NULL) {
+        return;
+    }
+
+    while (fin_juego(partida) == 0) {
         printf("TURNO NUMERO %d\n", partida->cantidad_turnos + 1);
 
-        if (partida->turno == 1) {
+        if (partida->turno == PJ1) {
             atacante = &partida->jugador1;
             defensor = &partida->jugador2;
-        }  else {
+        } else {
             atacante = &partida->jugador2;
             defensor = &partida->jugador1;
         }
 
-        printf("Turno de: %s\n", atacante->nombres);
-            
-        // mostrar los tableros del jugador actual
-        mostrar_tablero(atacante->tableros.tablero, atacante->tableros.tablero_disparos);
-        
-        // El atacante realiza su disparo
+        printf("Turno de: %s\n", atacante->nombre);
+        mostrar_tablero(atacante->tableros.tablero,
+                        atacante->tableros.tablero_disparos);
+
         coordenadas_de_ataque(atacante, defensor);
 
-        // Cambiamos el turno
-        if (partida->turno == 1) {
-            partida->turno = 2;
-        } else {
-            partida->turno = 1;
+        /* Si la entrada termino, no tiene sentido seguir alternando turnos. */
+        if (feof(stdin)) {
+            printf("Entrada terminada: partida interrumpida.\n");
+            return;
         }
 
+        partida->turno = (partida->turno == PJ1) ? PJ2 : PJ1;
         partida->cantidad_turnos++;
     }
 
-    // Fin de la partida
-    printf("        ¡FIN DEL JUEGO!      \n");
-   
+    printf("        FIN DEL JUEGO      \n");
 
     if (partida->ganador == 1) {
-
-        printf("¡%s! VICTORIA, PARTIDA GANADA.\n",
-               partida->jugador1.nombres);
-
+        printf("VICTORIA DE %s\n", partida->jugador1.nombre);
     } else if (partida->ganador == 2) {
-
-        printf("¡%s! VICTORIA, PARTIDA GANADA.\n",
-               partida->jugador2.nombres);
+        printf("VICTORIA DE %s\n", partida->jugador2.nombre);
     }
 }
-
-// para verificar que un jugador se quedó sin barcos vivos
-int fin_juego(Partida *partida) {
-
-    if(partida->jugador1.barcos_vivos <= 0) {       // si el n° de barcos vivos  del jugador1 es menor igual a cero entonces
-        partida->ganador = 2;                       // el ganador de la partida es el jugador 2
-        return 1;                                   // retorna 1, indicando que hay ganador
-    } 
-    else if(partida->jugador2.barcos_vivos <= 0) {    
-        partida->ganador=1;                          // el ganador será el jugador1 si el el jugador2 se quedó sin barcos vivos
-        return 1;
-    }
-    
-    return 0; // indica que el juego continua
-}
-
-
-
-
-
-/* Cuando solitemos los barcos */
-/*
-if (libre(barco, jugador->tableros.tablero)) {
-    
-jugador->barco[i] = barco;          // Guardar sus datos
-jugador->barco[i].hundido = 0;      // Todavía no está hundido
-
-ingresar_barco(barco, jugador->tableros.tablero);
-}
-*/

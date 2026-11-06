@@ -30,6 +30,7 @@ El tamaño del tablero y la cantidad y longitud de los barcos deberían definirs
 ├── include/
 │   ├── app.h
 │   ├── config.h
+│   ├── game.h
 │   ├── ranking.h
 │   ├── tablero.h
 │   └── ui_cli.h
@@ -37,6 +38,7 @@ El tamaño del tablero y la cantidad y longitud de los barcos deberían definirs
 │   ├── main.c
 │   ├── app.c
 │   ├── ui_cli.c
+│   ├── game.c
 │   ├── tablero.c
 │   ├── ranking.c
 │   └── demo_ranking.c
@@ -44,14 +46,16 @@ El tamaño del tablero y la cantidad y longitud de los barcos deberían definirs
 ├── files/                # Reglamento.txt
 ├── tests/
 │   ├── test_ranking.c
-│   └── test_tablero.c
+│   ├── test_tablero.c
+│   └── test_game.c
 ├── Makefile
 └── README_gian.md
 ```
 
-`game.c` (motor de partida) y `ai.c` (maquina) se agregaran en la proxima
-etapa; por ahora el esqueleto compila y ejecuta presentacion, reglamento y
-menu.
+`game.c` (motor de partida) ya esta integrado y cubierto por pruebas. `ai.c`
+(maquina) y la conexion de la partida completa desde `app.c` se agregaran en
+la proxima etapa; por ahora el programa compila y ejecuta presentacion,
+reglamento, menu, dificultad y nombres.
 
 La futura interfaz gráfica puede agregarse como `ui_gui.c`, usando las mismas operaciones públicas que la interfaz de consola. No es necesario implementarla para empezar el motor ni el flujo de consola.
 
@@ -62,12 +66,12 @@ La futura interfaz gráfica puede agregarse como `ui_gui.c`, usando las mismas o
 | `main.c` | Punto de entrada. Inicializa la aplicación y llama a `app_run()`. Debe mantenerse pequeño. |
 | `app.c` | Coordina el recorrido de pantallas, el menú, los turnos y el final de la partida. Decide qué paso sigue. |
 | `ui_cli.c` | Presenta información en consola y recoge entradas del usuario. Más adelante, `ui_gui.c` ofrecerá la misma interacción mediante una GUI. |
-| `game.c` | Mantiene las reglas y el estado de la partida: turnos, disparos y condición de victoria. (Pendiente de integración.) |
+| `game.c` | Mantiene las reglas y el estado de la partida: inicialización, colocación, turnos, disparos, barcos hundidos y condición de victoria. Implementado y probado. |
 | `tablero.c` | Maneja las casillas, la colocación de barcos, los disparos recibidos y los barcos hundidos. |
 | `ai.c` | Elige los disparos de la máquina a partir de los resultados de sus disparos anteriores. (Pendiente de integración.) |
 | `ranking.c` | Actualiza, consulta, muestra y guarda las victorias por jugador en `ranking.dat`. |
 
-La separación principal es: `app.c` coordina el flujo, la interfaz interactúa con los jugadores y el motor (`game.c` y `board.c`) aplica las reglas. Las interfaces no deberían implementar reglas del juego.
+La separación principal es: `app.c` coordina el flujo, la interfaz interactúa con los jugadores y el motor (`game.c` y `tablero.c`) aplica las reglas. Las interfaces no deberían implementar reglas del juego.
 
 ## 5. Flujo general
 
@@ -81,6 +85,13 @@ La separación principal es: `app.c` coordina el flujo, la interfaz interactúa 
 8. Pantalla de victoria.
 9. Actualización y presentación del ranking.
 10. Opción de volver al menú o salir.
+
+Estado actual del flujo: los pasos 1 a 5 están implementados, incluida la
+elección de dificultad, el ranking y el reglamento desde el menú. El motor de
+partida (`game.c`) ya está integrado y probado con sus propias funciones de
+colocación y disparo. Queda pendiente conectar la colocación manual de la
+flota, la IA (`ai.c`), la partida completa (pasos 6 a 8) y el registro
+automático del ganador (paso 9).
 
 ## 6. Reglas de colocación y partida
 
@@ -127,15 +138,26 @@ Una división posible es:
 
 El equipo debería acordar primero las interfaces entre módulos —nombres de funciones, datos que reciben y devuelven, y formato de coordenadas— para que las partes puedan integrarse sin duplicar reglas.
 
-## 11. Decisiones pendientes
+## 11. Decisiones tomadas y pendientes
 
-Antes de cerrar las reglas, conviene acordar:
+Decisiones ya aplicadas en el código:
 
-- Si los barcos pueden tocarse entre sí, sin superponerse.
-- Si un impacto permite al jugador volver a disparar o si todos los turnos realizan un solo disparo.
-- Cómo se ordena el ranking y cómo se resuelven los empates.
-- Si los nombres que solo difieren en mayúsculas y minúsculas cuentan como el mismo jugador.
-- Cómo se distribuyen los barcos: por ejemplo, en orden de mayor a menor longitud.
+- Los barcos deben dejar al menos una casilla de agua alrededor; no pueden
+  tocarse ni por los lados ni en diagonal.
+- Cada disparo válido consume un turno; los disparos inválidos o repetidos no
+  cambian el turno.
+- El ranking se ordena por victorias descendentes y, en caso de empate, por
+  nombre sin distinguir mayúsculas de minúsculas.
+- Los nombres que solo difieren en mayúsculas y minúsculas son el mismo
+  jugador.
+- La flota se coloca en orden de mayor a menor longitud: 5, 4, 3, 2 y 1.
+
+Pendiente de acordar o implementar:
+
+- Si un impacto debe permitir al jugador volver a disparar en el mismo turno.
+- La estrategia completa de la máquina (`ai.c`) y su integración con el motor.
+- La secuencia de pantallas de la partida completa y el registro automático
+  del ganador en el ranking.
 
 ## 12. Hitos sugeridos
 
