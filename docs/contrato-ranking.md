@@ -25,8 +25,8 @@ nadie las descubra en la defensa.
 | `data/ranking.dat` | Datos binarios (3604 bytes). No editar a mano. |
 
 Dependencias: solo `<stdio.h>`, `<string.h>` y `<ctype.h>`. No usa
-`windows.h`, `unistd.h`, `conio.h` ni `stdint.h`; es C99 estricto
-(`-std=c99 -pedantic -Wall -Wextra`). El objetivo de compilacion acordado
+`windows.h`, `unistd.h`, `conio.h` ni `stdint.h`; es C23 estricto
+(`-std=c23 -pedantic -Wall -Wextra`). El objetivo de compilacion acordado
 es Linux (probado tambien en Windows con LLVM-MinGW).
 
 ## 2. Modelo en memoria
@@ -288,7 +288,7 @@ archivos identicos). Ver `tests/test_ranking.c`.
 ## 12. Integracion actual
 
 `make app` compila `src/main.c`, `src/app.c`, `src/ui_cli.c`,
-`src/tablero.c` y `src/ranking.c` con `-std=c99 -pedantic -Wall -Wextra`.
+`src/tablero.c` y `src/ranking.c` con `-std=c23 -pedantic -Wall -Wextra`.
 El esqueleto ejecuta presentacion, reglamento y menu; el motor de partida
 (`game.c`) y la IA (`ai.c`) todavia no existen.
 
@@ -314,6 +314,6 @@ del ganador y muestra los mensajes de `ranking_mensaje_error`.
    version, por decision del grupo. Se conservan de B las reglas de
    nombres, orden y topes; se eliminan `RANKING_ERROR_VERSION` y
    `RANKING_ERROR_INTEGRIDAD`.
-4. **C99 (actual):** estandar unico de la rama para logica, interfaz,
-   persistencia y pruebas: `-std=c99 -pedantic -Wall -Wextra`. No se
+4. **C23 (actual):** estandar unico de la rama para logica, interfaz,
+   persistencia y pruebas: `-std=c23 -pedantic -Wall -Wextra`. No se
    mantiene un modo de compilacion alternativo.

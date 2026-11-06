@@ -7,7 +7,6 @@
  * datos y compilacion). Solo depende de <stdio.h>: no usa nada especifico de
  * Windows ni de Linux, salvo el modo binario de fopen, que es estandar.
  *
- * @note Estandar unico del proyecto: C99 (-std=c99 -pedantic -Wall -Wextra).
  * @note Separacion logica / interfaz: este modulo valida, ordena y guarda.
  *       La interfaz pide el nombre, llama a ranking_registrar_victoria y
  *       muestra los mensajes de ranking_mensaje_error. Nunca toca `entradas`
@@ -16,7 +15,7 @@
  * @section formato Formato binario del archivo
  * data/ranking.dat contiene exactamente sizeof(Ranking) bytes: una copia
  * cruda del struct Ranking, escrita con fwrite. Layout asumido (x86_64,
- * int de 4 bytes, sin relleno; ver asserts en ranking.c):
+ * int de 4 bytes, sin relleno; ver static_assert en ranking.c):
  *
  *   offset    0: entradas[0..99]        100 x 36 bytes = 3600 bytes
  *                 +0   char nombre[32]  ASCII, '\0' final, resto en cero

@@ -16,8 +16,7 @@
  *       entre barcos".
  * @note Complejidad: rango es O(1); libre recorre a lo sumo un rectangulo de
  *       (largo + 2) x 3 casillas, O(largo), con largo <= 5 por defecto.
- * @note Estandar unico: C99 (-std=c99 -pedantic -Wall -Wextra). Los tamanios
- *       salen de config.h.
+ * @note Los tamanios salen de config.h.
  */
 
 #include <stdio.h>

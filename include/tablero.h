@@ -12,8 +12,8 @@
  * @note Convencion de celdas: '~' agua, '#' barco intacto, 'X' impacto y
  *       '/' disparo al agua. El enum Estado usa exactamente esos caracteres
  *       para que imprimir una celda sea simplemente printf("%c", estado).
- * @note Estandar: C99 (-std=c99 -pedantic -Wall -Wextra). Los tamanios de
- *       tablero y flota salen de config.h; no se repiten literales 10 ni 5.
+ * @note Los tamanios de tablero y flota salen de config.h; no se repiten
+ *       literales 10 ni 5.
  */
 
 #ifndef BATALLA_NAVAL_TABLERO_H
@@ -114,9 +114,8 @@ int rango(int filas, int columnas, Orientacion orientacion, Tamanio tamanio);
  * @param posicion Tablero propio que se quiere consultar.
  * @return 1 si el lugar esta libre; 0 si se superpone, toca otro barco o
  *         la colocacion no entra en el tablero.
- * @note No modifica `posicion`. El parametro no lleva const porque C99 no
- *       permite convertir implicitamente char[][N] a const char[][N] sin
- *       -Wpedantic.
+ * @note No modifica `posicion`. El parametro no lleva const para mantener
+ *       la compatibilidad de la firma con arreglos bidimensionales.
  */
 int libre(int filas, int columnas, Orientacion orientacion, Tamanio tamanio,
           char posicion[CONFIG_FILAS][CONFIG_COLUMNAS]);

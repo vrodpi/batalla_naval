@@ -9,9 +9,8 @@
  *       inicializacion, limites, superposicion, contacto, marcado y validacion
  *       defensiva. El dibujo por pantalla se verifica visualmente al ejecutar
  *       la app; no se captura stdout para no complicar la suite.
- * @note Compilar: gcc -std=c99 -pedantic -Wall -Wextra -Iinclude
- *       tests/test_tablero.c src/tablero.c -o build/test_tablero.
- *       Ejecutar desde la raiz; devuelve 0 si todo pasa, 1 si algo falla.
+ * @note Compilar y ejecutar con `make test`; devuelve 0 si todo pasa y 1 si
+ *       algo falla.
  */
 
 #include <stdio.h>

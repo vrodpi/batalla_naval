@@ -1,7 +1,7 @@
-# Makefile - Batalla Naval (C99)
+# Makefile - Batalla Naval (C23)
 #
-# Requiere GCC o Clang y make. El objetivo de compilacion acordado es Linux;
-# tambien se verifica en Windows con LLVM-MinGW (ver README_gian.md).
+# Requiere GCC 15+ o Clang 18+ y make. El objetivo de compilacion acordado es
+# Linux; tambien se verifica en Windows con LLVM-MinGW (ver README_gian.md).
 #
 # Uso, desde la raiz del proyecto (donde esta data/):
 #   make            -> compila el juego, la demo y las pruebas
@@ -11,15 +11,16 @@
 #   make run        -> compila y ejecuta el juego
 #   make clean      -> borra binarios y temporales de prueba
 #
-# Estandar unico: -std=c99 -pedantic -Wall -Wextra para todos los modulos
-# (logica, interfaz, persistencia y pruebas). C99 es un estandar ISO de C;
-# -pedantic evita extensiones del compilador y mantiene el codigo portable.
+# Estandar unico: C23 (ISO/IEC 9899:2024). Todos los modulos se compilan con
+# -std=c23 -pedantic -Wall -Wextra; -pedantic evita extensiones del compilador
+# y mantiene el codigo portable. La declaracion operativa del estandar vive
+# aca: los archivos fuente no repiten esta nota.
 #
 # El archivo de datos del ranking es un volcado binario del struct Ranking
 # (sin serializacion byte a byte): ver docs/contrato-ranking.md.
 
 CC ?= gcc
-CFLAGS = -std=c99 -pedantic -Wall -Wextra -Iinclude
+CFLAGS = -std=c23 -pedantic -Wall -Wextra -Iinclude
 BUILD = build
 
 # Binarios

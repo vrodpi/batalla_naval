@@ -1,9 +1,9 @@
-# Batalla Naval (C99)
+# Batalla Naval (C23)
 
-Juego de Batalla Naval en C99, interfaz de consola.
+Juego de Batalla Naval en C23, interfaz de consola.
 Trabajo final de Algoritmica y Programacion I.
 
-C99 es el estandar unico de toda la rama. La logica del juego, la interfaz,
+C23 es el estandar unico de toda la rama. La logica del juego, la interfaz,
 la persistencia del ranking y las pruebas se compilan con el mismo conjunto
 de flags y sin extensiones del compilador.
 
@@ -14,7 +14,7 @@ de flags y sin extensiones del compilador.
 | 1 | Tablero y colocacion (`tablero.c`, `include/tablero.h`) | Tablero, validacion de coordenadas, contacto entre barcos y colocacion |
 | 2 | Flujo e interfaz consola (`app.c`, `ui_cli.c`) | Presentacion, reglamento, menu y entrada de datos |
 | 3 | IA (`ai.c`) | Pendiente de integracion |
-| 4 | Ranking, datos y compilacion (`ranking.c`, `config.h`, `Makefile`) | Ranking binario en `data/ranking.dat`, configuracion, Makefile y estandar C99 |
+| 4 | Ranking, datos y compilacion (`ranking.c`, `config.h`, `Makefile`) | Ranking binario en `data/ranking.dat`, configuracion, Makefile y estandar C23 |
 
 Los nombres y las horas aproximadas se informan en la entrega final.
 
@@ -63,25 +63,26 @@ El estado actual del programa se detalla en la seccion 3.
 reglamento y menu. La partida completa queda pendiente hasta integrar `game.c`
 y `ai.c`.
 
-## 4. Estandar C99
+## 4. Estandar C23
 
 ### 4.1 Un solo estandar para toda la rama
 
-Todos los archivos se compilan con:
+La definicion oficial del estandar vive en el `Makefile`:
 
 ```sh
--std=c99 -pedantic -Wall -Wextra
+-std=c23 -pedantic -Wall -Wextra
 ```
 
 Reglas del proyecto:
 
-- C99 (ISO/IEC 9899:1999) es el unico estandar de compilacion.
+- C23 (ISO/IEC 9899:2024) es el unico estandar de compilacion.
 - No se mantiene un modo de compilacion alternativo.
 - `-pedantic` rechaza extensiones del compilador: el codigo se mantiene dentro
-  de C99.
+  de C23.
 - `-Wall -Wextra` estan activados y el build debe quedar sin warnings.
 - El mismo estandar se usa para el juego, la demo y las dos suites de pruebas.
-- GCC, Clang y LLVM-MinGW deben aceptar los mismos archivos sin cambios.
+- GCC 15+ o Clang 18+ (LLVM-MinGW 22 verificado) deben aceptar los mismos
+  archivos sin cambios.
 
 ### 4.2 Decisiones de implementacion
 
@@ -99,24 +100,19 @@ Reglas del proyecto:
 - La autodocumentacion esta en espanol y explica el por que de cada decision,
   no solo lo que hace el codigo.
 
-### 4.3 Que resuelve C99 en este proyecto
+### 4.3 Que aporta C23 en este proyecto
 
-C99 permite escribir la logica y las reglas de negocio con un subconjunto
-portable y moderno del lenguaje, sin atarse a un sistema operativo ni a un
-compilador. En particular, el proyecto aprovecha que C99:
+C23 es la revision vigente de ISO C. El proyecto lo adopta como unico modo de
+compilacion y aprovecha `static_assert` para verificar en tiempo de compilacion
+el layout binario del ranking. El resto del codigo se mantiene simple y
+portable, sin extensiones del compilador ni dependencias del sistema.
 
-- es un estandar ISO ampliamente soportado por GCC, Clang y LLVM-MinGW;
-- permite un unico modo de compilacion para todos los modulos;
-- provee las funciones estandar de `<stdio.h>`, `<stdlib.h>`, `<string.h>`
-  y `<ctype.h>` que usa el proyecto;
-- mantiene el codigo portable sin extensiones del compilador.
-
-El codigo se mantiene deliberadamente simple y compila con `-pedantic`, que es
-la garantia de que no se colaron extensiones.
+La declaracion del estandar no se repite en cada archivo: el `Makefile` es la
+fuente de verdad y todos los modulos se compilan con las mismas flags.
 
 ## 5. Trazabilidad de requisitos
 
-| Requisito de la consigna | Implementacion C99 | Estado |
+| Requisito de la consigna | Implementacion C23 | Estado |
 |---|---|---|
 | Tablero de 10 x 10 | `config.h` (`CONFIG_FILAS`, `CONFIG_COLUMNAS`) y `tablero.c` | Completo |
 | 5 barcos de 5, 4, 3, 2 y 1 | `config.h` y `tablero.h` (`Tamanio`) | Completo |
@@ -133,7 +129,7 @@ la garantia de que no se colaron extensiones.
 
 ## 6. Compilacion y ejecucion
 
-Requisito: GCC o Clang y `make`. El objetivo oficial de compilacion es
+Requisito: GCC 15+ o Clang 18+ y `make`. El objetivo oficial de compilacion es
 **Linux** (probado en WSL/Ubuntu con GCC 15.2.0 y GNU Make 4.4.1) y tambien se
 verifica en **Windows** con LLVM-MinGW (clang 22.1.8).
 
@@ -194,10 +190,10 @@ Para trabajar desde VS Code: instala la extension **WSL**, luego
 Compatible con LLVM-MinGW (clang). Compilacion manual desde Git Bash:
 
 ```sh
-clang -std=c99 -pedantic -Wall -Wextra -Iinclude tests/test_ranking.c src/ranking.c -o build/test_ranking.exe
-clang -std=c99 -pedantic -Wall -Wextra -Iinclude tests/test_tablero.c src/tablero.c -o build/test_tablero.exe
-clang -std=c99 -pedantic -Wall -Wextra -Iinclude src/demo_ranking.c src/ranking.c -o build/demo_ranking.exe
-clang -std=c99 -pedantic -Wall -Wextra -Iinclude src/main.c src/app.c src/ui_cli.c src/tablero.c src/ranking.c -o build/batalla-naval.exe
+clang -std=c23 -pedantic -Wall -Wextra -Iinclude tests/test_ranking.c src/ranking.c -o build/test_ranking.exe
+clang -std=c23 -pedantic -Wall -Wextra -Iinclude tests/test_tablero.c src/tablero.c -o build/test_tablero.exe
+clang -std=c23 -pedantic -Wall -Wextra -Iinclude src/demo_ranking.c src/ranking.c -o build/demo_ranking.exe
+clang -std=c23 -pedantic -Wall -Wextra -Iinclude src/main.c src/app.c src/ui_cli.c src/tablero.c src/ranking.c -o build/batalla-naval.exe
 ./build/test_ranking.exe
 ./build/test_tablero.exe
 ./build/batalla-naval.exe
@@ -324,14 +320,14 @@ Verificaciones adicionales:
 
 ## 11. Estado de integracion
 
-- [x] C99 como estandar unico de toda la rama.
+- [x] C23 como estandar unico de toda la rama.
 - [x] `ranking.h` / `ranking.c` con persistencia binaria y 68 pruebas.
 - [x] `tablero.h` / `tablero.c` con reglas, dibujo y 26 pruebas.
 - [x] `ui_cli.h` / `ui_cli.c` con entrada robusta y menu validado.
 - [x] `app.h` / `app.c` coordinando presentacion, reglamento y menu.
 - [x] `main.c` minimo, solo llama a `app_run()`.
 - [x] `make app` compila `main.c`, `app.c`, `ui_cli.c`, `tablero.c` y
-      `ranking.c` con C99, sin warnings.
+      `ranking.c` con C23, sin warnings.
 - [x] `make test` ejecuta las dos suites.
 - [x] Verificacion en Linux y Windows.
 - [ ] Motor de partida (`game.c`): turnos, disparos y condicion de victoria.
@@ -341,7 +337,7 @@ Verificaciones adicionales:
 
 ## 12. Decisiones para la defensa
 
-- **Un solo estandar:** C99 para logica, interfaz, persistencia y pruebas.
+- **Un solo estandar:** C23 para logica, interfaz, persistencia y pruebas.
   No hay un modo de compilacion alternativo ni dependencias del sistema.
 - **Separacion de capas:** `main.c` solo arranca; `app.c` coordina; `ui_cli.c`
   pide y muestra; `tablero.c` y `ranking.c` aplican las reglas.

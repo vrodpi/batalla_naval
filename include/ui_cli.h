@@ -11,7 +11,6 @@
  * @note Cuando exista una interfaz grafica (ui_gui.c), ofrecera las mismas
  *       operaciones publicas y app.c podra cambiar de interfaz sin tocar el
  *       motor ni el ranking.
- * @note Estandar unico: C99 (-std=c99 -pedantic -Wall -Wextra).
  * @note Contrato de entrada: las funciones que leen del teclado consumen la
  *       linea completa (incluido el '\n'). Si se alcanza EOF, devuelven 0 y
  *       dejan el buffer vacio para que el llamador pueda salir sin bucles

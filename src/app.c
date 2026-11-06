@@ -19,7 +19,6 @@
  *       ranking_guardar y ranking_mostrar.
  * @note Esa secuencia es la unica via valida: la interfaz no suma victorias
  *       ni toca el arreglo interno del ranking (ver docs/contrato-ranking.md).
- * @note Estandar unico: C99 (-std=c99 -pedantic -Wall -Wextra).
  */
 
 #include <stdio.h>

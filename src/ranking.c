@@ -7,7 +7,6 @@
  * (Opcion A, fwrite/fread del struct completo). Es el modulo del integrante 4
  * (ranking, datos y compilacion).
  *
- * @note Estandar unico del proyecto: C99 (-std=c99 -pedantic -Wall -Wextra).
  * @note Separacion logica / interfaz: ESTE archivo decide que nombre vale,
  *       quien es el mismo jugador, en que orden se lista y como se lee/escribe
  *       el archivo. La interfaz solo pide el nombre por teclado y muestra
@@ -21,11 +20,10 @@
  *                 +32  int  victorias   4 bytes little-endian
  *   offset 3600: cantidad               int, 4 bytes
  *
- * @note Los typedefs de "assert" de abajo verifican EN TIEMPO DE COMPILACION
- *       que no exista relleno (padding). Si un compilador agrega bytes entre
- *       nombre y victorias, o al final del struct, la compilacion falla con
- *       "size of array is negative" en lugar de generar un archivo
- *       incompatible en silencio.
+ * @note Los `static_assert` de abajo verifican EN TIEMPO DE COMPILACION que no
+ *       exista relleno (padding). Si un compilador agrega bytes entre nombre y
+ *       victorias, o al final del struct, la compilacion falla con un mensaje
+ *       explicito en lugar de generar un archivo incompatible en silencio.
  *
  * @section detalles Detalles criticos de la implementacion binaria
  * 1. MODO BINARIO: fopen("wb")/fopen("rb"), nunca "w"/"r". En modo texto,
@@ -62,21 +60,21 @@
 #include "ranking.h"
 
 /**
- * @brief Assert de compilacion: RankingEntrada no debe tener relleno.
- * @note Si sizeof(RankingEntrada) no es exactamente 32 + sizeof(int), el
- *       tamano del arreglo es -1 y la compilacion falla.
+ * @brief Verifica en compilacion que RankingEntrada no tenga relleno.
+ * @note Si sizeof(RankingEntrada) no es exactamente 32 + sizeof(int), la
+ *       compilacion falla con el mensaje indicado.
  */
-typedef char ranking_assert_entrada_sin_relleno[
-    (sizeof(RankingEntrada) == (RANKING_NOMBRE_MAX + sizeof(int))) ? 1 : -1];
+static_assert(sizeof(RankingEntrada) == (RANKING_NOMBRE_MAX + sizeof(int)),
+              "RankingEntrada no debe tener relleno");
 
 /**
- * @brief Assert de compilacion: Ranking no debe tener relleno.
+ * @brief Verifica en compilacion que Ranking no tenga relleno.
  * @note Si sizeof(Ranking) no es exactamente 100 * sizeof(RankingEntrada) +
- *       sizeof(int), el tamano del arreglo es -1 y la compilacion falla.
+ *       sizeof(int), la compilacion falla con el mensaje indicado.
  */
-typedef char ranking_assert_ranking_sin_relleno[
-    (sizeof(Ranking) == (RANKING_MAX_JUGADORES * sizeof(RankingEntrada)
-                         + sizeof(int))) ? 1 : -1];
+static_assert(sizeof(Ranking) == (RANKING_MAX_JUGADORES * sizeof(RankingEntrada)
+                                  + sizeof(int)),
+              "Ranking no debe tener relleno");
 
 /**
  * @brief Copia `origen` en `destino` sin espacios en blanco en los extremos.
@@ -147,7 +145,7 @@ static void recortar_extremos(const char *origen, char *destino, int tam_destino
  * @param b Segundo string (puede ser NULL).
  * @return 0 si son iguales; negativo si a < b; positivo si a > b. Los NULL se
  *         ordenan antes que cualquier string.
- * @note No se usa strcasecmp/stricmp porque no forman parte de C99:
+ * @note No se usa strcasecmp/stricmp porque no forman parte del estandar C:
  *       strcasecmp es POSIX y stricmp es de Windows. Esta version solo usa
  *       tolower() de <ctype.h>.
  */

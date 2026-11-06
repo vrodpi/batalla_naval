@@ -8,7 +8,6 @@
  *
  * @note Todos los modulos deben incluir este archivo en lugar de repetir
  *       literales como 10, 5 o "data/ranking.dat".
- * @note Estandar unico del proyecto: C99 (-std=c99 -pedantic -Wall -Wextra).
  */
 
 #ifndef BATALLA_NAVAL_CONFIG_H

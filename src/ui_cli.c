@@ -14,7 +14,6 @@
  *       que no queden caracteres extra.
  * @note Si se alcanza EOF (entrada redirigida o cerrada), las funciones
  *       avisan al llamador y el menu devuelve MODO_SALIR para no colgarse.
- * @note Estandar unico: C99 (-std=c99 -pedantic -Wall -Wextra).
  */
 
 #include <stdio.h>

@@ -3,8 +3,8 @@
  * @brief Pruebas automaticas del modulo ranking (formato binario).
  *
  * Estrategia de prueba (sin frameworks externos)
- * El proyecto trabaja con C99 y sin dependencias externas: por eso no se
- * usa CUnit, Unity ni nada parecido. El "framework" son dos piezas minimas:
+ * El proyecto no usa dependencias externas: por eso no se usa CUnit, Unity
+ * ni nada parecido. El "framework" son dos piezas minimas:
  *   - `pruebas` cuenta cuantas aserciones se ejecutaron;
  *   - `fallos` cuenta cuantas fallaron;
  *   - chequear(condicion, "nombre del caso") imprime "ok" o "FALLO" y
@@ -39,10 +39,8 @@
  * por .gitignore) y borran con remove() al terminar, ganado o perdido,
  * para no dejar basura ni contaminar el ranking.dat real.
  *
- * Compilar: gcc -std=c99 -pedantic -Wall -Wextra -Iinclude \
- *               tests/test_ranking.c src/ranking.c -o build/test_ranking
- * Ejecutar desde la raiz: ./build/test_ranking (o build\test_ranking.exe)
- * Devuelve 0 si todo pasa, 1 si algo falla.
+ * Compilar y ejecutar con `make test-ranking`; devuelve 0 si todo pasa y 1
+ * si algo falla.
  */
 
 #include <stdio.h>
@@ -89,8 +87,7 @@ static void chequear(int condicion, const char *nombre)
  * @param ruta Ruta del archivo que se quiere medir.
  * @return Tamano en bytes, o -1 si no se puede abrir o posicionar.
  * @note Se usa para verificar que el archivo binario mida EXACTAMENTE
- *       sizeof(Ranking). Implementado con fseek(SEEK_END) + ftell, portable
- *       en C99.
+ *       sizeof(Ranking). Implementado con fseek(SEEK_END) + ftell, portable.
  */
 static long tamano_archivo(const char *ruta)
 {
