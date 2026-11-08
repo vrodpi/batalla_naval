@@ -9,9 +9,9 @@ int main(void){
 
     mostrar_presentacion_y_reglamento(partida.jugador1.nombre, "files/Reglamento.txt");
 
-    inicializar_partida(&partida);
-    
-    elegir_modo_de_juego(&partida.modo_de_juego, &partida.dificultad);
+    //inicializar_partida(&partida);
+
+    elegir_modo_de_juego(&partida);
 
     switch (partida.modo_de_juego){
         case PVP: 
@@ -21,6 +21,7 @@ int main(void){
             imprimir_linea();
 
             printf("Estas jugando contra %s\n", partida.jugador2.nombre);
+
             break;
         case PVIA:
             printf("JvIA\n");
@@ -39,15 +40,13 @@ int main(void){
             printf("Dificultad: Tormenta\n");
             break;
     }
-    /*
-    inicializar_partida(&partida, partida.modo_de_juego) ???
-        - inicializar_partida() debería pedir el nombre del J2, gestionar turnos y disparos
 
+    for (int i = 5; i > 0; i--){
 
-    while (!partida_terminada(&partida)) {
-        pedir acción a la UI y aplicarla mediante game.c
+        mostrar_pantalla_de_colocacion_de_barcos(partida.jugador1, i);
+
+        // validar posicion e ingresar al tablero
     }
-    */
- 
+
     return 0;
 }
