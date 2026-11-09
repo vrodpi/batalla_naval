@@ -13,27 +13,14 @@ enum Menu_principal {
     SALIR = 0
 };
 
-enum Columnas {
-    A,
-    B,
-    C,
-    D,
-    E,
-    F,
-    G,
-    H,
-    I,
-    J
-};
-
 char texto_por_defecto[] = "Ingrese una opción: ";
 
 char *nombres_barcos[] = {
-    "Velero",
-    "Lancha",
-    "Submarino",
-    "Buque",
-    "Portaviones"
+    "Velero (1 casilla)",
+    "Lancha (2 casillas)",
+    "Submarino (3 casillas)",
+    "Buque (4 casillas)",
+    "Portaviones (5 casillas)"
 };
 
 // limpia la pantalla de la consola detectando el sistema operativo
@@ -66,6 +53,13 @@ void imprimir_centrado(const char *texto, int ancho){
 
         printf("%*s%s%*s", izquierda, "", texto, derecha, "");
     }
+}
+
+void imprimir_posicion_invalida(void){
+    imprimir_linea();
+    printf("Posición inválida.\n");
+    printf("Vuelva a intentarlo.\n");
+    esperar_usuario();
 }
 
 // pide al usuario que ingrese una opción numérica, y consume el resto de caracteres (como letras y saltos de línea)
@@ -354,6 +348,7 @@ void solicitar_orientacion(Orientacion *orientacion){
 void pedir_posicion_del_barco(Jugador *jugador, int tamanio){
     
     printf("Barco a colocar: %s\n", nombres_barcos[tamanio-1]);
+    imprimir_linea();
 
     solicitar_entrada_de_fila(&jugador->barco[tamanio].fila);
     solicitar_entrada_de_columna(&jugador->barco[tamanio].columna);
@@ -361,7 +356,17 @@ void pedir_posicion_del_barco(Jugador *jugador, int tamanio){
 }
 
 void mostrar_tableros(Jugador jugador){
+
+    // leyenda
+    imprimir_linea();
+    printf("  '~': Agua");
+    printf("    '#': Barco");
+    printf("    'X': Impacto");
+    printf("    'O': Disparo al agua\n");
     
+    imprimir_linea();
+    printf("\n");
+
     // mostrar encabezados
     imprimir_centrado("-------MI FLOTA-------", 31);
     printf("|");
@@ -392,7 +397,7 @@ void mostrar_tableros(Jugador jugador){
         printf("    %2d ", i + 1);
 
         for (int k = 0; k < COL; k++){
-            printf("%c ", jugador.tableros.tablero[i][k] == 0 ? '~' : '#');
+            printf("%c ", jugador.tableros.tablero[i][k]);
         }
 
         printf("    |    ");
@@ -402,33 +407,82 @@ void mostrar_tableros(Jugador jugador){
         printf("%2d ", i + 1);
 
         for (int k = 0; k < COL; k++){
-            printf("%c ", jugador.tableros.tablero_disparos[i][k] == 1 ? '*' : '~');
+            printf("%c ", jugador.tableros.tablero_disparos[i][k]);
         }
     
         printf("\n");
     }
 }
 
-void mostrar_pantalla_de_colocacion_de_barcos(Jugador jugador, int tamanio){
+void mostrar_pantalla_de_colocacion_de_barcos(Jugador *jugador, int tamanio){
     
     limpiar_pantalla_cli();
     imprimir_linea();
 
-    printf("Jugador: %s\n", jugador.nombre);
+    printf("Jugador: %s\n", jugador->nombre);
+
+    mostrar_tableros(*jugador);
+
+    printf("\n");
     imprimir_linea();
 
-    printf("  '~': Agua");
-    printf("    '#': Barco");
-    printf("    'X': Impacto");
-    printf("    'O': Disparo al agua\n");
+    pedir_posicion_del_barco(jugador, tamanio);  
+}
+
+// debería retornar fila y columna en dos variables distintas (punteros)
+void mostrar_pantalla_de_ataque(Jugador *jugador, const int turno, int *fila, int *columna){
     
+    limpiar_pantalla_cli();
+    imprimir_linea();
+
+    printf("Jugador: %s\n", jugador->nombre);
+    imprimir_linea();
+    printf("\n");
+    
+    printf("Turno N° %d\n", turno);
     imprimir_linea();
     printf("\n");
 
-    mostrar_tableros(jugador);
+    mostrar_tableros(*jugador);
 
     printf("\n");
     imprimir_linea();
 
-    pedir_posicion_del_barco(&jugador, tamanio);  
+    solicitar_entrada_de_fila(fila);
+    solicitar_entrada_de_columna(columna);
+}
+
+void mostrar_pantalla_cambio_de_turno(const Jugador jugador, const int turno){
+
+    limpiar_pantalla_cli();
+    imprimir_linea();
+
+    printf("TURNO DEL JUGADOR %s\n", jugador.nombre);
+    imprimir_linea();
+    printf("TURNO N° %d\n", turno);
+
+    imprimir_linea();
+    esperar_usuario();
+}
+
+void mostrar_pantalla_de_victoria(Partida *partida){
+    
+    limpiar_pantalla_cli();
+    imprimir_linea();
+
+    printf("ENOURABUENA %s!\n", partida->ganador == 1           // si gano el JUG 1
+                                    ? partida->jugador1.nombre  // felicita al JUG 1
+                                    : partida->jugador2.nombre  // si no felicita al JUG 2
+    );
+    
+    printf("HAS DERROTADO A %s\n", partida->ganador == 1        // si gano el JUG 1
+                                    ? partida->jugador2.nombre  // perdedor = JUG 2
+                                    : partida->jugador1.nombre  // si no perdedor = JUG 1
+    );
+
+    imprimir_linea();
+    printf("La partida ha durado %d turnos.\n", partida->cantidad_turnos);
+    imprimir_linea();
+    
+    esperar_usuario();
 }
