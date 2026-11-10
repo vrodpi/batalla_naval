@@ -42,7 +42,7 @@ typedef enum {   // Los Disparos se relacionan con el funcionamiento del tablero
 void inicializar_tablero(char tablero[FIL][COL], char tablero_disparos[FIL][COL]);
 int validar_rango(Barco barco);
 int libre(Barco barco, char tablero[FIL][COL]);
-void validar_ingreso_barco(Barco barco, char tablero[FIL][COL]);
+int validar_ingreso_barco(Barco barco, char tablero[FIL][COL]);
 void ingresar_barco(Barco barco, char tablero[FIL][COL]);
 Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo, char tablero[FIL][COL]);
 
