@@ -1,6 +1,7 @@
 
 
 #include "../include/tablero.h"
+#include <stdio.h>
 
 
 
@@ -98,15 +99,52 @@ void ingresar_barco(Barco barco, char tablero[FIL][COL]){
 
 
 
-
-
-void validar_ingreso_barco (Barco barco, char tablero[FIL][COL]) {
+int validar_ingreso_barco (Barco barco, char tablero[FIL][COL]) {
     // coordenadas válidas? el barco entra completo?
     if (validar_rango(barco)==1) {
         // posiciones disponibles ?
-        if (libre(barco, &tablero)==1) {
+        if (libre(barco, tablero)==1) {
 
             ingresar_barco(barco,tablero);
+            return 1;
         }
     }
+    return 0;
 }
+
+// 
+Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo, char tablero[FIL][COL]) {
+     
+    // verificar  que las coordenadas sean válidas
+    if (fila_disparo < 0 || fila_disparo >= FIL || columna_disparo < 0 || columna_disparo >= COL) {
+        // printf("COORDENADA INVALIDA \n");
+        return disp_NO_valido;
+       
+    }
+
+
+    // En caso de que haya AGUA ~
+    if (tablero[fila_disparo][columna_disparo]=='~') {
+
+        tablero[fila_disparo][columna_disparo]='/';      // se disparó a agua
+        // printf("AGUA\n");
+
+        return disp_agua;
+
+    // si hay un BARCO...
+    } else if(tablero[fila_disparo][columna_disparo]=='#') {     // se disparo a un barco
+
+        tablero[fila_disparo][columna_disparo]='X';
+        // printf("IMPACTO\n");
+
+        return disp_impacto; 
+
+    } else if (tablero[fila_disparo][columna_disparo]=='/' || tablero[fila_disparo][columna_disparo]=='X') {
+
+        // printf("UBICACIÓN REPETIDA\n");
+
+        return disp_repetido;
+    }
+    return disp_NO_valido;
+}
+
