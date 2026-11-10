@@ -32,6 +32,8 @@ void inicializar_partida(Partida *partida) {
     }
 }
 
+/*
+
 // para verificar que un jugador se quedó sin barcos vivos
 int comprobar_partida_terminada(Partida *partida){
 
@@ -68,13 +70,13 @@ void cambiar_turno(Partida *partida){
 }
 
 
-/*
+
 // para definir de quien es el turno
 void jugar(Partida *partida){
 
     Jugador *atacante, *defensor; 
 
-    while (fin_juego(partida) == 0) {     // mientras que aun el juego no haya terminado hacer...
+    while (fin_juego(partida) == 0) {     // mientras que el juego aun no haya terminado hacer...
 
         printf("TURNO NUMERO %d\n", partida->cantidad_turnos + 1);
 
@@ -86,7 +88,7 @@ void jugar(Partida *partida){
             defensor = &partida->jugador1;
         }
 
-        printf("Turno de: %s\n", atacante->nombres);
+        printf("Turno de: %s\n", atacante->nombre);
             
         // mostrar los tableros del jugador actual
         mostrar_tablero(atacante->tableros.tablero, atacante->tableros.tablero_disparos);
@@ -111,20 +113,22 @@ void jugar(Partida *partida){
     if (partida->ganador == 1) {
 
         printf("¡%s! VICTORIA, PARTIDA GANADA.\n",
-               partida->jugador1.nombres);
+               partida->jugador1.nombre);
 
     } else if (partida->ganador == 2) {
 
         printf("¡%s! VICTORIA, PARTIDA GANADA.\n",
-               partida->jugador2.nombres);
+               partida->jugador2.nombre);
     }
 }
+*/
 
+// Situación del Defensor  actualización en "Tablero"
 Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo, char tablero[FIL][COL]) {
      
     // verificar  que las coordenadas sean válidas
     if (fila_disparo < 0 || fila_disparo >= FIL || columna_disparo < 0 || columna_disparo >= COL) {
-        printf("COORDENADA INVALIDA \n");
+       //  printf("COORDENADA INVALIDA \n");
         return disp_NO_valido;
        
     }
@@ -133,8 +137,8 @@ Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo, char tablero[
     // En caso de que haya AGUA ~
     if (tablero[fila_disparo][columna_disparo]=='~') {
 
-        tablero[fila_disparo][columna_disparo]='/';      // se disparó a agua
-        printf("AGUA\n");
+        tablero[fila_disparo][columna_disparo]='/';      // se disparó a agua; se modifica el tablero del defensor
+       // printf("AGUA\n");
 
         return disp_agua;
 
@@ -142,13 +146,13 @@ Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo, char tablero[
     } else if(tablero[fila_disparo][columna_disparo]=='#') {     // se disparo a un barco
 
         tablero[fila_disparo][columna_disparo]='X';
-        printf("IMPACTO\n");
+        // printf("IMPACTO\n");
 
         return disp_impacto; 
 
     } else if (tablero[fila_disparo][columna_disparo]=='/' || tablero[fila_disparo][columna_disparo]=='X') {
 
-        printf("UBICACIÓN REPETIDA\n");
+       // printf("UBICACIÓN REPETIDA\n");
 
         return disp_repetido;
     }
@@ -198,6 +202,7 @@ void barco_hundido(Jugador *defensor) {
     }
 }
 
+// Situación del Atacante (jugador de Turno), situación en "Tablero de Disparos"
 void coordenadas_de_ataque(Jugador *atacante, Jugador *defensor) {     // si juega el jugador1 (atacante) el defensor es el jugador2
     int fila, columna;
     Rdo_Disparo rdo = disp_NO_valido;           // resultado, del retorno.
@@ -239,14 +244,3 @@ void coordenadas_de_ataque(Jugador *atacante, Jugador *defensor) {     // si jue
 
 
 
-
-        Cuando solitemos los barcos 
-
-if (libre(barco, jugador->tableros.tablero)) {
-    
-jugador->barco[i] = barco;          // Guardar sus datos
-jugador->barco[i].hundido = 0;      // Todavía no está hundido
-
-ingresar_barco(barco, jugador->tableros.tablero);
-}
-*/
