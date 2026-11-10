@@ -41,11 +41,7 @@ typedef struct {
 
 
 void inicializar_partida( Partida *partida);
-void jugar(Partida *partida);
-int fin_juego(Partida *partida);
-void barco_hundido(Jugador *defensor);
-Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo, char tablero[FIL][COL]);
-void coordenadas_de_ataque(Jugador *atacante, Jugador *defensor);
-
+int comprobar_partida_terminada(Partida *partida);
+void cambiar_turno(Partida *partida);
 
 #endif

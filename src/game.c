@@ -1,6 +1,5 @@
-#include "game.h"
-#include "tablero.h"
-#include <stdio.h>
+#include "../include/game.h"
+#include "../include/tablero.h"
 
 void inicializar_partida(Partida *partida) {
       
@@ -18,7 +17,7 @@ void inicializar_partida(Partida *partida) {
     partida->jugador2.hits = 0;
 
     inicializar_tablero(
-        partida->jugador1.tableros.tablero, 
+        partida->jugador1.tableros.tablero,
         partida->jugador1.tableros.tablero_disparos
     );
     inicializar_tablero(
@@ -27,14 +26,99 @@ void inicializar_partida(Partida *partida) {
     );
 
    // inicializar el estado de los barcos
-    for(int i=0; i< BARCOS_MODO_NORMAL; i++) {
+    for(int i = 0; i < BARCOS_MODO_NORMAL; i++){
         partida->jugador1.barco[i].hundido = 0;
         partida->jugador2.barco[i].hundido = 0;
     }
+}
 
+// para verificar que un jugador se quedó sin barcos vivos
+int comprobar_partida_terminada(Partida *partida){
+
+    if(partida->jugador1.barcos_vivos <= 0){       // si el n° de barcos vivos  del jugador1 es menor igual a cero entonces
+        
+        partida->ganador = 2;                       // el ganador de la partida es el jugador 2
+        
+        partida->victoria = 1;
+
+        return 1;                                   // retorna 1, indicando que hay ganador
+    } 
+    else if(partida->jugador2.barcos_vivos <= 0){    
+        
+        partida->ganador = 1;                          // el ganador será el jugador1 si el el jugador2 se quedó sin barcos vivos
+        
+        partida->victoria = 1;
+
+        return 1;
+    }
+    
+    return 0; // indica que el juego continua
+}
+
+// para definir de quien es el turno
+void cambiar_turno(Partida *partida){
+    
+    // Cambiamos el turno
+    if (partida->turno == 1){
+        partida->turno = 2;
+
+    } else {
+        partida->turno = 1;
+    }
 }
 
 
+/*
+// para definir de quien es el turno
+void jugar(Partida *partida){
+
+    Jugador *atacante, *defensor; 
+
+    while (fin_juego(partida) == 0) {     // mientras que aun el juego no haya terminado hacer...
+
+        printf("TURNO NUMERO %d\n", partida->cantidad_turnos + 1);
+
+        if (partida->turno == 1) {
+            atacante = &partida->jugador1;
+            defensor = &partida->jugador2;
+        }  else {
+            atacante = &partida->jugador2;
+            defensor = &partida->jugador1;
+        }
+
+        printf("Turno de: %s\n", atacante->nombres);
+            
+        // mostrar los tableros del jugador actual
+        mostrar_tablero(atacante->tableros.tablero, atacante->tableros.tablero_disparos);
+        
+        // El atacante realiza su disparo
+        coordenadas_de_ataque(atacante, defensor);
+
+        // Cambiamos el turno
+        if (partida->turno == 1) {
+            partida->turno = 2;
+        } else {
+            partida->turno = 1;
+        }
+
+        partida->cantidad_turnos++;
+    }
+
+    // Fin de la partida
+    printf("        ¡FIN DEL JUEGO!      \n");
+   
+
+    if (partida->ganador == 1) {
+
+        printf("¡%s! VICTORIA, PARTIDA GANADA.\n",
+               partida->jugador1.nombres);
+
+    } else if (partida->ganador == 2) {
+
+        printf("¡%s! VICTORIA, PARTIDA GANADA.\n",
+               partida->jugador2.nombres);
+    }
+}
 
 Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo, char tablero[FIL][COL]) {
      
@@ -153,78 +237,11 @@ void coordenadas_de_ataque(Jugador *atacante, Jugador *defensor) {     // si jue
 
 
 
-// para definir de quien es el turno
-void jugar(Partida *partida){
-
-    Jugador *atacante, *defensor; 
-
-    while (fin_juego(partida) == 0) {     // mientras que aun el juego no haya terminado hacer...
-
-        printf("TURNO NUMERO %d\n", partida->cantidad_turnos + 1);
-
-        if (partida->turno == 1) {
-            atacante = &partida->jugador1;
-            defensor = &partida->jugador2;
-        }  else {
-            atacante = &partida->jugador2;
-            defensor = &partida->jugador1;
-        }
-
-        printf("Turno de: %s\n", atacante->nombres);
-            
-        // mostrar los tableros del jugador actual
-        mostrar_tablero(atacante->tableros.tablero, atacante->tableros.tablero_disparos);
-        
-        // El atacante realiza su disparo
-        coordenadas_de_ataque(atacante, defensor);
-
-        // Cambiamos el turno
-        if (partida->turno == 1) {
-            partida->turno = 2;
-        } else {
-            partida->turno = 1;
-        }
-
-        partida->cantidad_turnos++;
-    }
-
-    // Fin de la partida
-    printf("        ¡FIN DEL JUEGO!      \n");
-   
-
-    if (partida->ganador == 1) {
-
-        printf("¡%s! VICTORIA, PARTIDA GANADA.\n",
-               partida->jugador1.nombres);
-
-    } else if (partida->ganador == 2) {
-
-        printf("¡%s! VICTORIA, PARTIDA GANADA.\n",
-               partida->jugador2.nombres);
-    }
-}
-
-// para verificar que un jugador se quedó sin barcos vivos
-int fin_juego(Partida *partida) {
-
-    if(partida->jugador1.barcos_vivos <= 0) {       // si el n° de barcos vivos  del jugador1 es menor igual a cero entonces
-        partida->ganador = 2;                       // el ganador de la partida es el jugador 2
-        return 1;                                   // retorna 1, indicando que hay ganador
-    } 
-    else if(partida->jugador2.barcos_vivos <= 0) {    
-        partida->ganador=1;                          // el ganador será el jugador1 si el el jugador2 se quedó sin barcos vivos
-        return 1;
-    }
-    
-    return 0; // indica que el juego continua
-}
 
 
 
+        Cuando solitemos los barcos 
 
-
-/* Cuando solitemos los barcos */
-/*
 if (libre(barco, jugador->tableros.tablero)) {
     
 jugador->barco[i] = barco;          // Guardar sus datos
