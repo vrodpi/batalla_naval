@@ -35,7 +35,6 @@ typedef struct {
     int cantidad_turnos;
     Modo_de_juego modo_de_juego;
     Dificultad dificultad;
-    int victoria;
     int ganador;
 } Partida;
 
@@ -43,5 +42,7 @@ typedef struct {
 void inicializar_partida( Partida *partida);
 int comprobar_partida_terminada(Partida *partida);
 void cambiar_turno(Partida *partida);
+void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna, Rdo_Disparo disparo);
+Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo, char tablero[FIL][COL]);
 
 #endif

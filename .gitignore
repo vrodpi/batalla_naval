@@ -4,6 +4,8 @@ build/
 *.obj
 *.exe
 !build/.gitkeep
+obj/
+bin/
 
 # Temporales de pruebas del ranking
 data/ranking_test_*.dat

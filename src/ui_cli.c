@@ -16,8 +16,8 @@ enum Menu_principal {
 char texto_por_defecto[] = "Ingrese una opción: ";
 
 char *nombres_barcos[] = {
-    "Velero (1 casilla)",
-    "Lancha (2 casillas)",
+    "Lancha (1 casilla)",
+    "Velero (2 casillas)",
     "Submarino (3 casillas)",
     "Buque (4 casillas)",
     "Portaviones (5 casillas)"
@@ -62,6 +62,12 @@ void imprimir_posicion_invalida(void){
     esperar_usuario();
 }
 
+void consumir_buffer(void){
+   
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF){}
+    
+}
 // pide al usuario que ingrese una opción numérica, y consume el resto de caracteres (como letras y saltos de línea)
 // si el usuario no ingresa un entero, retorna -1
 int pedir_opcion_al_usuario(char texto[]) {
@@ -69,21 +75,24 @@ int pedir_opcion_al_usuario(char texto[]) {
     int opcion;
 
     printf("%s", texto);
-    
+      
     if (scanf("%d", &opcion) != 1){ //comprueba que scanf haya leído un entero
+    
+        consumir_buffer();
+
         return -1;  // indica que la entrada no era un entero
     }
-
+    
     // Consumir el resto de la línea
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF){
-    }
+    consumir_buffer();
 
     return opcion;
 }
 
 // ingresa el nombre del jugador y reemplaza el salto de línea por un \0
 void pedir_nombre_jugador(char jugador[]){
+
+    imprimir_linea();
 
     printf("Ingrese el nombre del jugador: ");
     fgets(jugador, MAX_NICKNAME, stdin);
@@ -195,7 +204,7 @@ int elegir_dificultad(Dificultad *dificultad){
 // muestra el menú principal y permite navegar por él
 // asigna el modo de juego y dificultad elegidos por el usuario y retorna 1
 // retorna 0 en caso de que el usuario quiera salir del juego
-int elegir_modo_de_juego(Partida *partida){
+int menu_principal(Partida *partida){
 
     int opcion_menu;
 
@@ -256,9 +265,9 @@ int elegir_modo_de_juego(Partida *partida){
 }
 
 
-int validar_entrada_fila_y_columna(int fila){
+int validar_entrada_fila_y_columna(int opcion){
     // devuelve 1 si la fila/columna está dentro del rango del tablero
-    if (fila >= 0 && fila <= 9){
+    if (opcion >= 0 && opcion <= 9){
         return 1;
     }
     return 0;
@@ -269,35 +278,45 @@ void solicitar_entrada_de_fila(int *fila){
     int opcion;
     
     do {
-        // pide la fila al usuario
-        opcion = pedir_opcion_al_usuario("Fila: ");
-    
+        
+        // pide la columna al usuario
+        opcion = pedir_opcion_al_usuario("Fila: "); // toma el primer caracter ingresado
+        
+        // si la opcion no era un int
+        if (opcion == -1){
+            printf("<Ingrese un número entero>\n");
+            imprimir_linea();
+
+            // salta hasta el principio del próximo loop
+            continue;
+        }
+
         opcion--;
     
         // si no es válida le avisa al usuario y vuelve a preguntar
         if (validar_entrada_fila_y_columna(opcion) == 0){
-            printf("Fila fuera de rango.\n");
+            printf("<Fila fuera de rango>\n");
+            imprimir_linea();
         }
-        
+
     } while (validar_entrada_fila_y_columna(opcion) == 0);
-    
-    // si es válida la guarda en el puntero
+
     *fila = opcion;
 }
+
 
 void solicitar_entrada_de_columna(int *columna){
     
     int opcion;
 
     do {
+        
         // pide la columna al usuario
         printf("Columna: ");
         opcion = getchar(); // toma el primer caracter ingresado
     
         // consume el resto de la línea
-        int c;
-        while ((c = getchar()) != '\n' && c != EOF){
-        }
+        consumir_buffer();
     
         // lee si se ingresó una columna dentro del rango del tablero 
         // y convierte la columna al valor numérico correspondiente 
@@ -310,7 +329,8 @@ void solicitar_entrada_de_columna(int *columna){
 
         // si no es válida le avisa al usuario y vuelve a preguntar
         if (validar_entrada_fila_y_columna(opcion) == 0){
-            printf("Columna fuera de rango.\n");
+            printf("<Columna fuera de rango>\n");
+            imprimir_linea();
         }
 
     } while (validar_entrada_fila_y_columna(opcion) == 0);
@@ -339,7 +359,8 @@ void solicitar_orientacion(Orientacion *orientacion){
                 return;
             
             default:
-                printf("Opción no válida.\n");
+                printf("<Opción no válida>\n");
+                imprimir_linea();
                 break;
         }
     }
@@ -347,7 +368,7 @@ void solicitar_orientacion(Orientacion *orientacion){
 
 void pedir_posicion_del_barco(Jugador *jugador, int tamanio){
     
-    printf("Barco a colocar: %s\n", nombres_barcos[tamanio-1]);
+    printf("Barco a colocar: %s\n", nombres_barcos[tamanio]);
     imprimir_linea();
 
     solicitar_entrada_de_fila(&jugador->barco[tamanio].fila);
@@ -355,14 +376,23 @@ void pedir_posicion_del_barco(Jugador *jugador, int tamanio){
     solicitar_orientacion(&jugador->barco[tamanio].orientacion);
 }
 
-void mostrar_tableros(Jugador jugador){
+void mostrar_tableros(Jugador jugador, int turno){
 
+    limpiar_pantalla_cli();
+
+    imprimir_linea();
+
+    printf("Jugador: %s\n", jugador.nombre);
+    imprimir_linea();
+    
+    printf("Turno N° %d\n", turno);
+    
     // leyenda
     imprimir_linea();
-    printf("  '~': Agua");
-    printf("    '#': Barco");
-    printf("    'X': Impacto");
-    printf("    'O': Disparo al agua\n");
+    printf("  '%c': Agua", CASILLA_AGUA);
+    printf("    '%c': Barco", CASILLA_BARCO);
+    printf("    '%c': Impacto", CASILLA_IMPACTO);
+    printf("    '%c': Disparo al agua\n", CASILLA_DISP_AGUA);
     
     imprimir_linea();
     printf("\n");
@@ -412,42 +442,15 @@ void mostrar_tableros(Jugador jugador){
     
         printf("\n");
     }
-}
-
-void mostrar_pantalla_de_colocacion_de_barcos(Jugador *jugador, int tamanio){
-    
-    limpiar_pantalla_cli();
-    imprimir_linea();
-
-    printf("Jugador: %s\n", jugador->nombre);
-
-    mostrar_tableros(*jugador);
 
     printf("\n");
-    imprimir_linea();
 
-    pedir_posicion_del_barco(jugador, tamanio);  
+    imprimir_linea();
 }
 
 // debería retornar fila y columna en dos variables distintas (punteros)
-void mostrar_pantalla_de_ataque(Jugador *jugador, const int turno, int *fila, int *columna){
-    
-    limpiar_pantalla_cli();
-    imprimir_linea();
-
-    printf("Jugador: %s\n", jugador->nombre);
-    imprimir_linea();
-    printf("\n");
-    
-    printf("Turno N° %d\n", turno);
-    imprimir_linea();
-    printf("\n");
-
-    mostrar_tableros(*jugador);
-
-    printf("\n");
-    imprimir_linea();
-
+void pedir_coordenadas_de_ataque(int *fila, int *columna){
+      
     solicitar_entrada_de_fila(fila);
     solicitar_entrada_de_columna(columna);
 }
@@ -484,5 +487,27 @@ void mostrar_pantalla_de_victoria(Partida *partida){
     printf("La partida ha durado %d turnos.\n", partida->cantidad_turnos);
     imprimir_linea();
     
+    esperar_usuario();
+}
+
+void resultado_del_ataque(Rdo_Disparo disparo){
+    switch (disparo){
+
+    case disp_agua:
+        printf("AGUA\n");
+        break;
+    case disp_impacto:
+        printf("IMPACTO\n");
+        break;
+    case disp_repetido:
+        printf("DISPARO REPETIDO: VUELVA A INTENTARLO\n");
+        break;
+    
+    default:
+        break;
+    }
+
+    imprimir_linea();
+
     esperar_usuario();
 }
