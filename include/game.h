@@ -6,18 +6,18 @@
 #include "tablero.h"
 
 typedef enum { 
-    PVP, // N normal
-    PVIA // Persona vs IA (normal)
+    PVP,    // Entre Personas // 0
+    PVIA    // Persona vs IA (normal) // 1
 } Modo_de_juego;
 
 typedef enum {
-    NORMAL,
-    TORMENTA
+    NORMAL,     //0
+    TORMENTA   //1
 } Dificultad;
 
 typedef enum {
-    PJ1,
-    PJ2
+    PJ1,     // 1   en el resto de los programas se trabajan con estos valores
+    PJ2      // 2
 } Turno;
 
 typedef struct  {
@@ -44,5 +44,6 @@ int comprobar_partida_terminada(Partida *partida);
 void cambiar_turno(Partida *partida);
 void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna, Rdo_Disparo disparo);
 Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo, char tablero[FIL][COL]);
+void modo_tormenta(Partida *partida); 
 
 #endif
