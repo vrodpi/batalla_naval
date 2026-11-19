@@ -1,16 +1,31 @@
-#include <string.h>
+
 #include "../include/ui_cli.h"
 #include "../include/game.h"
 #include "../include/tablero.h"
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
 
 void colocar_barcos(Jugador *jugador);
 void partida_pvp(Partida *partida);
 void partida_pvia(Partida *partida);
+void partida_pvp_t(Partida *partida);
+void partida_pvia_t(Partida *partida);
+
+// arreglo de punteros a funciones para Modo y Dificultad
+void (*ejecutar_modo[4])(Partida *) ={
+    partida_pvp,                                // posición 0
+    partida_pvp_t,                              // posición 1
+    partida_pvia,                               // posición 2
+    partida_pvia_t                              // posición 3
+};
+
 
 int main(void){
 
     Partida partida;
+    srand(time(NULL)); // para modo tormenta
 
     int opcion_menu;
 
@@ -21,18 +36,16 @@ int main(void){
         
         opcion_menu = menu_principal(&partida);
           
-        switch (partida.modo_de_juego){
-            case PVP: 
+           if (opcion_menu != 0) {   // para evitar que se ejecute una partida, si el jugador prefirió salir
 
-                partida_pvp(&partida);
+            // Para saber en que posición del puntero a función ejecutar_modo[]()
+            // En el Enum, PVP es 0 (y Dificultad Normal 0) entonces Posicion 0; 
+            // PVP es 0 (Y Dificultad Tormenta es 1) entonces 0*2 + 1 = 1  Posicion 1;
+            // PVIA es 1 (Dificultad Normal 0) entonces posición 2 y PVIA Tormenta posición 3
+            int indice = partida.modo_de_juego * 2 + partida.dificultad;      
 
-                break;
-        
-            case PVIA:
-    
-                partida_pvia(&partida);
-
-                break;
+            // Implementar la función que corresponde
+            ejecutar_modo[indice](&partida);
         }
 
     } while (opcion_menu != 0);
@@ -45,9 +58,6 @@ void colocar_barcos(Jugador *jugador){
     int indice = 4;
 
     while (indice >= 0){
-
-        // asigna el tamaño del barco
-        jugador->barco[indice].tamanio = indice + 1;
 
         mostrar_tableros(*jugador, 0);
 
@@ -101,6 +111,7 @@ void ejecutar_turno_del_jugador(Jugador *atacante, Jugador *defensor, int turno)
     } while (disparo == disp_repetido);
 }
 
+// Partdida entre Personas. Dificultad Normal.
 void partida_pvp(Partida *partida){
     
     pedir_nombre_jugador(partida->jugador2.nombre);
@@ -146,4 +157,49 @@ void partida_pvia(Partida *partida){
     cosas...
     */
 
+}
+
+
+// Partida entre Personas, con dificultad TORMENTA
+void partida_pvp_t(Partida *partida){
+
+    pedir_nombre_jugador(partida->jugador2.nombre);
+
+    colocar_barcos(&partida->jugador1);
+
+    mostrar_pantalla_cambio_de_turno(partida->jugador2,
+                                     partida->cantidad_turnos);
+
+    colocar_barcos(&partida->jugador2);
+
+    while (comprobar_partida_terminada(partida) == 0){
+
+        if (partida->turno == 1){   //pj1 
+
+            ejecutar_turno_del_jugador(&partida->jugador1,
+                                       &partida->jugador2,
+                                       partida->cantidad_turnos);
+
+        }
+
+        else if (partida->turno == 2){   // pj2
+
+            ejecutar_turno_del_jugador(&partida->jugador2,
+                                       &partida->jugador1,
+                                       partida->cantidad_turnos);
+
+
+        }
+        // La tormenta afecta al jugador 2
+        modo_tormenta(partida);
+
+        cambiar_turno(partida);
+    }
+
+    mostrar_pantalla_de_victoria(partida);
+}
+
+// es para borrar para probar si compilada
+void partida_pvia_t(Partida *partida) {
+    pedir_nombre_jugador(partida->jugador2.nombre);
 }
