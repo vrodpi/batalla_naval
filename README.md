@@ -324,4 +324,4 @@ A ~~~ B	Enlace invisible (para controlar el layout)
 
 // IMAGEN DE PRUEBA BORRAR
 <!-- COMENTARIOS QUE NO SE VERAN AL EJECUTARSE EL README -->
-*/![alt text](image.png)
+para una imagen, copiar y pegar. 
