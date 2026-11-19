@@ -1,9 +1,10 @@
 #include "../include/game.h"
 #include "../include/tablero.h"
+#include <stdlib.h>
 
 void inicializar_partida(Partida *partida) {
       
-    partida->turno = 1;
+    partida->turno = 1;  // pj1
     partida->cantidad_turnos = 0;
     partida->ganador = 0;
 
@@ -16,11 +17,12 @@ void inicializar_partida(Partida *partida) {
     partida->jugador1.hits = 0;                 // cada jugador empieza con 0 impacto a barcos
     partida->jugador2.hits = 0;
 
+    // Llenar los tableros de AGUA
     inicializar_tablero(
         partida->jugador1.tableros.tablero,
         partida->jugador1.tableros.tablero_disparos
     );
-    inicializar_tablero(
+    inicializar_tablero(                        
         partida->jugador2.tableros.tablero,
         partida->jugador2.tableros.tablero_disparos
     );
@@ -29,7 +31,10 @@ void inicializar_partida(Partida *partida) {
     for(int i = 0; i < BARCOS_MODO_NORMAL; i++){
         partida->jugador1.barco[i].hundido = 0;
         partida->jugador2.barco[i].hundido = 0;
+        partida->jugador1.barco[i].tamanio = i + 1;
+        partida->jugador2.barco[i].tamanio = i + 1;
     }
+
 }
 
 // para verificar que un jugador se quedó sin barcos vivos
@@ -59,11 +64,11 @@ int comprobar_partida_terminada(Partida *partida){
 void cambiar_turno(Partida *partida){
     
     // Cambiamos el turno
-    if (partida->turno == 1){
-        partida->turno = 2;
+    if (partida->turno == 1){     // pj1
+        partida->turno = 2;      // pj2
 
     } else {
-        partida->turno = 1;
+        partida->turno = 1;       //pj1
     }
 
     partida->cantidad_turnos++;
@@ -134,7 +139,7 @@ void barco_hundido(Jugador *defensor) {
     }
 }
 
-// aplica los cambios en los tableros del jugador atacante y defensor
+// aplica los cambios en los tableros del jugador atacante (en el tablero de disparos)y defensor (tablero)
 // si juega el jugador1 (atacante) el defensor es el jugador2
 void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna, Rdo_Disparo disparo){
 
@@ -146,7 +151,7 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
             // se actualiza el tablero de barcos del defensor
             defensor->tableros.tablero[fila][columna] = CASILLA_DISP_AGUA;
             
-            // y el tablero de disparos del atacante
+            // se registran sus impactos en el tablero de disparos del atacante
             atacante->tableros.tablero_disparos[fila][columna] = CASILLA_DISP_AGUA;
            
             return;
@@ -174,3 +179,68 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
             return;
     } 
 }
+
+
+
+
+// Tormenta cada 3 turnos.
+void modo_tormenta(Partida *partida){
+    
+    //  Si la dificultad no es Tormenta sale de la función
+    if(partida->dificultad != TORMENTA){
+        return;
+    }
+
+    //Verifica que hallan pasado 3 turnos (múltiplo de 3). Se ejecuta antes de cambiar de turno
+    if((partida->cantidad_turnos + 1) % 3 != 0) {     // +1, porque ejecutamos tormenta antes de cambiar_turno(),   
+        return;                                       // en donde se incrementa el contador
+    }
+        
+    //Determina a que jugador se le aplica el daño
+      // Identificar atacante y defensor.
+    Jugador *atacante;
+    Jugador *defensor;
+
+    if (partida->turno == PJ1) {
+        atacante = &partida->jugador1;
+        defensor = &partida->jugador2;
+    } else {
+        atacante = &partida->jugador2;
+        defensor = &partida->jugador1;
+    }
+
+    //Arreglos temporales para guardar posiciones que aun tienen barcos activos
+    int Fil_Tormenta[FIL*COL];   // 100 casillas= 10*10
+    int Col_Tormenta[FIL*COL];
+
+    int cont_barcos = 0;
+
+    //Recorre el tablero del defensor, en busca de lugares ocupados
+    // #: barco no descubierto. 
+    for (int i = 0; i < FIL; i++){        // recorre las filas
+        for (int j = 0; j < COL; j++){          // recorre las columnas
+            if (defensor->tableros.tablero[i][j] == CASILLA_BARCO){
+                Fil_Tormenta[cont_barcos] = i;
+                Col_Tormenta[cont_barcos] = j;
+
+                cont_barcos++;
+            }
+        }
+    }
+
+    //Si no hay partes de barcos disponibles, la tormenta no hace efecto.
+    if (cont_barcos == 0){
+        return;
+    }
+
+    //Elige de forma aleatoria una posición
+    int k = rand() % cont_barcos; 
+
+    int Fil_afectada = Fil_Tormenta[k];
+    int Col_afectada = Col_Tormenta[k];
+    
+    // Registrar los impactos en los tableros 
+    aplicar_disparo(atacante, defensor,Fil_afectada, Col_afectada, disp_impacto);
+
+}
+
