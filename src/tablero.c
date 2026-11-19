@@ -89,14 +89,17 @@ void ingresar_barco(Barco barco, char tablero[FIL][COL]){
 
 
 int validar_ingreso_barco (Barco barco, char tablero[FIL][COL]) {
-        // posiciones disponibles ?
+        // El barco entra completo? No hay superposición entre ellos? Existe un espacio entre cada uno?
         if (libre(barco, tablero)==1) {
 
             ingresar_barco(barco,tablero);
 
             return 1;
         }
-    //}
     return 0;
 }
 
+
+// EN MAIN. 
+// si libre dio cero, con un print: Posición Invalida, Los barcos no pueden Superponerse. Recuerde dejar un casillero de       espacio entre ellos. 
+/// posicion invalida.El Barco por sus dimensiones no entra en el Tablero.
