@@ -13,8 +13,8 @@ typedef enum {              // Tipo y tamaño del barco
     porta_aviones=5,
     buque=4,
     submarino=3,
-    lancha=2,
-    velero=1
+    velero=2,
+    lancha=1
 } Tamanio;
 
 typedef struct {
