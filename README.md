@@ -49,14 +49,14 @@ La *FLOTA* de cada Jugador consiste en 5 barcos, que se diferenciarán de acuerd
 | 5      |    velero        | 1 casilleros|
   
 **Posiciones Válidas:** 
-Ingreso Numeral de la Fila (1 al 10). <br> 
-Ingreso Alfabético de la Columna (A a J). <br> 
-No se permite que los barcos se superpongan.  <br> 
-No se permite que los barcos se encuentren ubicados en posiciones contiguas, ni en diagonal. (Dejar un espacio entre ellos).<br> 
-No se permite el ingreso de ubicación repetida (Ni como coordenada de Ataque). <br> 
-No se permite el ingreso de ubicación fuera de rango. <br>
-No se permite el ingreso del barco, si por su tamaño (cantidad de casillas que ocupe), no entra en el rango del Tablero. <br> 
-La interfaz se ocupa de traducir las coordenadas ingresadas por las personas a las coordenadas que utiliza el programa.
+*Ingreso Numeral de la Fila (1 al 10). <br> 
+*Ingreso Alfabético de la Columna (A a J). <br> 
+*No se permite que los barcos se superpongan.  <br> 
+*No se permite que los barcos se encuentren ubicados en posiciones contiguas, ni en diagonal. (Dejar un espacio entre ellos).<br> 
+*No se permite el ingreso de ubicación repetida (Ni como coordenada de Ataque). <br> 
+*No se permite el ingreso de ubicación fuera de rango. <br>
+*No se permite el ingreso del barco, si por su tamaño (cantidad de casillas que ocupe), no entra en el rango del Tablero. <br> 
+*La interfaz se ocupa de traducir las coordenadas ingresadas por las personas a las coordenadas que utiliza el programa.
 
 
 **Disparos. Ataque a Flota Oponente.**
@@ -102,7 +102,30 @@ Enfrentamiento entre un Jugador y la Máquina.
 Juego Clásico, sea el modo elegido (Entre Jugadores o Contra IA). No difiere en uso, ni métodos adicionales, ni estratégicas ya conocidas y/o antes mencionadas. <br>
 
 **MODO TORMENTA**
-Cada 3 turnos, ocurrirá un impacto. Elegido esta dificultad se permite tener la desventaja de ser el jugador cuya flota podria estar en peligro si por coordenada aleatoria dispuesta por el sistema, impacta sobre su flota; o en ventaja si ocurriese lo contrario respectivamente. No permite el hundimiento total del barco, (excepto que se trate de una lancha, que por su tamaño solo ocupa una casilla), sino que hace impacto en solo una parte del barco. <br>
+**TORMENTA POR TURNOS**:
+Cada 3 turnos, ocurrirá un impacto. Elegido esta dificultad el jugador de turno tendrá dos ventajas:
+1) Podrá disparar a la flota enemiga.  <br>
+2) Sin importar si acertó o no, con Tormenta el adversario tendrá su flota en peligro debido a que por coordenada aleatoria elegido por el sistema, un rayo impactará sobre un barco activo.  <br> 
+No permite el hundimiento total del barco, (excepto que se trate de una lancha, que por su tamaño solo ocupa una casilla), sino que hace impacto sobre alguna casilla que ocupe el barco. <br>
+
+**TORMENTA POR IMPACTOS CONSECUTIVOS A AGUA.**
+Cuando el jugador de Turno, haya fallado 3 veces, es decir disparó a AGUA, entonces se Activa Tormenta. 
+El adversario tendrá su flota en peligro debido a que por coordenada aleatoria elegido por el sistema, un rayo impactará sobre un barco activo.  <br> 
+No permite el hundimiento total del barco, (excepto que se trate de una lancha, que por su tamaño solo ocupa una casilla), sino que hace impacto sobre alguna casilla que ocupe el barco. <br>
+
+¿Cómo funciona? 
+Caso 1:
+impacto_agua_consecutivo=0 (contador inicializado en 0)
+Turno 1: Atacante dispara a Agua (impacto_agua_consecutivo + 1)
+Turno 2: Atacante dispara a Agua (impacto_agua_consecutivo + 1)
+Turno 3: Atacante dispara a Agua (impacto_agua_consecutivo + 1)
+impacto_agua_consecutivo=3 Se Activa Tormenta 
+
+Caso 2:
+impacto_agua_consecutivo=0 (contador inicializado en 0)
+Turno 1: Atacante dispara a Agua (impacto_agua_consecutivo + 1)
+Turno 2: Atacante dispara a Agua (impacto_agua_consecutivo + 1)
+Turno 3: Atacante dispara a Barco (impacto_agua_consecutivo= 0)     // se reinicia el contador
 
 
 ### JUGUEMOS UNA PARTIDA / FLUJO GENERAL ###                           
