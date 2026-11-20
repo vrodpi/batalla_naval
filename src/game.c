@@ -17,6 +17,9 @@ void inicializar_partida(Partida *partida) {
     partida->jugador1.hits = 0;                 // cada jugador empieza con 0 impacto a barcos
     partida->jugador2.hits = 0;
 
+    partida->jugador1.impacto_agua_consecutivo= 0;          // el contador de impactos a agua, comienza en 0.
+    partida->jugador2.impacto_agua_consecutivo= 0;
+
     // Llenar los tableros de AGUA
     inicializar_tablero(
         partida->jugador1.tableros.tablero,
@@ -36,6 +39,8 @@ void inicializar_partida(Partida *partida) {
     }
 
 }
+
+
 
 // para verificar que un jugador se quedó sin barcos vivos
 int comprobar_partida_terminada(Partida *partida){
@@ -153,6 +158,7 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
             
             // se registran sus impactos en el tablero de disparos del atacante
             atacante->tableros.tablero_disparos[fila][columna] = CASILLA_DISP_AGUA;
+            atacante->impacto_agua_consecutivo++;
            
             return;
 
@@ -167,6 +173,9 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
 
             // se aumentan los hits del atacante
             atacante->hits++;
+            
+            //Se reinicia el contador porque el impacto fue distinto a agua
+            atacante->impacto_agua_consecutivo=0;
 
             // se comprueba si se hundió un barco
             barco_hundido(defensor);
@@ -185,29 +194,38 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
 
 // Tormenta cada 3 turnos.
 void modo_tormenta(Partida *partida){
+
     
     //  Si la dificultad no es Tormenta sale de la función
     if(partida->dificultad != TORMENTA){
         return;
     }
 
-    //Verifica que hallan pasado 3 turnos (múltiplo de 3). Se ejecuta antes de cambiar de turno
-    if((partida->cantidad_turnos + 1) % 3 != 0) {     // +1, porque ejecutamos tormenta antes de cambiar_turno(),   
-        return;                                       // en donde se incrementa el contador
-    }
-        
     //Determina a que jugador se le aplica el daño
-      // Identificar atacante y defensor.
+    // Identificar atacante y defensor.
     Jugador *atacante;
     Jugador *defensor;
 
     if (partida->turno == PJ1) {
-        atacante = &partida->jugador1;
-        defensor = &partida->jugador2;
+            atacante = &partida->jugador1;
+            defensor = &partida->jugador2;
     } else {
-        atacante = &partida->jugador2;
-        defensor = &partida->jugador1;
+            atacante = &partida->jugador2;
+            defensor = &partida->jugador1;
+            }
+
+
+    int tormenta_turnos = (partida->cantidad_turnos + 1) % 3 == 0;
+    int tormenta_agua=atacante->impacto_agua_consecutivo >= 3;
+
+    // Verifica que hallan pasado 3 turnos.  Multiplo de 3, por eso el %
+    // Se ejecuta antes de cambiar_turno. (por eso +1)  en donde se incrementa el contador
+    // Verifica que la cantidad de impactaos a agua consecutivos hechos por el atacante no sea menor a 3. 
+
+    if(!tormenta_turnos &&  !tormenta_agua) {       // por lo tanto, sino se cumple ninguna retorna
+        return;
     }
+    
 
     //Arreglos temporales para guardar posiciones que aun tienen barcos activos
     int Fil_Tormenta[FIL*COL];   // 100 casillas= 10*10
@@ -240,7 +258,11 @@ void modo_tormenta(Partida *partida){
     int Col_afectada = Col_Tormenta[k];
     
     // Registrar los impactos en los tableros 
-    aplicar_disparo(atacante, defensor,Fil_afectada, Col_afectada, disp_impacto);
+    aplicar_disparo(atacante, defensor,Fil_afectada, Col_afectada, disp_impacto); 
+    
+    // reiniciar el contador 0, si se activo tormenta por cantidad de impactos a agua (3 consecutivas)
+    if(tormenta_agua){
+        atacante->impacto_agua_consecutivo = 0;
+    }
 
 }
-
