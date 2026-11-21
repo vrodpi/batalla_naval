@@ -31,24 +31,24 @@ int main(void){
 
     mostrar_presentacion_y_reglamento(partida.jugador1.nombre, "files/Reglamento.txt");
 
-    do {
-        inicializar_partida(&partida);
+    
+    inicializar_partida(&partida);
+    
+    opcion_menu = menu_principal(&partida);
         
-        opcion_menu = menu_principal(&partida);
-          
-           if (opcion_menu != 0) {   // para evitar que se ejecute una partida, si el jugador prefirió salir
+        if (opcion_menu != 0) {   // para evitar que se ejecute una partida, si el jugador prefirió salir
 
-            // Para saber en que posición del puntero a función ejecutar_modo[]()
-            // En el Enum, PVP es 0 (y Dificultad Normal 0) entonces Posicion 0; 
-            // PVP es 0 (Y Dificultad Tormenta es 1) entonces 0*2 + 1 = 1  Posicion 1;
-            // PVIA es 1 (Dificultad Normal 0) entonces posición 2 y PVIA Tormenta posición 3
-            int indice = partida.modo_de_juego * 2 + partida.dificultad;      
+        // Para saber en que posición del puntero a función ejecutar_modo[]()
+        // En el Enum, PVP es 0 (y Dificultad Normal 0) entonces Posicion 0; 
+        // PVP es 0 (Y Dificultad Tormenta es 1) entonces 0*2 + 1 = 1  Posicion 1;
+        // PVIA es 1 (Dificultad Normal 0) entonces posición 2 y PVIA Tormenta posición 3
+        int indice = partida.modo_de_juego * 2 + partida.dificultad;      
 
-            // Implementar la función que corresponde
-            ejecutar_modo[indice](&partida);
-        }
+        // Implementar la función que corresponde
+        ejecutar_modo[indice](&partida);
+    }
 
-    } while (opcion_menu != 0);
+ 
 
     return 0;
 }
@@ -126,12 +126,12 @@ void partida_pvp(Partida *partida){
 
     while (comprobar_partida_terminada(partida) == 0){
 
-        if (partida->turno == 1){
+        if (partida->turno == PJ1){ //1
             
             ejecutar_turno_del_jugador(&partida->jugador1, &partida->jugador2, partida->cantidad_turnos);
         
         }
-        else if (partida->turno == 2){
+        else if (partida->turno == PJ2){  //2
 
             ejecutar_turno_del_jugador(&partida->jugador2, &partida->jugador1, partida->cantidad_turnos);
 
