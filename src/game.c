@@ -69,11 +69,11 @@ int comprobar_partida_terminada(Partida *partida){
 void cambiar_turno(Partida *partida){
     
     // Cambiamos el turno
-    if (partida->turno == 1){     // pj1
-        partida->turno = 2;      // pj2
+    if (partida->turno == PJ1){     // 1
+        partida->turno = PJ2;      // 2
 
     } else {
-        partida->turno = 1;       //pj1
+        partida->turno = PJ1;       //1
     }
 
     partida->cantidad_turnos++;
