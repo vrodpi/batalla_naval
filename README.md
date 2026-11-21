@@ -113,19 +113,19 @@ Cuando el jugador de Turno, haya fallado 3 veces, es decir disparó a AGUA, ento
 El adversario tendrá su flota en peligro debido a que por coordenada aleatoria elegido por el sistema, un rayo impactará sobre un barco activo.  <br> 
 No permite el hundimiento total del barco, (excepto que se trate de una lancha, que por su tamaño solo ocupa una casilla), sino que hace impacto sobre alguna casilla que ocupe el barco. <br>
 
-¿Cómo funciona? 
-Caso 1:
-impacto_agua_consecutivo=0 (contador inicializado en 0)
-Turno 1: Atacante dispara a Agua (impacto_agua_consecutivo + 1)
-Turno 2: Atacante dispara a Agua (impacto_agua_consecutivo + 1)
-Turno 3: Atacante dispara a Agua (impacto_agua_consecutivo + 1)
-impacto_agua_consecutivo=3 Se Activa Tormenta 
+¿Cómo funciona Tormenta por Impactos Consecutivos a Agua? <br> 
+Caso 1:<br> 
+impacto_agua_consecutivo=0 (contador inicializado en 0) <br> 
+Turno 1: Atacante dispara a Agua (impacto_agua_consecutivo + 1). <br> 
+Turno 2: Atacante dispara a Agua (impacto_agua_consecutivo + 1). <br> 
+Turno 3: Atacante dispara a Agua (impacto_agua_consecutivo + 1). <br> 
+impacto_agua_consecutivo=3 Se Activa Tormenta. <br> 
 
-Caso 2:
-impacto_agua_consecutivo=0 (contador inicializado en 0)
-Turno 1: Atacante dispara a Agua (impacto_agua_consecutivo + 1)
-Turno 2: Atacante dispara a Agua (impacto_agua_consecutivo + 1)
-Turno 3: Atacante dispara a Barco (impacto_agua_consecutivo= 0)     // se reinicia el contador
+Caso 2: <br> 
+impacto_agua_consecutivo=0 (contador inicializado en 0). <br> 
+Turno 1: Atacante dispara a Agua (impacto_agua_consecutivo + 1). <br> 
+Turno 2: Atacante dispara a Agua (impacto_agua_consecutivo + 1). <br> 
+Turno 3: Atacante dispara a Barco (impacto_agua_consecutivo= 0) -> se reinicia el contador. <br> 
 
 
 ### JUGUEMOS UNA PARTIDA / FLUJO GENERAL ###                           
