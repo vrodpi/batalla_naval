@@ -28,4 +28,6 @@ void mostrar_pantalla_cambio_de_turno(const Jugador jugador, const int turno);
 void mostrar_pantalla_de_victoria(Partida *partida);
 void pedir_coordenadas_de_ataque(int *fila, int *columna);
 void resultado_del_ataque(Rdo_Disparo disparo);
+void mostrar_mensaje_tormenta (Jugador *defensor, int Fil_afectada, int Col_afectada);
+
 #endif
