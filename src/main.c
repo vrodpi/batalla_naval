@@ -2,6 +2,7 @@
 #include "../include/ui_cli.h"
 #include "../include/game.h"
 #include "../include/tablero.h"
+#include "../include/ai.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -12,6 +13,9 @@ void partida_pvp(Partida *partida);
 void partida_pvia(Partida *partida);
 void partida_pvp_t(Partida *partida);
 void partida_pvia_t(Partida *partida);
+
+static int ejecutar_turno_ia(Partida *partida, EstadoIA *estado);
+static void jugar_pvia(Partida *partida);
 
 // arreglo de punteros a funciones para Modo y Dificultad
 void (*ejecutar_modo[4])(Partida *) ={
@@ -145,18 +149,99 @@ void partida_pvp(Partida *partida){
     // actualizar y mostrar ranking
 }
 
-void partida_pvia(Partida *partida){
-    
+/*
+ * Ejecuta un turno completo de la IA.
+ * Devuelve 1 si pudo disparar y 0 si no quedaban casillas disponibles.
+ */
+static int ejecutar_turno_ia(Partida *partida, EstadoIA *estado){
+
+    int fila, columna;
+    Rdo_Disparo disparo;
+    int barcos_antes, barcos_despues;
+
+    mostrar_pantalla_cambio_de_turno(partida->jugador2,
+                                     partida->cantidad_turnos);
+
+    // Solo se muestra el tablero del humano; la flota de la IA queda oculta.
+    mostrar_tableros(partida->jugador1, partida->cantidad_turnos);
+
+    do {
+        if (!ai_elegir_disparo(&partida->jugador2, estado,
+                               &fila, &columna)) {
+            return 0;
+        }
+
+        printf("La IA dispara en %c%d\n", 'A' + columna, fila + 1);
+
+        disparo = recibir_disparo(fila, columna,
+                                  partida->jugador1.tableros.tablero);
+
+        barcos_antes = partida->jugador1.barcos_vivos;
+        aplicar_disparo(&partida->jugador2, &partida->jugador1,
+                        fila, columna, disparo);
+        barcos_despues = partida->jugador1.barcos_vivos;
+
+        ai_registrar_resultado(estado, &partida->jugador2, fila, columna,
+                               disparo, barcos_antes, barcos_despues);
+
+        mostrar_tableros(partida->jugador1, partida->cantidad_turnos);
+        resultado_del_ataque(disparo);
+
+    // Un disparo repetido no consume el turno: se vuelve a elegir.
+    } while (disparo == disp_repetido);
+
+    return 1;
+}
+
+/*
+ * Flujo comun para Jugador vs IA, tanto en dificultad Normal como Tormenta.
+ * modo_tormenta() no hace nada si la dificultad es NORMAL.
+ */
+static void jugar_pvia(Partida *partida){
+
+    EstadoIA estado;
+
+    ai_inicializar(&estado);
+
     strcpy(partida->jugador2.nombre, "IA");
-    
+
+    if (!ai_colocar_flota(&partida->jugador2)) {
+        printf("No se pudo colocar la flota de la IA.\n");
+        esperar_usuario();
+        return;
+    }
+
     colocar_barcos(&partida->jugador1);
 
-    mostrar_pantalla_cambio_de_turno(partida->jugador2, partida->turno);
+    partida->turno = PJ1;
+    partida->cantidad_turnos = 1;
 
-    /*
-    cosas...
-    */
+    while (comprobar_partida_terminada(partida) == 0) {
 
+        if (partida->turno == PJ1) {
+
+            ejecutar_turno_del_jugador(&partida->jugador1,
+                                       &partida->jugador2,
+                                       partida->cantidad_turnos);
+
+        } else if (partida->turno == PJ2) {
+
+            if (!ejecutar_turno_ia(partida, &estado)) {
+                printf("La IA no pudo elegir un disparo.\n");
+                esperar_usuario();
+                return;
+            }
+        }
+
+        modo_tormenta(partida);
+        cambiar_turno(partida);
+    }
+
+    mostrar_pantalla_de_victoria(partida);
+}
+
+void partida_pvia(Partida *partida){
+    jugar_pvia(partida);
 }
 
 
@@ -199,7 +284,7 @@ void partida_pvp_t(Partida *partida){
     mostrar_pantalla_de_victoria(partida);
 }
 
-// es para borrar para probar si compilada
+// Jugador vs IA, con dificultad TORMENTA.
 void partida_pvia_t(Partida *partida) {
-    pedir_nombre_jugador(partida->jugador2.nombre);
+    jugar_pvia(partida);
 }
