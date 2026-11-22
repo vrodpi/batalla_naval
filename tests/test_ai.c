@@ -144,6 +144,8 @@ static void simular_partida(int semilla, Dificultad dificultad)
     srand(semilla);
     inicializar_partida(&partida);
     partida.dificultad = dificultad;
+    snprintf(partida.jugador1.nombre, sizeof partida.jugador1.nombre, "IA-1");
+    snprintf(partida.jugador2.nombre, sizeof partida.jugador2.nombre, "IA-2");
 
     ai_inicializar(&estado1);
     ai_inicializar(&estado2);

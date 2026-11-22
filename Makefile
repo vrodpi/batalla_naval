@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -std=c11 -Wall -Wextra
 OBJS = obj/main.o obj/game.o obj/tablero.o obj/ui_cli.o obj/ai.o
-TEST_OBJS = obj/test_ai.o obj/ai.o obj/game.o obj/tablero.o
+TEST_OBJS = obj/test_ai.o obj/ai.o obj/game.o obj/tablero.o obj/ui_cli.o
 
 bin/demo: $(OBJS)
 	mkdir -p bin
