@@ -590,3 +590,11 @@ void resultado_del_ataque(const Rdo_Disparo disparo){
 
     esperar_usuario();
 }
+
+void mostrar_mensaje_tormenta (Jugador *defensor, int Fil_afectada, int Col_afectada) {
+    imprimir_centrado("-------TORMENTA ACTIVADA-------", 31);
+    imprimir_centrado("-------Un Rayo Impactó sobre uno de sus Barcos-------", 31);
+    printf("Jugador Afectado: %s | Coordenadas de Impacto: \n", defensor->nombre);
+    printf("Fila %d \n",Fil_afectada);
+    printf("Columna %d \n ",Col_afectada);
+}

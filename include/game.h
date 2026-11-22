@@ -16,8 +16,8 @@ typedef enum {
 } Dificultad;
 
 typedef enum {
-    PJ1,     // 1   en el resto de los programas se trabajan con estos valores
-    PJ2      // 2
+    PJ1,        
+    PJ2      
 } Turno;
 
 typedef struct  {

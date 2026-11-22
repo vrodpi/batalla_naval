@@ -174,7 +174,7 @@ void partida_pvp_t(Partida *partida){
 
     while (comprobar_partida_terminada(partida) == 0){
 
-        if (partida->turno == 1){   //pj1 
+        if (partida->turno == PJ1){   
 
             ejecutar_turno_del_jugador(&partida->jugador1,
                                        &partida->jugador2,
@@ -182,7 +182,7 @@ void partida_pvp_t(Partida *partida){
 
         }
 
-        else if (partida->turno == 2){   // pj2
+        else if (partida->turno == PJ2){   // pj2
 
             ejecutar_turno_del_jugador(&partida->jugador2,
                                        &partida->jugador1,
