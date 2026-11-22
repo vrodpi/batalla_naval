@@ -1,10 +1,11 @@
 #include "../include/game.h"
 #include "../include/tablero.h"
+#include "../include/ui_cli.h"
 #include <stdlib.h>
 
 void inicializar_partida(Partida *partida) {
       
-    partida->turno = 1;  // pj1
+    partida->turno = PJ1;  
     partida->cantidad_turnos = 0;
     partida->ganador = 0;
 
@@ -226,6 +227,7 @@ void modo_tormenta(Partida *partida){
         return;
     }
     
+    
 
     //Arreglos temporales para guardar posiciones que aun tienen barcos activos
     int Fil_Tormenta[FIL*COL];   // 100 casillas= 10*10
@@ -259,6 +261,8 @@ void modo_tormenta(Partida *partida){
     
     // Registrar los impactos en los tableros 
     aplicar_disparo(atacante, defensor,Fil_afectada, Col_afectada, disp_impacto); 
+
+    mostrar_mensaje_tormenta(defensor, Fil_afectada, Col_afectada);
     
     // reiniciar el contador 0, si se activo tormenta por cantidad de impactos a agua (3 consecutivas)
     if(tormenta_agua){
