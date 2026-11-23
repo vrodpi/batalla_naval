@@ -1,4 +1,4 @@
-
+#include "../include/config.h"
 #include "../include/ui_cli.h"
 #include "../include/game.h"
 #include "../include/tablero.h"
@@ -10,40 +10,70 @@
 #include <time.h>
 
 void partida_pvp(Partida *partida);
-void partida_pvia(Partida *partida);
-void partida_pvp_t(Partida *partida);
-void partida_pvia_t(Partida *partida);
-
-static int ejecutar_turno_ia(Partida *partida, EstadoIA *estado);
-static void jugar_pvia(Partida *partida);
-
-// arreglo de punteros a funciones para Modo y Dificultad
-void (*ejecutar_modo[4])(Partida *) = {
-    partida_pvp,                                // posición 0
-    partida_pvp_t,                              // posición 1
-    partida_pvia,                               // posición 2
-    partida_pvia_t                              // posición 3
-};
+//void partida_pvia(Partida *partida);
 
 
 int main(void){
 
     Partida partida;
     Ranking ranking;
+    int opcion_menu;
     
     ranking_inicializar(&ranking);
 
-    ranking_cargar(&ranking, "data/ranking.dat");
+    ranking_cargar(&ranking, CONFIG_RANKING_RUTA);
 
     srand(time(NULL)); // para modo tormenta
 
-    int opcion_menu;
+    mostrar_presentacion_y_reglamento(partida.jugador1.nombre, CONFIG_REGLAMENTO_RUTA);
 
-    mostrar_presentacion_y_reglamento(partida.jugador1.nombre, "files/Reglamento.txt");
+    do {
+        inicializar_partida(&partida);
+        
+        mostrar_menu_principal();
 
+        opcion_menu = pedir_opcion_al_usuario("Ingrese una opción: ");
+
+        switch (opcion_menu){
+            case 1:
+
+                partida_pvp(&partida);
+                break;
+
+            case 2:
+
+         //       partida_pvia(&partida);
+                break;
+            
+            case 3:
+                system("clear");
+                // placeholder
+                printf("Jugador | Puntos\n");
+                imprimir_linea();
+                printf("Vicen   | 1.500.123\n");
+
+                esperar_usuario();
+                break;
+
+            case 4:
+                
+                mostrar_archivo_de_texto(CONFIG_REGLAMENTO_RUTA);
+                
+                esperar_usuario();
+                break;
+
+            case 0:
+                printf("Saliendo...\n");
+                return 0;
+            
+            default:
+                printf("Opción inválida.\n");
+                esperar_usuario();
+                break;
+        }
+    } while (opcion_menu != 0);
     
-    inicializar_partida(&partida);
-    
+/*    
     opcion_menu = menu_principal(&partida);
         
         if (opcion_menu != 0) {   // para evitar que se ejecute una partida, si el jugador prefirió salir
@@ -67,40 +97,30 @@ int main(void){
        // ejecutar_modo[indice](&partida);
     }
 
-    ranking_guardar(&ranking, "data/ranking.dat");
-
+    ranking_guardar(&ranking, CONFIG_RANKING_RUTA);
+*/
     return 0;
 }
 
-void colocar_barcos(Jugador *jugador){
-
+void colocar_barcos(Jugador *jugador, int tipo_de_partida){
+    
     int indice = 4;
 
     while (indice >= 0){
 
-        mostrar_tableros(*jugador, 0);
+        mostrar_tableros(*jugador, 0, tipo_de_partida);
 
         pedir_posicion_del_barco(jugador, indice);
 
-        switch (validar_ingreso_barco(jugador->barco[indice], jugador->tableros.tablero)){
-            case 1:
-                indice--;
-                break;
-            case -1:
-                // mensaje: barco fuera del tablero
-                printf("Barco no entra en el tablero\n");
-                esperar_usuario();
-                break;
-            case -2:
-                // mensaje: barco superpuesto
-                printf("Superposicion\n");
-                esperar_usuario();
-                break;
-            default:
-            break;
+        int validacion = validar_ingreso_barco(jugador->barco[indice], jugador->tableros.tablero);
+
+        if (validacion == 1){
+            indice--;
         }
 
-        mostrar_tableros(*jugador, 0);
+        ui_confirmacion_barco_colocado(validacion);
+        
+        mostrar_tableros(*jugador, 0, tipo_de_partida);
     }
 
     // le da tiempo al jugador a ver su tablero después de poner el último barco
@@ -109,7 +129,8 @@ void colocar_barcos(Jugador *jugador){
     }
 }
 
-void ejecutar_turno_del_jugador(Jugador *atacante, Jugador *defensor, int turno){
+// Hacer que reciba puntero a partida?
+void ejecutar_turno_del_jugador(Jugador *atacante, Jugador *defensor, int turno, int tipo_de_partida){
     
     int fila_ataque, columna_ataque;
 
@@ -118,7 +139,7 @@ void ejecutar_turno_del_jugador(Jugador *atacante, Jugador *defensor, int turno)
     // pantalla cambio de turno
     mostrar_pantalla_cambio_de_turno(*atacante, turno);
 
-    mostrar_tableros(*atacante, turno);
+    mostrar_tableros(*atacante, turno, tipo_de_partida);
 
     do {
         pedir_coordenadas_de_ataque(&fila_ataque, &columna_ataque);
@@ -131,7 +152,7 @@ void ejecutar_turno_del_jugador(Jugador *atacante, Jugador *defensor, int turno)
         aplicar_disparo(atacante, defensor, fila_ataque, columna_ataque, disparo);
   
         // actualiza el tablero en pantalla
-        mostrar_tableros(*atacante, turno);
+        mostrar_tableros(*atacante, turno, tipo_de_partida);
 
         // avisa al usuario el resultado de su ataque
         resultado_del_ataque(disparo);
@@ -140,55 +161,76 @@ void ejecutar_turno_del_jugador(Jugador *atacante, Jugador *defensor, int turno)
     } while (disparo == disp_repetido);
 }
 
-// Partdida entre Personas. Dificultad Normal.
+// Partdida entre Personas
 void partida_pvp(Partida *partida){
-    
+
+    partida->modo_de_juego = PVP;
+
+    // muestra el menú de dificultad, si el usuario elige 0 vuelve al menú principal
+    if (elegir_dificultad(&partida->dificultad) == 0){
+        return;
+    }
+
+    // variable para representar el modo de juego
+    int tipo_de_partida = partida->modo_de_juego * 2 + partida->dificultad;
+
     pedir_nombre_jugador(partida->jugador2.nombre, 2);
     
-    colocar_barcos(&partida->jugador1);
+    colocar_barcos(&partida->jugador1, tipo_de_partida);
 
     mostrar_pantalla_cambio_de_turno(partida->jugador2, partida->cantidad_turnos);
 
-    colocar_barcos(&partida->jugador2);
+    colocar_barcos(&partida->jugador2, tipo_de_partida);
 
     partida->cantidad_turnos++;
 
     while (comprobar_partida_terminada(partida) == 0){
-
-        if (partida->turno == PJ1){ //1
-            
-            ejecutar_turno_del_jugador(&partida->jugador1, &partida->jugador2, partida->cantidad_turnos);
         
+        int tormenta_fila, tormenta_columna;
+        
+        if (partida->turno == TURNO_PJ1){ //1
+            
+            ejecutar_turno_del_jugador(
+                &partida->jugador1, 
+                &partida->jugador2, 
+                partida->cantidad_turnos,
+                tipo_de_partida
+            );
+            
+            // MODO TORMENTA
+            if (partida->dificultad == TORMENTA){
+                modo_tormenta(partida, &tormenta_fila, &tormenta_columna); // separar mensaje de tormenta y mostrar durante cambio de turno
+            }
         }
-        else if (partida->turno == PJ2){  //2
+        else if (partida->turno == TURNO_PJ2){  //2
 
-            ejecutar_turno_del_jugador(&partida->jugador2, &partida->jugador1, partida->cantidad_turnos);
+            ejecutar_turno_del_jugador(
+                &partida->jugador2, 
+                &partida->jugador1, 
+                partida->cantidad_turnos,
+                tipo_de_partida
+            );
 
         }
 
-        // MODO TORMENTA
-        if (partida->dificultad == TORMENTA){
-            modo_tormenta(partida); // separar mensaje de tormenta y mostrar durante cambio de turno
-        }
 
         cambiar_turno(partida);
     }
 
     mostrar_pantalla_de_victoria(partida);
-
-    // actualizar y mostrar ranking
 }
 
 /*
  * Ejecuta un turno completo de la IA.
  * Devuelve 1 si pudo disparar y 0 si no quedaban casillas disponibles.
  */
+/*
 static int ejecutar_turno_ia(Partida *partida, EstadoIA *estado){
-
-    int fila, columna;
+    
+int fila, columna;
     Rdo_Disparo disparo;
     int barcos_antes, barcos_despues;
-
+    
     mostrar_pantalla_cambio_de_turno(partida->jugador2,
                                      partida->cantidad_turnos);
 
@@ -217,16 +259,17 @@ static int ejecutar_turno_ia(Partida *partida, EstadoIA *estado){
         mostrar_tableros(partida->jugador1, partida->cantidad_turnos);
         resultado_del_ataque(disparo);
 
-    // Un disparo repetido no consume el turno: se vuelve a elegir.
+        // Un disparo repetido no consume el turno: se vuelve a elegir.
     } while (disparo == disp_repetido);
-
+    
     return 1;
 }
 
+    */
 /*
  * Flujo comun para Jugador vs IA, tanto en dificultad Normal como Tormenta.
  * modo_tormenta() no hace nada si la dificultad es NORMAL.
- */
+ 
 static void jugar_pvia(Partida *partida){
 
     EstadoIA estado;
@@ -243,18 +286,18 @@ static void jugar_pvia(Partida *partida){
 
     colocar_barcos(&partida->jugador1);
 
-    partida->turno = PJ1;
+    partida->turno = TURNO_PJ1;
     partida->cantidad_turnos = 1;
 
     while (comprobar_partida_terminada(partida) == 0) {
 
-        if (partida->turno == PJ1) {
+        if (partida->turno == TURNO_PJ1) {
 
             ejecutar_turno_del_jugador(&partida->jugador1,
                                        &partida->jugador2,
                                        partida->cantidad_turnos);
 
-        } else if (partida->turno == PJ2) {
+        } else if (partida->turno == TURNO_PJ2) {
 
             if (!ejecutar_turno_ia(partida, &estado)) {
                 printf("La IA no pudo elegir un disparo.\n");
@@ -271,50 +314,13 @@ static void jugar_pvia(Partida *partida){
 }
 
 void partida_pvia(Partida *partida){
-    jugar_pvia(partida);
-}
 
+    partida->modo_de_juego = PVIA;
 
-// Partida entre Personas, con dificultad TORMENTA
-void partida_pvp_t(Partida *partida){
-
-    pedir_nombre_jugador(partida->jugador2.nombre, 2);
-
-    colocar_barcos(&partida->jugador1);
-
-    mostrar_pantalla_cambio_de_turno(partida->jugador2,
-                                     partida->cantidad_turnos);
-
-    colocar_barcos(&partida->jugador2);
-
-    while (comprobar_partida_terminada(partida) == 0){
-
-        if (partida->turno == 1){   //pj1 
-
-            ejecutar_turno_del_jugador(&partida->jugador1,
-                                       &partida->jugador2,
-                                       partida->cantidad_turnos);
-
-        }
-
-        else if (partida->turno == 2){   // pj2
-
-            ejecutar_turno_del_jugador(&partida->jugador2,
-                                       &partida->jugador1,
-                                       partida->cantidad_turnos);
-
-
-        }
-        // La tormenta afecta al jugador 2
-        modo_tormenta(partida);
-
-        cambiar_turno(partida);
+    if (elegir_dificultad(&partida->dificultad) == 0){
+        return;
     }
 
-    mostrar_pantalla_de_victoria(partida);
-}
-
-// Jugador vs IA, con dificultad TORMENTA.
-void partida_pvia_t(Partida *partida) {
     jugar_pvia(partida);
 }
+*/
