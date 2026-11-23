@@ -34,14 +34,16 @@ typedef struct {
 typedef enum {   // Los Disparos se relacionan con el funcionamiento del tablero.
     disp_agua,
     disp_impacto,  // se encontró un barco, impacto.
-    disp_repetido
+    disp_repetido,
+    disp_tormenta
 } Rdo_Disparo;
 
 typedef enum {
     CASILLA_AGUA = '~',
     CASILLA_BARCO = '#',
     CASILLA_DISP_AGUA = 'O',
-    CASILLA_IMPACTO = 'X'
+    CASILLA_IMPACTO = 'X',
+    CASILLA_TORMENTA = '/'
 } Casillas_tablero;
 
 void inicializar_tablero(char tablero[FIL][COL], char tablero_disparos[FIL][COL]);

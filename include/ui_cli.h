@@ -9,7 +9,7 @@ void esperar_usuario(void);
 
 // pide el nombre del jugador 1, le da la bienvenida y muestra el reglamento
 void mostrar_presentacion_y_reglamento(char jugador[], char ruta_al_archivo[]);
-void pedir_nombre_jugador(char jugador[]);
+void pedir_nombre_jugador(char jugador[], const int numero);
 
 // menu principal del juego, permite elegir la partida, dificultad, ver el ránking y el reglamento
 // devuelve 1 si se eligió un modo de juego válido y 0 en caso contrario

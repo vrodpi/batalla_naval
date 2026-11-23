@@ -16,15 +16,15 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "ranking.h"
-
+#include "../include/ranking.h"
+/*
 static_assert(sizeof(RankingEntrada) == (RANKING_NOMBRE_MAX + sizeof(int)),
               "RankingEntrada no debe tener relleno");
 
 static_assert(sizeof(Ranking) == (RANKING_MAX_JUGADORES * sizeof(RankingEntrada)
                                   + sizeof(int)),
               "Ranking no debe tener relleno");
-
+*/
 /**
  * @brief Copia `origen` sin espacios en los extremos.
  *

@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include "../include/ui_cli.h"
 
-#define MAX_NICKNAME 50
+#define MAX_NICKNAME 20
+#define ANCHO_CONSOLA 92
 
 enum Menu_principal {
     OPCION_PVP = 1,
@@ -25,20 +26,23 @@ char *nombres_barcos[] = {
 
 // limpia la pantalla de la consola detectando el sistema operativo
 void limpiar_pantalla_cli(void){
-    #if defined(_WIN32) && !defined(__CYGWIN__)
-        system("cls");
-    #else
         system("clear");
-    #endif
+}
+
+void consumir_buffer(void){
+   
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF){
+    }
 }
 
 void esperar_usuario(void){
     printf("<Presione 'enter' para continuar>\n");
-    getchar();
+    consumir_buffer();
 }
 
 void imprimir_linea(void){
-    printf("--------------------------------------------------------------------\n");
+    printf("------------------------------------------------------------------------------------------\n");
 }
 
 void imprimir_centrado(const char *texto, int ancho){
@@ -62,12 +66,6 @@ void imprimir_posicion_invalida(void){
     esperar_usuario();
 }
 
-void consumir_buffer(void){
-   
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF){}
-    
-}
 // pide al usuario que ingrese una opción numérica, y consume el resto de caracteres (como letras y saltos de línea)
 // si el usuario no ingresa un entero, retorna -1
 int pedir_opcion_al_usuario(char texto[]) {
@@ -90,14 +88,42 @@ int pedir_opcion_al_usuario(char texto[]) {
 }
 
 // ingresa el nombre del jugador y reemplaza el salto de línea por un \0
-void pedir_nombre_jugador(char jugador[]){
+void pedir_nombre_jugador(char jugador[], const int numero){
 
-    imprimir_linea();
+    char *salto;
 
-    printf("Ingrese el nombre del jugador: ");
-    fgets(jugador, MAX_NICKNAME, stdin);
-    jugador[strcspn(jugador, "\n")] = '\0';
+    for (;;){
+        imprimir_linea();
+    
+        printf("Ingrese el nombre del Jugador %d: ", numero);
 
+        // comprueba que fgets tenga una salida válida
+        if (fgets(jugador, MAX_NICKNAME, stdin) == NULL){
+            
+            jugador[0] = '\0'; // si no, vacía el nombre del jugador
+            return;  // fin de entrada o error
+        }
+
+        // busca si hay un salto de linea en el nombre
+        salto = strchr(jugador, '\n');
+
+        // si lo encunetra, lo reemplaza por un fin de string
+        if (salto != NULL){
+            *salto = '\0';
+        } 
+        // si no lo encuentra, el nombre sobrepasa el tamaño del arreglo
+        else {
+            /* La línea puede exceder el búfer: descartar lo que sobra. */
+            consumir_buffer();
+        }
+
+        // si el jugador ingresa un nombre válido, sale del bucle
+        if (jugador[0] != '\0') {
+            return;
+        }
+
+        printf("\nEl nombre no puede estar vacío.\n");
+    }
 }
 
 // saluda al jugador indicado
@@ -128,7 +154,7 @@ void mostrar_archivo_de_texto(const char *ruta_al_archivo){
 void mostrar_presentacion_y_reglamento(char jugador[], char ruta_al_archivo[]){
     limpiar_pantalla_cli();
 
-    pedir_nombre_jugador(jugador);
+    pedir_nombre_jugador(jugador, 1);
 
     limpiar_pantalla_cli();
 
@@ -145,7 +171,7 @@ void mostrar_presentacion_y_reglamento(char jugador[], char ruta_al_archivo[]){
 void mostrar_menu_principal(void){
     
     imprimir_linea();
-    imprimir_centrado("MENÚ PRINCIPAL", 68);
+    imprimir_centrado("MENÚ PRINCIPAL", ANCHO_CONSOLA);
     printf("\n");
     imprimir_linea();
     printf("Seleccionar modo de juego:\n");
@@ -222,6 +248,8 @@ int menu_principal(Partida *partida){
                     break;  // vuelve al menú principal 
                 }
 
+                limpiar_pantalla_cli();
+
                 return 1; // modo y dificultad asignados correctamente
 
             case OPCION_PVIA:
@@ -231,6 +259,8 @@ int menu_principal(Partida *partida){
                 if (elegir_dificultad(&partida->dificultad) == 0){ // muestra el menú de dificultad
                     break;  // vuelve al menú principal
                 }
+
+                limpiar_pantalla_cli();
 
                 return 1; // modo y dificultad asignados correctamente
 
@@ -261,11 +291,12 @@ int menu_principal(Partida *partida){
                 esperar_usuario();
                 break;
         }
+
     } 
 }
 
 
-int validar_entrada_fila_y_columna(int opcion){
+static int validar_entrada_fila_y_columna(const int opcion){
     // devuelve 1 si la fila/columna está dentro del rango del tablero
     if (opcion >= 0 && opcion <= 9){
         return 1;
@@ -307,43 +338,71 @@ void solicitar_entrada_de_fila(int *fila){
 
 void solicitar_entrada_de_columna(int *columna){
     
-    int opcion;
+    char entrada[10];
+    char *salto;
+    char letra;
 
-    do {
+    for (;;) {
         
         // pide la columna al usuario
         printf("Columna: ");
-        opcion = getchar(); // toma el primer caracter ingresado
-    
-        // consume el resto de la línea
-        consumir_buffer();
-    
-        // lee si se ingresó una columna dentro del rango del tablero 
-        // y convierte la columna al valor numérico correspondiente 
-        if (opcion >= 'A' && opcion <= 'J'){
-            opcion -= 65;
-        }
-        else if (opcion >= 'a' && opcion <= 'j'){
-            opcion -= 97;
+
+        if (fgets(entrada, sizeof(entrada), stdin) == NULL){
+            entrada[0] = '\0';
+            return;
         }
 
+        // busca si hay un salto de línea en la entrada
+        salto = strchr(entrada, '\n');
+
+        if (salto != NULL){
+            // si lo encuentra lo reemplaza por \0
+            *salto = '\0'; 
+        }
+        else {
+            // si no lo encuentra, consume el resto de la línea
+            consumir_buffer();
+        }
+
+        // si el usuario ingresó más de un caracter
+        if (strlen(entrada) != 1){
+            printf("<Ingrese una sola letra entre A-J>\n");
+            imprimir_linea();
+
+            // salta al inicio del próximo bucle
+            continue;
+        }
+
+        // guarda la primera letra 
+        letra = entrada[0];
+
+        // verifica que la columna ingresada este dentro del rango 
+        // y la convierte al valor correspondiente 
+        if (letra >= 'A' && letra <= 'J'){
+            letra -= 65;
+        }
+        else if (letra >= 'a' && letra <= 'j'){
+            letra -= 97;
+        }
+            
         // si no es válida le avisa al usuario y vuelve a preguntar
-        if (validar_entrada_fila_y_columna(opcion) == 0){
+        if (validar_entrada_fila_y_columna(letra) == 0){
             printf("<Columna fuera de rango>\n");
             imprimir_linea();
         }
-
-    } while (validar_entrada_fila_y_columna(opcion) == 0);
-    
-    // si es válida la guarda en el puntero
-    *columna = opcion;
+        else {
+            // si es válida la guarda en el puntero y retorna
+            *columna = letra;
+            return;
+        }
+    }     
 }
 
 void solicitar_orientacion(Orientacion *orientacion){
 
     // le pregunta al usuario hasta que ingrese una opción válida
     for (;;){
-        printf("Ingrese la orientación: \n");
+        printf("Seleccione la orientación: \n");
         printf("    1. Horizontal\n");
         printf("    2. Vertical\n");
         
@@ -366,21 +425,30 @@ void solicitar_orientacion(Orientacion *orientacion){
     }
 }
 
-void pedir_posicion_del_barco(Jugador *jugador, int tamanio){
+void pedir_posicion_del_barco(Jugador *jugador, const int indice){
     
-    printf("Barco a colocar: %s\n", nombres_barcos[tamanio]);
+    printf("Barco a colocar: %s\n", nombres_barcos[indice]);
     imprimir_linea();
 
-    solicitar_entrada_de_fila(&jugador->barco[tamanio].fila);
-    solicitar_entrada_de_columna(&jugador->barco[tamanio].columna);
-    solicitar_orientacion(&jugador->barco[tamanio].orientacion);
+    solicitar_entrada_de_fila(&jugador->barco[indice].fila);
+    solicitar_entrada_de_columna(&jugador->barco[indice].columna);
+
+    // si es una lancha, no pide la orientación
+    if (jugador->barco[indice].tamanio != 1){
+        solicitar_orientacion(&jugador->barco[indice].orientacion);
+    }
+    else {
+        jugador->barco[indice].orientacion = horizontal;
+    }
 }
 
-void mostrar_tableros(Jugador jugador, int turno){
+void mostrar_tableros(const Jugador jugador, const int turno){
 
     limpiar_pantalla_cli();
 
     imprimir_linea();
+
+//    printf("Modo de juego: %s - %s\n", MODO DE JUEGO);
 
     printf("Jugador: %s\n", jugador.nombre);
     imprimir_linea();
@@ -389,21 +457,22 @@ void mostrar_tableros(Jugador jugador, int turno){
     
     // leyenda
     imprimir_linea();
-    printf("  '%c': Agua", CASILLA_AGUA);
-    printf("    '%c': Barco", CASILLA_BARCO);
-    printf("    '%c': Impacto", CASILLA_IMPACTO);
-    printf("    '%c': Disparo al agua\n", CASILLA_DISP_AGUA);
+    printf("   '%c': Agua", CASILLA_AGUA);
+    printf("   '%c': Barco", CASILLA_BARCO);
+    printf("   '%c': Impacto", CASILLA_IMPACTO);
+    printf("   '%c': Impacto tormenta", CASILLA_TORMENTA); // SOLO EN EL MODO TORMENTA
+    printf("   '%c': Disparo al agua\n", CASILLA_DISP_AGUA);
     
     imprimir_linea();
     printf("\n");
 
     // mostrar encabezados
-    imprimir_centrado("-------MI FLOTA-------", 31);
+    imprimir_centrado(" -------MI FLOTA-------", 31);
     printf("|");
     imprimir_centrado("---DISPAROS REALIZADOS---", 31);
     
     printf("\n");
-    imprimir_centrado("|", 63);
+    imprimir_centrado(" |", 62);
     printf("\n       ");
 
     // mostrar nombres de columnas
@@ -448,7 +517,6 @@ void mostrar_tableros(Jugador jugador, int turno){
     imprimir_linea();
 }
 
-// debería retornar fila y columna en dos variables distintas (punteros)
 void pedir_coordenadas_de_ataque(int *fila, int *columna){
       
     solicitar_entrada_de_fila(fila);
@@ -460,11 +528,23 @@ void mostrar_pantalla_cambio_de_turno(const Jugador jugador, const int turno){
     limpiar_pantalla_cli();
     imprimir_linea();
 
-    printf("TURNO DEL JUGADOR %s\n", jugador.nombre);
-    imprimir_linea();
-    printf("TURNO N° %d\n", turno);
+    if (turno == 0){
+        imprimir_centrado("COLOCACIÓN DE BARCOS", ANCHO_CONSOLA);
+        printf("\n");
+        imprimir_linea();
+        
+        printf("TURNO DEL JUGADOR %s\n", jugador.nombre);
+        imprimir_linea();
+    }
+    else {
+        printf("TURNO DEL JUGADOR %s\n", jugador.nombre);
+        imprimir_linea();
 
-    imprimir_linea();
+        printf("TURNO N° %d\n", turno);
+    
+        imprimir_linea();
+    }
+
     esperar_usuario();
 }
 
@@ -475,8 +555,7 @@ void mostrar_pantalla_de_victoria(Partida *partida){
 
     if (partida->modo_de_juego == PVIA && partida->ganador == 2) {
 
-        printf("LA IA HA GANADO\n");
-        printf("HAS SIDO DERROTADO POR LA IA\n");
+        printf("HAS SIDO DERROTADO POR SKYNET\n");
 
     } else {
 
@@ -498,7 +577,7 @@ void mostrar_pantalla_de_victoria(Partida *partida){
     esperar_usuario();
 }
 
-void resultado_del_ataque(Rdo_Disparo disparo){
+void resultado_del_ataque(const Rdo_Disparo disparo){
     switch (disparo){
 
     case disp_agua:
@@ -521,9 +600,23 @@ void resultado_del_ataque(Rdo_Disparo disparo){
 }
 
 void mostrar_mensaje_tormenta (Jugador *defensor, int Fil_afectada, int Col_afectada) {
-    imprimir_centrado("-------TORMENTA ACTIVADA-------", 31);
-    imprimir_centrado("-------Un Rayo Impactó sobre uno de sus Barcos-------", 31);
-    printf("Jugador Afectado: %s | Coordenadas de Impacto: \n", defensor->nombre);
-    printf("Fila %d \n",Fil_afectada);
-    printf("Columna %d \n ",Col_afectada);
+    imprimir_linea();
+    printf("\n");
+    imprimir_centrado("-------TORMENTA ACTIVADA-------", ANCHO_CONSOLA);
+    printf("\n");
+    
+    imprimir_linea();
+    
+    printf("Un Rayo Impactó sobre la flota del Jugador %s\n", defensor->nombre);
+    imprimir_linea();
+
+    printf("Coordenadas de Impacto: \n");
+    printf("    Fila %d \n", Fil_afectada + 1);
+    printf("    Columna %c \n", Col_afectada + 65);
+    imprimir_linea();
+    esperar_usuario();
 }
+
+
+
+//cjkdsvdshvbdsjh

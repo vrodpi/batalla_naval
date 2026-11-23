@@ -202,8 +202,36 @@ Cuando cumpla con las condiciones, solo entonces, actualiza Agua por Barco. <br>
 
 
 
+```
 
-
+├── bin
+│   └── batalla_naval.exe
+├── data
+│   └── ranking.dat
+├── files
+│   └── Reglamento.txt
+├── include
+│   ├── config.h
+│   ├── game.h
+│   ├── ranking.h
+│   ├── tablero.h
+│   └── ui_cli.h
+├── obj
+│   ├── game.o
+│   ├── main.o
+│   ├── ranking.o
+│   ├── tablero.o
+│   └── ui_cli.o
+├── src
+│   ├── demo_ranking.c
+│   ├── game.c
+│   ├── main.c
+│   ├── ranking.c
+│   ├── tablero.c
+│   └── ui_cli.c
+├── README.md
+├── git.txt
+```
 
 
 ### COMPILACIÓN Y EJECUCIÓN ###<br>

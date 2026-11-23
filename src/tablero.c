@@ -56,14 +56,14 @@ int libre(Barco barco, char tablero[FIL][COL]) {
     for (int f = barco.fila - 1; f <= barco.fila + alto; f++) {   /// para recorrer la fila de abajo y de arriba del barco                          ~ ~ ~
         for (int c = barco.columna - 1; c <= barco.columna + ancho; c++) {        // para recorrer la columna a su izquierda y derecha              ~ # ~
             if (f >= 0 && f < FIL && c >= 0 && c < COL && tablero[f][c] != CASILLA_AGUA) {      // si las posiciones son distintos de agua                   ~ ~ ~
-                return 0;                                                                       // entonces el espacio no está libre
+                return -2;                                                                       // entonces el espacio no está libre
             }
         }
     }
 
     // revisa que el barco entre completo en el tablero
     if ((barco.fila + alto) > FIL || (barco.columna + ancho) > COL){
-        return 0;
+        return -1;
     }
        
     return 1;           // espacio libre para ingresar el barco
@@ -90,13 +90,14 @@ void ingresar_barco(Barco barco, char tablero[FIL][COL]){
 
 int validar_ingreso_barco (Barco barco, char tablero[FIL][COL]) {
         // El barco entra completo? No hay superposición entre ellos? Existe un espacio entre cada uno?
-        if (libre(barco, tablero)==1) {
+        int resultado = libre(barco, tablero); 
+        if (resultado == 1) {
 
             ingresar_barco(barco,tablero);
 
             return 1;
         }
-    return 0;
+    return resultado;
 }
 
 
