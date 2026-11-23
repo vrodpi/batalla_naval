@@ -2,6 +2,7 @@
 #include "../include/tablero.h"
 #include "../include/ui_cli.h"
 #include <stdlib.h>
+#include <time.h>
 
 void inicializar_partida(Partida *partida) {
       
@@ -182,6 +183,13 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
             barco_hundido(defensor);
             
             return;
+        case disp_tormenta:
+            // se actualiza el tablero de barcos del defensor
+            defensor->tableros.tablero[fila][columna] = CASILLA_TORMENTA;
+            
+            // y el tablero de disparos del atacante
+            atacante->tableros.tablero_disparos[fila][columna] = CASILLA_TORMENTA;
+
         
         // si el disparo es repetido, no hace nada
         case disp_repetido:
@@ -196,6 +204,7 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
 // Tormenta cada 3 turnos.
 void modo_tormenta(Partida *partida){
 
+    srand(time(NULL));
     
     //  Si la dificultad no es Tormenta sale de la función
     if(partida->dificultad != TORMENTA){
@@ -207,7 +216,7 @@ void modo_tormenta(Partida *partida){
     Jugador *atacante;
     Jugador *defensor;
 
-    if (partida->turno == PJ1) {
+    if (partida->turno == PJ1){
             atacante = &partida->jugador1;
             defensor = &partida->jugador2;
     } else {
@@ -216,7 +225,7 @@ void modo_tormenta(Partida *partida){
             }
 
 
-    int tormenta_turnos = (partida->cantidad_turnos + 1) % 3 == 0;
+    int tormenta_turnos = (partida->cantidad_turnos + 1) % 12 == 0;
     int tormenta_agua=atacante->impacto_agua_consecutivo >= 3;
 
     // Verifica que hallan pasado 3 turnos.  Multiplo de 3, por eso el %
@@ -260,7 +269,7 @@ void modo_tormenta(Partida *partida){
     int Col_afectada = Col_Tormenta[k];
     
     // Registrar los impactos en los tableros 
-    aplicar_disparo(atacante, defensor,Fil_afectada, Col_afectada, disp_impacto); 
+    aplicar_disparo(atacante, defensor,Fil_afectada, Col_afectada, disp_tormenta); 
 
     mostrar_mensaje_tormenta(defensor, Fil_afectada, Col_afectada);
     

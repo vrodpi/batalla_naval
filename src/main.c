@@ -2,19 +2,19 @@
 #include "../include/ui_cli.h"
 #include "../include/game.h"
 #include "../include/tablero.h"
+#include "../include/ranking.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
 
-void colocar_barcos(Jugador *jugador);
 void partida_pvp(Partida *partida);
 void partida_pvia(Partida *partida);
 void partida_pvp_t(Partida *partida);
 void partida_pvia_t(Partida *partida);
 
 // arreglo de punteros a funciones para Modo y Dificultad
-void (*ejecutar_modo[4])(Partida *) ={
+void (*ejecutar_modo[4])(Partida *) = {
     partida_pvp,                                // posición 0
     partida_pvp_t,                              // posición 1
     partida_pvia,                               // posición 2
@@ -25,6 +25,12 @@ void (*ejecutar_modo[4])(Partida *) ={
 int main(void){
 
     Partida partida;
+    Ranking ranking;
+    
+    ranking_inicializar(&ranking);
+
+    ranking_cargar(&ranking, "data/ranking.dat");
+
     srand(time(NULL)); // para modo tormenta
 
     int opcion_menu;
@@ -42,13 +48,22 @@ int main(void){
         // En el Enum, PVP es 0 (y Dificultad Normal 0) entonces Posicion 0; 
         // PVP es 0 (Y Dificultad Tormenta es 1) entonces 0*2 + 1 = 1  Posicion 1;
         // PVIA es 1 (Dificultad Normal 0) entonces posición 2 y PVIA Tormenta posición 3
-        int indice = partida.modo_de_juego * 2 + partida.dificultad;      
+        //int indice = partida.modo_de_juego * 2 + partida.dificultad;      
 
+        partida_pvp(&partida);
+
+        // Actualiza el ranking con el ganador de la ultima partida
+        ranking_registrar_victoria(
+            &ranking,
+            partida.ganador == 1 
+                ? partida.jugador1.nombre
+                : partida.jugador2.nombre
+        );
         // Implementar la función que corresponde
-        ejecutar_modo[indice](&partida);
+       // ejecutar_modo[indice](&partida);
     }
 
- 
+    ranking_guardar(&ranking, "data/ranking.dat");
 
     return 0;
 }
@@ -63,12 +78,22 @@ void colocar_barcos(Jugador *jugador){
 
         pedir_posicion_del_barco(jugador, indice);
 
-        // si la posición es válida, lo asigna y continúa con el siguiente barco
-        if (validar_ingreso_barco(jugador->barco[indice], jugador->tableros.tablero) == 1){
-            indice--;
-        }
-        else {
-            imprimir_posicion_invalida();
+        switch (validar_ingreso_barco(jugador->barco[indice], jugador->tableros.tablero)){
+            case 1:
+                indice--;
+                break;
+            case -1:
+                // mensaje: barco fuera del tablero
+                printf("Barco no entra en el tablero\n");
+                esperar_usuario();
+                break;
+            case -2:
+                // mensaje: barco superpuesto
+                printf("Superposicion\n");
+                esperar_usuario();
+                break;
+            default:
+            break;
         }
 
         mostrar_tableros(*jugador, 0);
@@ -114,7 +139,7 @@ void ejecutar_turno_del_jugador(Jugador *atacante, Jugador *defensor, int turno)
 // Partdida entre Personas. Dificultad Normal.
 void partida_pvp(Partida *partida){
     
-    pedir_nombre_jugador(partida->jugador2.nombre);
+    pedir_nombre_jugador(partida->jugador2.nombre, 2);
     
     colocar_barcos(&partida->jugador1);
 
@@ -135,6 +160,11 @@ void partida_pvp(Partida *partida){
 
             ejecutar_turno_del_jugador(&partida->jugador2, &partida->jugador1, partida->cantidad_turnos);
 
+        }
+
+        // MODO TORMENTA
+        if (partida->dificultad == TORMENTA){
+            modo_tormenta(partida); // separar mensaje de tormenta y mostrar durante cambio de turno
         }
 
         cambiar_turno(partida);
@@ -163,7 +193,7 @@ void partida_pvia(Partida *partida){
 // Partida entre Personas, con dificultad TORMENTA
 void partida_pvp_t(Partida *partida){
 
-    pedir_nombre_jugador(partida->jugador2.nombre);
+    pedir_nombre_jugador(partida->jugador2.nombre, 2);
 
     colocar_barcos(&partida->jugador1);
 
@@ -174,7 +204,7 @@ void partida_pvp_t(Partida *partida){
 
     while (comprobar_partida_terminada(partida) == 0){
 
-        if (partida->turno == PJ1){   
+        if (partida->turno == 1){   //pj1 
 
             ejecutar_turno_del_jugador(&partida->jugador1,
                                        &partida->jugador2,
@@ -182,7 +212,7 @@ void partida_pvp_t(Partida *partida){
 
         }
 
-        else if (partida->turno == PJ2){   // pj2
+        else if (partida->turno == 2){   // pj2
 
             ejecutar_turno_del_jugador(&partida->jugador2,
                                        &partida->jugador1,
@@ -201,5 +231,5 @@ void partida_pvp_t(Partida *partida){
 
 // es para borrar para probar si compilada
 void partida_pvia_t(Partida *partida) {
-    pedir_nombre_jugador(partida->jugador2.nombre);
+    pedir_nombre_jugador(partida->jugador2.nombre, 2);
 }

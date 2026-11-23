@@ -4,6 +4,7 @@
 #include "../include/ui_cli.h"
 
 #define MAX_NICKNAME 20
+#define ANCHO_CONSOLA 92
 
 enum Menu_principal {
     OPCION_PVP = 1,
@@ -25,11 +26,7 @@ char *nombres_barcos[] = {
 
 // limpia la pantalla de la consola detectando el sistema operativo
 void limpiar_pantalla_cli(void){
-    #if defined(_WIN32) && !defined(__CYGWIN__)
-        system("cls");
-    #else
         system("clear");
-    #endif
 }
 
 void consumir_buffer(void){
@@ -45,7 +42,7 @@ void esperar_usuario(void){
 }
 
 void imprimir_linea(void){
-    printf("--------------------------------------------------------------------\n");
+    printf("------------------------------------------------------------------------------------------\n");
 }
 
 void imprimir_centrado(const char *texto, int ancho){
@@ -174,7 +171,7 @@ void mostrar_presentacion_y_reglamento(char jugador[], char ruta_al_archivo[]){
 void mostrar_menu_principal(void){
     
     imprimir_linea();
-    imprimir_centrado("MENÚ PRINCIPAL", 68);
+    imprimir_centrado("MENÚ PRINCIPAL", ANCHO_CONSOLA);
     printf("\n");
     imprimir_linea();
     printf("Seleccionar modo de juego:\n");
@@ -294,6 +291,7 @@ int menu_principal(Partida *partida){
                 esperar_usuario();
                 break;
         }
+
     } 
 }
 
@@ -450,6 +448,8 @@ void mostrar_tableros(const Jugador jugador, const int turno){
 
     imprimir_linea();
 
+//    printf("Modo de juego: %s - %s\n", MODO DE JUEGO);
+
     printf("Jugador: %s\n", jugador.nombre);
     imprimir_linea();
     
@@ -457,21 +457,22 @@ void mostrar_tableros(const Jugador jugador, const int turno){
     
     // leyenda
     imprimir_linea();
-    printf("  '%c': Agua", CASILLA_AGUA);
-    printf("    '%c': Barco", CASILLA_BARCO);
-    printf("    '%c': Impacto", CASILLA_IMPACTO);
-    printf("    '%c': Disparo al agua\n", CASILLA_DISP_AGUA);
+    printf("   '%c': Agua", CASILLA_AGUA);
+    printf("   '%c': Barco", CASILLA_BARCO);
+    printf("   '%c': Impacto", CASILLA_IMPACTO);
+    printf("   '%c': Impacto tormenta", CASILLA_TORMENTA); // SOLO EN EL MODO TORMENTA
+    printf("   '%c': Disparo al agua\n", CASILLA_DISP_AGUA);
     
     imprimir_linea();
     printf("\n");
 
     // mostrar encabezados
-    imprimir_centrado("-------MI FLOTA-------", 31);
+    imprimir_centrado(" -------MI FLOTA-------", 31);
     printf("|");
     imprimir_centrado("---DISPAROS REALIZADOS---", 31);
     
     printf("\n");
-    imprimir_centrado("|", 63);
+    imprimir_centrado(" |", 62);
     printf("\n       ");
 
     // mostrar nombres de columnas
@@ -528,7 +529,7 @@ void mostrar_pantalla_cambio_de_turno(const Jugador jugador, const int turno){
     imprimir_linea();
 
     if (turno == 0){
-        imprimir_centrado("COLOCACIÓN DE BARCOS", 68);
+        imprimir_centrado("COLOCACIÓN DE BARCOS", ANCHO_CONSOLA);
         printf("\n");
         imprimir_linea();
         
@@ -592,9 +593,23 @@ void resultado_del_ataque(const Rdo_Disparo disparo){
 }
 
 void mostrar_mensaje_tormenta (Jugador *defensor, int Fil_afectada, int Col_afectada) {
-    imprimir_centrado("-------TORMENTA ACTIVADA-------", 31);
-    imprimir_centrado("-------Un Rayo Impactó sobre uno de sus Barcos-------", 31);
-    printf("Jugador Afectado: %s | Coordenadas de Impacto: \n", defensor->nombre);
-    printf("Fila %d \n",Fil_afectada);
-    printf("Columna %d \n ",Col_afectada);
+    imprimir_linea();
+    printf("\n");
+    imprimir_centrado("-------TORMENTA ACTIVADA-------", ANCHO_CONSOLA);
+    printf("\n");
+    
+    imprimir_linea();
+    
+    printf("Un Rayo Impactó sobre la flota del Jugador %s\n", defensor->nombre);
+    imprimir_linea();
+
+    printf("Coordenadas de Impacto: \n");
+    printf("    Fila %d \n", Fil_afectada + 1);
+    printf("    Columna %c \n", Col_afectada + 65);
+    imprimir_linea();
+    esperar_usuario();
 }
+
+
+
+//cjkdsvdshvbdsjh

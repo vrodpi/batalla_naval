@@ -1,12 +1,12 @@
 CC = gcc
 CFLAGS = -std=c11 -Wall -Wextra
-OBJS = obj/main.o obj/game.o obj/tablero.o obj/ui_cli.o
+OBJS = obj/main.o obj/game.o obj/tablero.o obj/ui_cli.o obj/ranking.o
 
 bin/demo: $(OBJS)
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(OBJS) -o bin/demo
 
-obj/main.o: src/main.c include/game.h include/tablero.h include/ui_cli.h
+obj/main.o: src/main.c include/game.h include/tablero.h include/ui_cli.h include/ranking.h
 	mkdir -p obj
 	$(CC) $(CFLAGS) -c src/main.c -o obj/main.o
 
@@ -21,6 +21,10 @@ obj/ui_cli.o: src/ui_cli.c include/ui_cli.h
 obj/tablero.o: src/tablero.c include/tablero.h
 	mkdir -p obj
 	$(CC) $(CFLAGS) -c src/tablero.c -o obj/tablero.o
+
+obj/ranking.o: src/ranking.c include/ranking.h
+	mkdir -p obj
+	$(CC) $(CFLAGS) -c src/ranking.c -o obj/ranking.o
 
 clean:
 	rm -rf obj bin
