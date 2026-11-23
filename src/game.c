@@ -1,12 +1,13 @@
 #include "../include/game.h"
 #include "../include/tablero.h"
 #include "../include/ui_cli.h"
+
 #include <stdlib.h>
 #include <time.h>
 
 void inicializar_partida(Partida *partida) {
       
-    partida->turno = PJ1;  
+    partida->turno = TURNO_PJ1;  
     partida->cantidad_turnos = 0;
     partida->ganador = 0;
 
@@ -71,11 +72,11 @@ int comprobar_partida_terminada(Partida *partida){
 void cambiar_turno(Partida *partida){
     
     // Cambiamos el turno
-    if (partida->turno == PJ1){     // 1
-        partida->turno = PJ2;      // 2
+    if (partida->turno == TURNO_PJ1){     // 1
+        partida->turno = TURNO_PJ2;      // 2
 
     } else {
-        partida->turno = PJ1;       //1
+        partida->turno = TURNO_PJ1;       //1
     }
 
     partida->cantidad_turnos++;
@@ -177,7 +178,7 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
             atacante->hits++;
             
             //Se reinicia el contador porque el impacto fue distinto a agua
-            atacante->impacto_agua_consecutivo=0;
+            atacante->impacto_agua_consecutivo = 0;
 
             // se comprueba si se hundió un barco
             barco_hundido(defensor);
@@ -190,6 +191,8 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
             // y el tablero de disparos del atacante
             atacante->tableros.tablero_disparos[fila][columna] = CASILLA_TORMENTA;
 
+            // se comprueba si se hundió un barco
+            barco_hundido(defensor);
         
         // si el disparo es repetido, no hace nada
         case disp_repetido:
@@ -202,7 +205,7 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
 
 
 // Tormenta cada 3 turnos.
-void modo_tormenta(Partida *partida){
+void modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
 
     srand(time(NULL));
     
@@ -216,7 +219,7 @@ void modo_tormenta(Partida *partida){
     Jugador *atacante;
     Jugador *defensor;
 
-    if (partida->turno == PJ1){
+    if (partida->turno == TURNO_PJ1){
             atacante = &partida->jugador1;
             defensor = &partida->jugador2;
     } else {
@@ -225,14 +228,14 @@ void modo_tormenta(Partida *partida){
             }
 
 
-    int tormenta_turnos = (partida->cantidad_turnos + 1) % 12 == 0;
-    int tormenta_agua=atacante->impacto_agua_consecutivo >= 3;
+    int tormenta_turnos = (partida->cantidad_turnos + 1) % 3 == 0;
+    int tormenta_agua = atacante->impacto_agua_consecutivo >= 3;
 
     // Verifica que hallan pasado 3 turnos.  Multiplo de 3, por eso el %
     // Se ejecuta antes de cambiar_turno. (por eso +1)  en donde se incrementa el contador
     // Verifica que la cantidad de impactaos a agua consecutivos hechos por el atacante no sea menor a 3. 
 
-    if(!tormenta_turnos &&  !tormenta_agua) {       // por lo tanto, sino se cumple ninguna retorna
+    if(!tormenta_turnos && !tormenta_agua){       // por lo tanto, sino se cumple ninguna retorna
         return;
     }
     
@@ -265,17 +268,14 @@ void modo_tormenta(Partida *partida){
     //Elige de forma aleatoria una posición
     int k = rand() % cont_barcos; 
 
-    int Fil_afectada = Fil_Tormenta[k];
-    int Col_afectada = Col_Tormenta[k];
+    *fila_afectada = Fil_Tormenta[k];
+    *columna_afectada = Col_Tormenta[k];
     
     // Registrar los impactos en los tableros 
-    aplicar_disparo(atacante, defensor,Fil_afectada, Col_afectada, disp_tormenta); 
+    aplicar_disparo(atacante, defensor, *fila_afectada, *columna_afectada, disp_tormenta); 
 
-    mostrar_mensaje_tormenta(defensor, Fil_afectada, Col_afectada);
-    
     // reiniciar el contador 0, si se activo tormenta por cantidad de impactos a agua (3 consecutivas)
     if(tormenta_agua){
         atacante->impacto_agua_consecutivo = 0;
     }
-
 }
