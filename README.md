@@ -150,26 +150,43 @@ Aclaración: Si la dificultad elegida es Tormenta entonces cada tres turnos, uno
 
 ### ARCHIVOS ###
 
+ %% Comentario que no se ve: Si escribo nombre[nombre] sSe abre un nuevo nodo, si escribo solo nombre entonces continua
 ```mermaid
 
 graph TD
-    %% Comentario que no se ve: Si escribo nombre[nombre] sSe abre un nuevo nodo, si escribo solo nombre entonces continua
    
-    Main --> Game[game.c]:::azul
-    Game[game.c] --> Tablero[tablero.c]
-    Game[game.c] --> UI[ui_cli.c]
+   
+    Main:::rojo --> Game[game.c]:::azul
+    Main --> UI[ui_cli.c]:::amarillo
+    Main --> Tablero[tablero.c]:::verde
+    Main --> IA[ai.c]:::violeta
     Main --> Ranking[ranking.c]:::azul
+    Tablero --> IA 
+    Game --> Tablero
+    Game --> UI
+    UI --> Ranking
+    UI --> Game
+    Tablero --> IA
 
 
-    classDef verde fill:#d4edda,stroke:#28a745
-    classDef azul fill:#cce5ff,stroke:#007bff
-    classDef rojo fill:#f8d7da,stroke:#dc3545
+
+    classDef verde fill: #94e366,stroke: #28a745, color: #000000
+    classDef azul fill: #557ce8,stroke: #007bff, color: #000000
+    classDef rojo fill: #f35e6a,stroke: #dc3545, color: #000000
+    classDef violeta fill: #d66cf1,stroke: #6f42c1, color: #000000
+    classDef turquesa fill: #a9dae4,stroke: #3acef0,color: #000000
+    classDef amarillo fill: #eeec65,stroke: #f2f531,color: #000000
+
+
+
+
+
+```
 
 
     lleer los include de arriba de cada archiovo para conectar los main.c y eso. 
     game.c incluye a tablero pero no al reves. 
 
-```
 
 **main.c** <br>
 Se encarga de la Presentación y Reglamento. Permite el flujo general del programa, cuya ejecución difiere según la decisión del/los jugadores respecto a Modo y Dificultad. También se encarga de la coordinación de la colocación de Barcos y Cambios de turno. <br>
