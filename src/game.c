@@ -1,6 +1,7 @@
 #include "../include/game.h"
 #include "../include/tablero.h"
 #include "../include/ui_cli.h"
+
 #include <stdlib.h>
 #include <time.h>
 
