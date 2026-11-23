@@ -553,15 +553,22 @@ void mostrar_pantalla_de_victoria(Partida *partida){
     limpiar_pantalla_cli();
     imprimir_linea();
 
-    printf("ENHOURABUENA %s!\n", partida->ganador == 1           // si gano el JUG 1
-                                    ? partida->jugador1.nombre  // felicita al JUG 1
-                                    : partida->jugador2.nombre  // si no felicita al JUG 2
-    );
-    
-    printf("HAS DERROTADO A %s\n", partida->ganador == 1        // si gano el JUG 1
-                                    ? partida->jugador2.nombre  // perdedor = JUG 2
-                                    : partida->jugador1.nombre  // si no perdedor = JUG 1
-    );
+    if (partida->modo_de_juego == PVIA && partida->ganador == 2) {
+
+        printf("HAS SIDO DERROTADO POR SKYNET\n");
+
+    } else {
+
+        printf("ENHORABUENA %s!\n", partida->ganador == 1            // si gano el JUG 1
+                                        ? partida->jugador1.nombre  // felicita al JUG 1
+                                        : partida->jugador2.nombre  // si no felicita al JUG 2
+        );
+
+        printf("HAS DERROTADO A %s\n", partida->ganador == 1         // si gano el JUG 1
+                                        ? partida->jugador2.nombre  // perdedor = JUG 2
+                                        : partida->jugador1.nombre  // si no perdedor = JUG 1
+        );
+    }
 
     imprimir_linea();
     printf("La partida ha durado %d turnos.\n", partida->cantidad_turnos);
