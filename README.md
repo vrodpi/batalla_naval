@@ -160,11 +160,13 @@ En jugador contra la IA, el desarrollo se ejecuta sin interveción de una cortin
 ### ARCHIVOS: 
 **De que trata cada Archivo y cual es su relación con el resto**
 
- %% Comentario que no se ve;
+ 
 
 
 ```mermaid
    
+   %% Comentario que no se ve;
+
    flowchart TD
     Main:::rojo --> Game[game.c]:::turquesa
     Main --> UI[ui_cli.c]:::amarillo
@@ -238,21 +240,78 @@ El tamaño del barco, en terminos de ubicación, refiere a la cantidad de cuadra
 Cuando cumpla con las condiciones, solo entonces, actualiza Agua por Barco. <br>
 
 **config.h** <br>
+En este archivo nombramos Macros para que el preprocesador, las reemplace por valores que previamente definimos: Dimensiones del tablero, cantidad de barcos y sus tamaños,etc.<br>
+Al realizar algun cambio en los valores de las macros, también se aplica en todos los archivos que las incluyan. <br>
+Con #ifndef BATALLA_NAVAL_CONFIG_H y #endif evitamos duplicados del archivo.<br>
+
 
 **ranking.c**<br>
-
-**ranking.h**<br>
+Administra y Almacena las victorias en un archivo binario. Ordena de mayor a menor cantidad de victorias por jugador.<br>
 
 
 ### COMPILACIÓN Y EJECUCIÓN ###<br>
-Para Compilar Batalla Naval se requiere la herramienta Make, que leerá el archivo Makefile. Con Makefile, automatizamos la compilación y vinculamos los archivos. <br>
+En Batalla Naval utilizamos Makefile, para vincular los archivos y automatizar la compilación. <br>
+
+<!-- Para el Makefile, si queremos poner un comentario usar # en lugar de // -->
+<!-- REVISAR, DEJARIA ESTO EN EL MAKEFILE. CONSULTAR A LOS CHICOS // -->
+
+CC = gcc      // variable que va a representar el compilador
+CFLAGS = -std=c11 -Wall -Wextra    // Activa mostrar advertencias-errores
+OBJS = obj/main.o obj/game.o obj/tablero.o obj/ui_cli.o obj/ranking.o obj/ai.o      // en OBJS, se guardan los nombres de los archivos compilados pero aun no ejecutables, solo se enlazan. Son archivos objeto. 
 
 
+// compilación y ejecución del ejecutable
+bin/demo: $(OBJS)                // bin es el directorio y todos los archivos obtejotos (.o) se enlazan y el ejecutable es demo
+	mkdir -p bin             
+	$(CC) $(CFLAGS) $(OBJS) -o bin/demo   
+
+// compilación de cada archivo. Compilación Individual         
+obj/main.o: src/main.c include/game.h include/tablero.h include/ui_cli.h include/ranking.h include/ai.h   // main se relaciona con todos los archivos
+	mkdir -p obj
+	$(CC) $(CFLAGS) -c src/main.c -o obj/main.o     // obj/main.o es el archivo a generar, que necesita del src/main
+
+// la compilación de obj/game.o depende...
+obj/game.o: src/game.c include/game.h include/tablero.h     
+	mkdir -p obj
+	$(CC) $(CFLAGS) -c src/game.c -o obj/game.o
+
+obj/ui_cli.o: src/ui_cli.c include/ui_cli.h include/ranking.h  include/game.h   
+	mkdir -p obj
+	$(CC) $(CFLAGS) -c src/ui_cli.c -o obj/ui_cli.o
+
+obj/tablero.o: src/tablero.c include/tablero.h include/ai.h         
+	mkdir -p obj
+	$(CC) $(CFLAGS) -c src/tablero.c -o obj/tablero.o
+
+obj/ranking.o: src/ranking.c include/ranking.h         
+	mkdir -p obj
+	$(CC) $(CFLAGS) -c src/ranking.c -o obj/ranking.o
+
+obj/ai.o: src/ai.c include/ai.h                     
+	mkdir -p obj
+	$(CC) $(CFLAGS) -c src/ai.c -o obj/ai.o
 
 
+// elimina solo los archivos objeto generados y el ejecutable demo.
+clean:
+	rm -rf obj bin
+
+.PHONY: clean test
+
+Con CC compilamos, y OBJS contiene la lista de los archivos objeto (.o) y estos se almacenan en el directorio "bin"
+ Estos archivos objeto estan compilados, sin embargo no son ejecutables, debido a que aun no están enlazados.
+La compilación es individual, cada archivo.c mediente el -c genera su archivo.o.
+
+A traves de la variable CC compilamos y en el directorio "bin" almacenamos el contenido de la variable OBJS, es decir todos los archivos objetos (.o) -que son los compilados individualmente-. 
 
 
+Cada archivo.c se compila individualmente a traves del -c, generado su archivo.o (archivo objeto). La variable OBJS contiene la lista de estos archivos. Luego GCC (CC) los enlaza para obtener un único ejecutable denominado "demo", que se va a almacenar en el directorio "bin". 
 
+En la terminal, nos ubicamos en la carpeta del Juego y utilizamos los siguientes comandos:
+
+1) make clean: para eliminar los archivos y directorios que se generaron al compilar. Para hacer la compilación desde cero.
+2) make: para compilar
+3) ./bin/demo: para ejecutar el Juego.
 
 
 
