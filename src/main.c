@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-int partida_pvp(Partida *partida);
+void partida_pvp(Partida *partida);
 //void partida_pvia(Partida *partida);
 
 
@@ -43,17 +43,15 @@ int main(void){
                 }
 
                 // Ejecuta la partida
-                if (partida_pvp(&partida) == 1){
+                partida_pvp(&partida);
                     
-                    // Actualiza el ranking con el ganador de la ultima partida
-                    ranking_registrar_victoria(&ranking,
-                        partida.ganador == 1 
-                            ? partida.jugador1.nombre
-                            : partida.jugador2.nombre
-                    );
+                // Actualiza el ranking con el ganador de la ultima partida
+                ranking_registrar_victoria(&ranking,
+                    partida.ganador == 1 
+                        ? partida.jugador1.nombre
+                        : partida.jugador2.nombre
+                );
 
-                    // mostrar ranking
-                }
                 break;
 
             case UI_MENU_OPCION_PVIA:
@@ -175,7 +173,7 @@ void ejecutar_turno_del_jugador(Partida *partida, int tipo_de_partida){
 }
 
 // Partdida entre Personas
-int partida_pvp(Partida *partida){
+void partida_pvp(Partida *partida){
 
     // variable para representar el modo de juego
     int tipo_de_partida = partida->modo_de_juego * 2 + partida->dificultad;
@@ -199,8 +197,6 @@ int partida_pvp(Partida *partida){
     }
 
     mostrar_pantalla_de_victoria(partida);
-
-    return 1;
 }
 
 /*

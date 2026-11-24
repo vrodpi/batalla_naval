@@ -100,7 +100,7 @@ int pedir_opcion_al_usuario(char texto[]){
     return opcion;
 }
 
-static int leer_nombre_de_usuario(char jugador[]){
+static int leer_nombre_de_usuario(char *jugador){
     
     char *salto;
     
@@ -611,20 +611,18 @@ int buscar_registro_ranking(const Ranking ranking, char jugador[]){
     
         printf("Ingrese el nombre del Jugador: ");
 
-        printf("BB\n");
         // si el nombre no es válido, salta al próximo bucle
         if (leer_nombre_de_usuario(jugador) == 0){
             printf("\nEl nombre no puede estar vacío.\n");
             continue;
         }
 
-        printf("CC\n");
         return ranking_buscar(&ranking, jugador);
     }
 }
 
 void mostrar_registro_ranking(const Ranking ranking, const int indice){
-    printf("|%-10d|%-25s|%-11d|", 
+    printf("|%5d     | %-24s|%6d     |\n", 
         indice + 1, 
         ranking.entradas->nombre, 
         ranking.entradas->victorias
@@ -654,23 +652,21 @@ void ui_mostrar_ranking(const Ranking ranking){
             case 1:
                 system("clear");
             
-                printf("| Posición |%-25s| Victorias |\n", "Nombre");
+                printf("| Posición | %-24s| Victorias |\n", "Nombre");
                 
                 imprimir_linea();
                 
                 for (int i = 0; i < ranking.cantidad; i++){
                     mostrar_registro_ranking(ranking, i);
                 }
-                printf("\n");
             
                 esperar_usuario();
             
                 return;
             
             case 2:
-                char *jugador = NULL;
+                char jugador[MAX_NOMBRE_DE_USUARIO];
                 int indice = buscar_registro_ranking(ranking, jugador);
-                printf("A\n");
 
                 if (indice < 0){
                     printf("No se encontraron coincidencias.\n");
@@ -678,7 +674,7 @@ void ui_mostrar_ranking(const Ranking ranking){
                     return;
                 }
             
-                printf("| Posición |%-25s| Victorias |\n", "Nombre");
+                printf("| Posición | %-24s| Victorias |\n", "Nombre");
                 mostrar_registro_ranking(ranking, indice);
             
                 esperar_usuario();
