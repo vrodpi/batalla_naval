@@ -128,8 +128,10 @@ void barco_hundido(Jugador *defensor) {
                 }
 
                 // si hay alguna Posición sin impacto
-                if (defensor->tableros.tablero[fila][columna] != CASILLA_IMPACTO) {
-                    hundido = 0; // entonces aún no está hundido
+                if (defensor->tableros.tablero[fila][columna] != CASILLA_IMPACTO && 
+                    defensor->tableros.tablero[fila][columna] != CASILLA_TORMENTA) {
+                    
+                        hundido = 0; // entonces aún no está hundido
                 }
             }
 
@@ -205,13 +207,14 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
 
 
 // Tormenta cada 3 turnos.
-void modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
+// Devuelve 1 si se activó en el turno
+int modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
 
     srand(time(NULL));
     
     //  Si la dificultad no es Tormenta sale de la función
     if(partida->dificultad != TORMENTA){
-        return;
+        return 0;
     }
 
     //Determina a que jugador se le aplica el daño
@@ -228,7 +231,7 @@ void modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
             }
 
 
-    int tormenta_turnos = (partida->cantidad_turnos + 1) % 3 == 0;
+    int tormenta_turnos = partida->cantidad_turnos % 3 == 0;
     int tormenta_agua = atacante->impacto_agua_consecutivo >= 3;
 
     // Verifica que hallan pasado 3 turnos.  Multiplo de 3, por eso el %
@@ -236,7 +239,7 @@ void modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
     // Verifica que la cantidad de impactaos a agua consecutivos hechos por el atacante no sea menor a 3. 
 
     if(!tormenta_turnos && !tormenta_agua){       // por lo tanto, sino se cumple ninguna retorna
-        return;
+        return 0;
     }
     
     
@@ -262,7 +265,7 @@ void modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
 
     //Si no hay partes de barcos disponibles, la tormenta no hace efecto.
     if (cont_barcos == 0){
-        return;
+        return 0;
     }
 
     //Elige de forma aleatoria una posición
@@ -278,4 +281,7 @@ void modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
     if(tormenta_agua){
         atacante->impacto_agua_consecutivo = 0;
     }
+
+    // se activó el modo tormenta en el turno actual
+    return 1;
 }

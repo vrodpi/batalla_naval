@@ -44,6 +44,6 @@ int comprobar_partida_terminada(Partida *partida);
 void cambiar_turno(Partida *partida);
 void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna, Rdo_Disparo disparo);
 Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo, char tablero[FIL][COL]);
-void modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada); 
+int modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada); 
 
 #endif

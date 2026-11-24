@@ -6,7 +6,7 @@ bin/demo: $(OBJS)
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(OBJS) -o bin/demo
 
-obj/main.o: src/main.c include/game.h include/tablero.h include/ui_cli.h include/ranking.h include/ai.h
+obj/main.o: src/main.c include/game.h include/tablero.h include/ui_cli.h include/ranking.h include/ai.h include/config.h
 	mkdir -p obj
 	$(CC) $(CFLAGS) -c src/main.c -o obj/main.o
 
