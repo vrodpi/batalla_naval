@@ -97,7 +97,7 @@ static void probar_remate(void)
 
     partida.jugador2.tableros.tablero_disparos[5][5] = CASILLA_IMPACTO;
     ai_registrar_resultado(&estado, &partida.jugador2, 5, 5,
-                           disp_impacto, 5, 5);
+                           disp_impacto);
     assert(estado.num_objetivos == 4);
 
     for (int i = 0; i < 4; i++) {
@@ -121,13 +121,60 @@ static void probar_remate(void)
 
     assert(estado.num_objetivos == 0);
 
-    /* Si el impacto hunde un barco, se descartan los objetivos pendientes. */
+    /*
+     * Otro impacto debe volver a agregar objetivos. La IA no recibe la
+     * cantidad de barcos vivos, asi que no puede decidir limpiar la lista
+     * por un hundimiento.
+     */
     partida.jugador2.tableros.tablero_disparos[2][2] = CASILLA_IMPACTO;
     ai_registrar_resultado(&estado, &partida.jugador2, 2, 2,
-                           disp_impacto, 5, 4);
-    assert(estado.num_objetivos == 0);
+                           disp_impacto);
+    assert(estado.num_objetivos == 4);
 
     printf("  remate de impactos: OK\n");
+}
+
+/*
+ * Comprueba que la tormenta marca la casilla sin hundir un barco de varias
+ * casillas, pero que esa marca cuenta para el hundimiento posterior.
+ */
+static void probar_tormenta(void)
+{
+    Partida partida;
+
+    inicializar_partida(&partida);
+
+    partida.jugador1.tableros.tablero_disparos[2][2] = CASILLA_AGUA;
+
+    /* Dejar solamente un velero de dos casillas vivo. */
+    partida.jugador2.barcos_vivos = 1;
+    for (int i = 0; i < BARCOS_MODO_NORMAL; i++) {
+        partida.jugador2.barco[i].hundido = 1;
+    }
+
+    partida.jugador2.barco[1].hundido = 0;
+    partida.jugador2.barco[1].tamanio = 2;
+    partida.jugador2.barco[1].orientacion = horizontal;
+    partida.jugador2.barco[1].fila = 2;
+    partida.jugador2.barco[1].columna = 2;
+    partida.jugador2.tableros.tablero[2][2] = CASILLA_BARCO;
+    partida.jugador2.tableros.tablero[2][3] = CASILLA_BARCO;
+
+    aplicar_disparo(&partida.jugador1, &partida.jugador2,
+                    2, 2, disp_tormenta);
+
+    assert(partida.jugador2.tableros.tablero[2][2] == CASILLA_TORMENTA);
+    assert(partida.jugador2.barcos_vivos == 1);
+    assert(partida.jugador2.barco[1].hundido == 0);
+
+    /* El impacto normal completa el barco y debe contar la casilla '/'. */
+    aplicar_disparo(&partida.jugador1, &partida.jugador2,
+                    2, 3, disp_impacto);
+
+    assert(partida.jugador2.barcos_vivos == 0);
+    assert(partida.jugador2.barco[1].hundido == 1);
+
+    printf("  tormenta: OK\n");
 }
 
 /*
@@ -159,8 +206,6 @@ static void simular_partida(int semilla, Dificultad dificultad)
         EstadoIA *estado;
         int fila;
         int columna;
-        int barcos_antes;
-        int barcos_despues;
         Rdo_Disparo disparo;
 
         if (partida.turno == PJ1) {
@@ -178,12 +223,8 @@ static void simular_partida(int semilla, Dificultad dificultad)
         disparo = recibir_disparo(fila, columna, defensor->tableros.tablero);
         assert(disparo != disp_repetido);
 
-        barcos_antes = defensor->barcos_vivos;
         aplicar_disparo(atacante, defensor, fila, columna, disparo);
-        barcos_despues = defensor->barcos_vivos;
-
-        ai_registrar_resultado(estado, atacante, fila, columna,
-                               disparo, barcos_antes, barcos_despues);
+        ai_registrar_resultado(estado, atacante, fila, columna, disparo);
 
         modo_tormenta(&partida);
         cambiar_turno(&partida);
@@ -202,6 +243,7 @@ int main(void)
     probar_colocacion();
     probar_disparos_unicos();
     probar_remate();
+    probar_tormenta();
 
     for (int semilla = 0; semilla < 100; semilla++) {
         simular_partida(semilla, NORMAL);

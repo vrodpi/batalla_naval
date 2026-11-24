@@ -9,10 +9,13 @@
  * La IA solo propone coordenadas. Las reglas y los cambios de estado se
  * aplican con las funciones de game.c/tablero.c, igual que en PvP.
  *
+ * La IA no recibe el tablero rival ni contadores de barcos vivos. Solo
+ * usa su propio tablero_disparos y el resultado publico de cada disparo.
+ *
  * Estrategia:
  * 1. Caza: elige al azar una casilla que todavia no haya recibido un disparo.
  * 2. Remate: si impacta, prueba las casillas contiguas desconocidas.
- * 3. Si hunde un barco, descarta los objetivos pendientes y vuelve a cazar.
+ * 3. Si no quedan objetivos pendientes, vuelve a cazar.
  */
 
 typedef struct {
@@ -38,10 +41,10 @@ int ai_elegir_disparo(const Jugador *maquina, EstadoIA *estado,
 
 /*
  * Actualiza los objetivos de la IA despues de un disparo.
- * barcos_antes y barcos_despues permiten detectar si se hundio un barco.
+ * Solo recibe el resultado publico del disparo; nunca la cantidad de
+ * barcos vivos del oponente ni su tablero.
  */
 void ai_registrar_resultado(EstadoIA *estado, const Jugador *maquina,
-                            int fila, int columna, Rdo_Disparo resultado,
-                            int barcos_antes, int barcos_despues);
+                            int fila, int columna, Rdo_Disparo resultado);
 
 #endif
