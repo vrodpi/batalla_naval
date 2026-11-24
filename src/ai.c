@@ -66,7 +66,11 @@ static int colocar_barco_aleatorio(Jugador *maquina, int indice)
         barco.columna = rand() % COL;
         barco.hundido = 0;
 
-        if (validar_ingreso_barco(barco, maquina->tableros.tablero)) {
+        /*
+         * validar_ingreso_barco devuelve 1 solo cuando pudo colocar el
+         * barco. Los valores negativos indican el motivo del rechazo.
+         */
+        if (validar_ingreso_barco(barco, maquina->tableros.tablero) == 1) {
             maquina->barco[indice] = barco;
             return 1;
         }
@@ -78,12 +82,12 @@ static int colocar_barco_aleatorio(Jugador *maquina, int indice)
 /*
  * Respaldo deterministico: una fila por barco, separadas por una fila vacia.
  * Sirve para garantizar que la partida pueda comenzar aunque el azar falle.
+ *
+ * Requiere que el tablero llegue limpio. ai_colocar_flota se encarga de
+ * limpiarlo antes de llamar a esta funcion.
  */
 static int colocar_flota_de_respaldo(Jugador *maquina)
 {
-    inicializar_tablero(maquina->tableros.tablero,
-                        maquina->tableros.tablero_disparos);
-
     for (int indice = 0; indice < BARCOS_MODO_NORMAL; indice++) {
         Barco barco = maquina->barco[indice];
 
@@ -92,7 +96,7 @@ static int colocar_flota_de_respaldo(Jugador *maquina)
         barco.columna = 0;
         barco.hundido = 0;
 
-        if (!validar_ingreso_barco(barco, maquina->tableros.tablero)) {
+        if (validar_ingreso_barco(barco, maquina->tableros.tablero) != 1) {
             return 0;
         }
 
@@ -136,6 +140,13 @@ int ai_colocar_flota(Jugador *maquina)
             return 1;
         }
     }
+
+    /*
+     * El ultimo intento pudo dejar una flota parcial. Se limpia el tablero
+     * para que el respaldo deterministico empiece desde cero.
+     */
+    inicializar_tablero(maquina->tableros.tablero,
+                        maquina->tableros.tablero_disparos);
 
     return colocar_flota_de_respaldo(maquina);
 }
@@ -205,24 +216,17 @@ int ai_elegir_disparo(const Jugador *maquina, EstadoIA *estado,
 }
 
 void ai_registrar_resultado(EstadoIA *estado, const Jugador *maquina,
-                            int fila, int columna, Rdo_Disparo resultado,
-                            int barcos_antes, int barcos_despues)
+                            int fila, int columna, Rdo_Disparo resultado)
 {
     if (estado == NULL || maquina == NULL) {
         return;
     }
 
-    if (resultado != disp_impacto) {
-        return;
-    }
-
     /*
-     * Si la cantidad de barcos vivos disminuyo, el disparo hundio un barco.
-     * Se descartan los objetivos pendientes para no seguir disparando
-     * alrededor de un barco que ya no existe.
+     * Solo se usan resultados publicos del disparo y el tablero_disparos
+     * propio. No se consulta barcos_vivos ni el tablero rival.
      */
-    if (barcos_despues < barcos_antes) {
-        estado->num_objetivos = 0;
+    if (resultado != disp_impacto) {
         return;
     }
 

@@ -2,7 +2,7 @@
 
 ## Introducción: 
 Reversión Clásica del Juego **BATALLA NAVAL**, ahora con la implementación del Modo **Tormenta**. <br> 
-Desarrollo en el Lenguaje C, para su uso por Consola e Interfáz gráfica. <br> 
+Desarrollado en el Lenguaje C, para su uso por Consola y por Interfáz gráfica. <br> 
 Proyecto realizado por Estudiantes de la Carrera Analista Programador Universitario, de la Universidad Nacional de la Patagonia San Juan Busco, para la Cátedra Algoritmica y Programación I, dictada por los Profesores Juan Manuel Cortez, Martín Ebene y Gustavo Pazos. 
 
 ## Indice
@@ -17,16 +17,16 @@ G) Comentarios <br>
 
 ### INTEGRANTES DEL PROYECTO ###<br>
 
-| NOMBRES Y APELLIDOS                     | HS TRABAJADAS  |
-|-----------------------------------------|----------------|
-|Vicente Pi Rodriguez                     |-------X--------|
-|                                         |                |
-|Teresa de los Angeles Carabajal Anderson |-------X--------|
-|                                         |                |
-|Gianfranco Di Pisa Echagüe               |-------X--------|
-|                                         |                |
-|Huenú Rosalba Margalef Quijada           |-------X--------|
-|                                         |                |
+| NOMBRES Y APELLIDOS                       | HS TRABAJADAS  |
+|-----------------------------------------  |----------------|
+|Vicente Rodriguez Pi                       |-------X--------|
+|                                           |                |
+|Teresa de los Angeles Carabajal Anderson   |-------X--------|
+|                                           |                |
+|Gianfranco Di Pisa Echagüe                 |-------X--------|
+|                                           |                |
+|Huenú Rosalba Beatriz Margalef Quijada     |-------X--------|
+|                                           |                |
 
 
 
@@ -34,7 +34,7 @@ G) Comentarios <br>
 
 #### Tableros: 
 *Tamaño 10x10. 100 Casillas*. <br> 
-Tablero: Flota del Jugador de Turno. <br> 
+Tablero de Barcos: Flota del Jugador de Turno, y en caso de Impactos efectivos se actualiza. <br> 
 Tablero de Disparos: En él se lleva un registro de los Disparos al enemigo. <br> 
 Al inicio de cada Partida, ambos Tableros solo contienen Agua. <br> 
 La *FLOTA* de cada Jugador consiste en 5 barcos, que se diferenciarán de acuerdo a su nombre/tamaño respectivamente. <br> 
@@ -43,33 +43,33 @@ La *FLOTA* de cada Jugador consiste en 5 barcos, que se diferenciarán de acuerd
 |Cantidad|**FLOTA**         | **TAMAÑO**  | 
 |:------:|:----------------:|:-----------:|
 | 1      |    porta_aviones | 5 casilleros|
-| 2      |    buque         | 4 casilleros|
-| 3      |    submarino     | 3 casilleros|
-| 4      |    lancha        | 2 casilleros|
-| 5      |    velero        | 1 casilleros|
+| 1      |    buque         | 4 casilleros|
+| 1      |    submarino     | 3 casilleros|
+| 1      |    velero        | 2 casilleros|
+| 1      |    lancha        | 1 casilleros|
   
-**Posiciones Válidas:** 
+**Posiciones Válidas:**        <-Captura de pantalla de los tableros. Cuando los barcos hayan sido egresados->
 *Ingreso Numeral de la Fila (1 al 10). <br> 
 *Ingreso Alfabético de la Columna (A a J). <br> 
 *No se permite que los barcos se superpongan.  <br> 
-*No se permite que los barcos se encuentren ubicados en posiciones contiguas, ni en diagonal. (Dejar un espacio entre ellos).<br> 
-*No se permite el ingreso de ubicación repetida (Ni como coordenada de Ataque). <br> 
+*No se permite que los barcos se encuentren ubicados en posiciones contiguas, ni en diagonal. (Al menos una casilla de distancia, entre ellos).<br> 
 *No se permite el ingreso de ubicación fuera de rango. <br>
+*No se permite el ingreso de ubicación repetida. <br> 
 *No se permite el ingreso del barco, si por su tamaño (cantidad de casillas que ocupe), no entra en el rango del Tablero. <br> 
-*La interfaz se ocupa de traducir las coordenadas ingresadas por las personas a las coordenadas que utiliza el programa.
+
 
 
 **Disparos. Ataque a Flota Oponente.**
 El Atacante es el jugador de Turno. Solo tiene permitido hacer un (1) único disparo por turno. <br> 
-Si el Disparo alcanzó un Barco, entonces en pantalla "IMPACTO". (*tablero.c*). <br> 
+Si el Disparo alcanzó un Barco, se confirma por Pantalla y se actualizan los tableros. (*en tablero*). <br> 
 Si el Disparo fue a agua, entonces en pantalla "AGUA". <br> 
-Si la ubicación ingresada es repetida, en pantalla "Vuelva a Intentar". <br> 
+Si la ubicación ingresada es repetida, se solicitan nuevas coordenadas. <br> 
+*No se permite el ingreso de ubicación repetida. <br> 
 
 **Partidas:**
-La cantidad de Partidas depende del/de los jugadores. <br> 
-El Ganador de la Partida es el Jugador que lográ Hundir los 5 barcos de la flota Enemiga. Y con ello, se le suma 1 (una) Victoria en *ranking.c* <br> 
-Al iniciar la Partida, el usuario accederá desde el Menú a opciones sobre Modo de Juego y Dificultad. <br> 
-Cabe aclarar que en las Partidas entre Jugador1 vs Jugador2, se ha implementado una pantalla cortina para separar los turnos, y evitar ver el tablero del adversario. <br>
+El Ganador de la Partida es el Jugador que lográ Hundir los 5 barcos de la flota Enemiga. Y con ello, se le suma 1 (una) Victoria en *ranking* <br> 
+Al iniciar la Partida, se solicita el nombre del jugador, y a traves de un Menú el usuario accederá a opciones sobre Modo de Juego y Dificultad que debera elegir para continuar la partida. <br> 
+Entre turno de jugadores, se ha implementado una pantalla cortina para separar los turnos, para evitar ver el tablero del adversario. <br>
 
 
 |                          MENÚ PRINCIPAL                            |
@@ -87,7 +87,12 @@ Cabe aclarar que en las Partidas entre Jugador1 vs Jugador2, se ha implementado 
 
 <br> 
 
-### MODO JUGADOR1 VS JUGADOR2 || MODO JUGADOR VS IA (MÁQUINA) || DIFICULTAD ###
+### MODOS DE JUEGO 
+1) JUGADOR1 VS JUGADOR2 
+    DIFICULTAD: PARTIDA CLASICA 
+    DIFICULTAD: PARTIDA CON TORMENTA
+2) JUGADOR VS IA (MÁQUINA)
+
 **JUGADOR1 VS JUGADOR2:**
 Enfrentamiento entre Personas.
 La interfaz muestra al jugador de turno sus tableros. En **Tablero** se muestra la situación actual de su Flota, y en **Tablero de Disparos** lleva un registro de sus operaciones tácticas. <br>
@@ -101,7 +106,7 @@ Enfrentamiento entre un Jugador y la Máquina.
 **MODO NORMAL**
 Juego Clásico, sea el modo elegido (Entre Jugadores o Contra IA). No difiere en uso, ni métodos adicionales, ni estratégicas ya conocidas y/o antes mencionadas. <br>
 
-**MODO TORMENTA**
+**MODO TORMENTA** APTO PARA JUGAR EN AMBOS MODOS. 
 **TORMENTA POR TURNOS**:
 Cada 3 turnos, ocurrirá un impacto. Elegido esta dificultad el jugador de turno tendrá dos ventajas:
 1) Podrá disparar a la flota enemiga.  <br>
@@ -132,8 +137,8 @@ Turno 3: Atacante dispara a Barco (impacto_agua_consecutivo= 0) -> se reinicia e
 1. Presentación.
 2. Reglamento.
 3. Solicitud del nombre del primer jugador.
-4. Menú para elegir "jugador contra jugador" o "jugador contra máquina". 
-5. Menú para elegir dificultad "Partida Normal" o "Tormenta".
+4. Menú Modo: para elegir Modo "jugador contra jugador" o "jugador contra máquina". 
+5. Menú Dificultad: "Partida Normal" o "Tormenta".
 6. En jugador contra jugador, solicitud del nombre del segundo jugador.
 7. Cada jugador coloca sus barcos manualmente, en horizontal o vertical.
 8. Desarrollo de la partida. En jugador contra jugador, una pantalla de espera separa los turnos para que el siguiente jugador   no vea el tablero del adversario.
@@ -145,22 +150,43 @@ Aclaración: Si la dificultad elegida es Tormenta entonces cada tres turnos, uno
 
 ### ARCHIVOS ###
 
+ %% Comentario que no se ve: Si escribo nombre[nombre] sSe abre un nuevo nodo, si escribo solo nombre entonces continua
 ```mermaid
 
 graph TD
-    %% Comentario que no se ve: Si escribo nombre[nombre] sSe abre un nuevo nodo, si escribo solo nombre entonces continua
-    Makefile[makefile]:::rojo-->Main[main.c]:::verde
-    Main --> Game[game.c]:::azul
-    Game[game.c] --> Tablero[tablero.c]
-    Game[game.c] --> UI[ui_cli.c]
+   
+   
+    Main:::rojo --> Game[game.c]:::azul
+    Main --> UI[ui_cli.c]:::amarillo
+    Main --> Tablero[tablero.c]:::verde
+    Main --> IA[ai.c]:::violeta
     Main --> Ranking[ranking.c]:::azul
+    Tablero --> IA 
+    Game --> Tablero
+    Game --> UI
+    UI --> Ranking
+    UI --> Game
+    Tablero --> IA
 
 
-    classDef verde fill:#d4edda,stroke:#28a745
-    classDef azul fill:#cce5ff,stroke:#007bff
-    classDef rojo fill:#f8d7da,stroke:#dc3545
+
+    classDef verde fill: #94e366,stroke: #28a745, color: #000000
+    classDef azul fill: #557ce8,stroke: #007bff, color: #000000
+    classDef rojo fill: #f35e6a,stroke: #dc3545, color: #000000
+    classDef violeta fill: #d66cf1,stroke: #6f42c1, color: #000000
+    classDef turquesa fill: #a9dae4,stroke: #3acef0,color: #000000
+    classDef amarillo fill: #eeec65,stroke: #f2f531,color: #000000
+
+
+
+
 
 ```
+
+
+    lleer los include de arriba de cada archiovo para conectar los main.c y eso. 
+    game.c incluye a tablero pero no al reves. 
+
 
 **main.c** <br>
 Se encarga de la Presentación y Reglamento. Permite el flujo general del programa, cuya ejecución difiere según la decisión del/los jugadores respecto a Modo y Dificultad. También se encarga de la coordinación de la colocación de Barcos y Cambios de turno. <br>
@@ -189,11 +215,9 @@ Cuando cumpla con las condiciones, solo entonces, actualiza Agua por Barco. <br>
 
 **ranking.c**<br>
 
-**ranking.c**<br>
+**ranking.h**<br>
 
-**demo_ranking**<br>
 
-**gitignore**<br>
 
 ```
 
@@ -229,6 +253,7 @@ Cuando cumpla con las condiciones, solo entonces, actualiza Agua por Barco. <br>
 
 ### COMPILACIÓN Y EJECUCIÓN ###<br>
 Para Compilar Batalla Naval se requiere la herramienta Make, que leerá el archivo Makefile. Con Makefile, automatizamos la compilación y vinculamos los archivos. <br>
+
 
 **PASOS PARA COMPILAR:**<br>
 

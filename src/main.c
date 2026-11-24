@@ -8,7 +8,7 @@
 #include <time.h>
 
 void partida_pvp(Partida *partida);
-//void partida_pvia(Partida *partida);
+void partida_pvia(Partida *partida);
 
 
 int main(void){
@@ -19,6 +19,7 @@ int main(void){
     
     ranking_inicializar(&ranking);
 
+    // carga el ranking del achivo al programa
     ranking_cargar(&ranking, CONFIG_RANKING_RUTA);
 
     srand(time(NULL)); // para modo tormenta
@@ -42,7 +43,7 @@ int main(void){
                     break;
                 }
 
-                // Ejecuta la partida
+                // Ejecuta la partida vs jugador
                 partida_pvp(&partida);
                     
                 // Actualiza el ranking con el ganador de la ultima partida
@@ -55,6 +56,7 @@ int main(void){
                 break;
 
             case UI_MENU_OPCION_PVIA:
+
                 partida.modo_de_juego = PVIA;
 
                 // muestra el menú de dificultad, si el usuario elige 0 vuelve al menú principal
@@ -62,11 +64,20 @@ int main(void){
                     break;
                 }
 
-         //       partida_pvia(&partida);
+                // Ejecuta la partida vs IA
+                partida_pvia(&partida);
+
+                // Actualiza el ranking sólo si ganó el jugador 1
+                if (partida.ganador == 1){
+                    ranking_registrar_victoria(&ranking, partida.jugador1.nombre);
+                }
+
                 break;
             
             case UI_MENU_MOSTRAR_RANKING:
+                
                 ui_mostrar_ranking(ranking);
+                
                 break;
 
             case UI_MENU_MOSTRAR_REGLAMENTO:
@@ -76,16 +87,19 @@ int main(void){
                 break;
 
             case UI_MENU_SALIR:
+                
                 printf("Saliendo...\n");
                 break;
             
             default:
+                
                 printf("Opción inválida.\n");
                 esperar_usuario();
                 break;
         }
     } while (opcion_menu != 0);
     
+    // guarda el ranking en un archivo
     ranking_guardar(&ranking, CONFIG_RANKING_RUTA);
     
     return 0;
@@ -122,7 +136,7 @@ void colocar_barcos(Jugador *jugador, int tipo_de_partida){
     }
 }
 
-// Hacer que reciba puntero a partida?
+// Ejecuta el turno de los jugadores
 void ejecutar_turno_del_jugador(Partida *partida, int tipo_de_partida){
     
     Jugador *atacante, *defensor;
@@ -181,6 +195,7 @@ void partida_pvp(Partida *partida){
 
     pedir_nombre_jugador(partida->jugador2.nombre, 2);
     
+    // Colocación de barcos
     colocar_barcos(&partida->jugador1, tipo_de_partida);
 
     mostrar_pantalla_cambio_de_turno(partida->jugador2, partida->cantidad_turnos);
@@ -189,6 +204,7 @@ void partida_pvp(Partida *partida){
 
     partida->cantidad_turnos++;
 
+    // Ejecución de la partida
     while (comprobar_partida_terminada(partida) == 0){
         
         ejecutar_turno_del_jugador(partida, tipo_de_partida);
@@ -203,18 +219,22 @@ void partida_pvp(Partida *partida){
  * Ejecuta un turno completo de la IA.
  * Devuelve 1 si pudo disparar y 0 si no quedaban casillas disponibles.
  */
-/*
-static int ejecutar_turno_ia(Partida *partida, EstadoIA *estado){
+static int ejecutar_turno_ia(Partida *partida, EstadoIA *estado, int tipo_de_partida){
     
-int fila, columna;
+    int fila, columna;
     Rdo_Disparo disparo;
-    int barcos_antes, barcos_despues;
-    
+
     mostrar_pantalla_cambio_de_turno(partida->jugador2,
                                      partida->cantidad_turnos);
 
+    // Ejecuta el modo tormenta si corresponde
+    if (modo_tormenta(partida, &fila, &columna) == 1){
+        // Muestra la casilla afectada
+        mostrar_mensaje_tormenta(&partida->jugador1, fila, columna);
+    }
+
     // Solo se muestra el tablero del humano; la flota de la IA queda oculta.
-    ui_mostrar_tableros(partida->jugador1, partida->cantidad_turnos);
+    ui_mostrar_tableros(partida->jugador1, partida->cantidad_turnos, tipo_de_partida);
 
     do {
         if (!ai_elegir_disparo(&partida->jugador2, estado,
@@ -227,15 +247,13 @@ int fila, columna;
         disparo = recibir_disparo(fila, columna,
                                   partida->jugador1.tableros.tablero);
 
-        barcos_antes = partida->jugador1.barcos_vivos;
         aplicar_disparo(&partida->jugador2, &partida->jugador1,
                         fila, columna, disparo);
-        barcos_despues = partida->jugador1.barcos_vivos;
 
         ai_registrar_resultado(estado, &partida->jugador2, fila, columna,
-                               disparo, barcos_antes, barcos_despues);
+                               disparo);
 
-        ui_mostrar_tableros(partida->jugador1, partida->cantidad_turnos);
+        ui_mostrar_tableros(partida->jugador1, partida->cantidad_turnos, tipo_de_partida);
         resultado_del_ataque(disparo);
 
         // Un disparo repetido no consume el turno: se vuelve a elegir.
@@ -244,14 +262,17 @@ int fila, columna;
     return 1;
 }
 
-    */
+    
 /*
  * Flujo comun para Jugador vs IA, tanto en dificultad Normal como Tormenta.
  * modo_tormenta() no hace nada si la dificultad es NORMAL.
- 
+*/
 static void jugar_pvia(Partida *partida){
 
     EstadoIA estado;
+
+    // variable para representar el modo de juego
+    int tipo_de_partida = partida->modo_de_juego * 2 + partida->dificultad;
 
     ai_inicializar(&estado);
 
@@ -263,7 +284,7 @@ static void jugar_pvia(Partida *partida){
         return;
     }
 
-    colocar_barcos(&partida->jugador1);
+    colocar_barcos(&partida->jugador1, tipo_de_partida);
 
     partida->turno = TURNO_PJ1;
     partida->cantidad_turnos = 1;
@@ -272,20 +293,17 @@ static void jugar_pvia(Partida *partida){
 
         if (partida->turno == TURNO_PJ1) {
 
-            ejecutar_turno_del_jugador(&partida->jugador1,
-                                       &partida->jugador2,
-                                       partida->cantidad_turnos);
+            ejecutar_turno_del_jugador(partida, tipo_de_partida);
 
         } else if (partida->turno == TURNO_PJ2) {
 
-            if (!ejecutar_turno_ia(partida, &estado)) {
+            if (!ejecutar_turno_ia(partida, &estado, tipo_de_partida)) {
                 printf("La IA no pudo elegir un disparo.\n");
                 esperar_usuario();
                 return;
             }
         }
 
-        modo_tormenta(partida);
         cambiar_turno(partida);
     }
 
@@ -294,12 +312,5 @@ static void jugar_pvia(Partida *partida){
 
 void partida_pvia(Partida *partida){
 
-    partida->modo_de_juego = PVIA;
-
-    if (elegir_dificultad(&partida->dificultad) == 0){
-        return;
-    }
-
     jugar_pvia(partida);
 }
-*/

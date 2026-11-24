@@ -3,7 +3,6 @@
 #include "../include/ui_cli.h"
 
 #include <stdlib.h>
-#include <time.h>
 
 void inicializar_partida(Partida *partida) {
       
@@ -186,6 +185,7 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
             barco_hundido(defensor);
             
             return;
+            
         case disp_tormenta:
             // se actualiza el tablero de barcos del defensor
             defensor->tableros.tablero[fila][columna] = CASILLA_TORMENTA;
@@ -196,6 +196,8 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
             // se comprueba si se hundió un barco
             barco_hundido(defensor);
         
+            return;
+
         // si el disparo es repetido, no hace nada
         case disp_repetido:
             
@@ -210,8 +212,6 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
 // Devuelve 1 si se activó en el turno
 int modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
 
-    srand(time(NULL));
-    
     //  Si la dificultad no es Tormenta sale de la función
     if(partida->dificultad != TORMENTA){
         return 0;

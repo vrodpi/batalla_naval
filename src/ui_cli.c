@@ -420,7 +420,13 @@ void ui_mostrar_tableros(const Jugador jugador, const int turno, const int tipo_
 
     imprimir_linea();
 
-    printf("JUGADOR: %s\n", jugador.nombre);
+    if ((tipo_de_partida == 2 || tipo_de_partida == 3) &&
+        turno % 2 == 0 && turno != 0){
+        printf("TURNO DE LA IA\n");
+    }
+    else {
+        printf("JUGADOR: %s\n", jugador.nombre);
+    }
     
     // no muestra el turno durante la colocación de barcos
     if (turno != 0){
