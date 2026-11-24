@@ -15,16 +15,15 @@
 #define CONFIG_COLUMNAS 10
 
 /* Flota: cantidad de barcos y sus longitudes (mayor a menor). */
-#define CONFIG_NUM_BARCOS 5
+#define BARCOS_MODO_NORMAL 5
 
-#define CONFIG_BARCO_LEN_0 5
-#define CONFIG_BARCO_LEN_1 4
-#define CONFIG_BARCO_LEN_2 3
-#define CONFIG_BARCO_LEN_3 2
-#define CONFIG_BARCO_LEN_4 1
+/*Nombres de usuarios de hasta 20 caracteres*/
+#define MAX_NOMBRE_DE_USUARIO 21
 
 /* Ruta por defecto del ranking (relativa a la raiz del proyecto). */
 /* El programa debe ejecutarse desde la raiz para que exista ./data/. */
 #define CONFIG_RANKING_RUTA "data/ranking.dat"
+#define CONFIG_REGLAMENTO_RUTA "files/Reglamento.txt"
+
 
 #endif

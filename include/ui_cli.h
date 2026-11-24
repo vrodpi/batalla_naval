@@ -2,24 +2,38 @@
 #define UI_CLI_H
 
 #include "game.h"
+#include "ranking.h"
+#include "config.h"
+
+enum UI_Menu_principal {
+    UI_MENU_OPCION_PVP = 1,
+    UI_MENU_OPCION_PVIA = 2,
+    UI_MENU_MOSTRAR_RANKING = 3,
+    UI_MENU_MOSTRAR_REGLAMENTO = 4,
+    UI_MENU_SALIR = 0
+};
 
 void imprimir_linea(void);
 
 void esperar_usuario(void);
+int pedir_opcion_al_usuario(char texto[]);
 
 // pide el nombre del jugador 1, le da la bienvenida y muestra el reglamento
-void mostrar_presentacion_y_reglamento(char jugador[], char ruta_al_archivo[]);
+void ui_mostrar_presentacion_y_reglamento(char jugador[], char ruta_al_archivo[]);
 void pedir_nombre_jugador(char jugador[], const int numero);
+void ui_mostrar_ranking(const Ranking ranking);
 
 // menu principal del juego, permite elegir la partida, dificultad, ver el ránking y el reglamento
 // devuelve 1 si se eligió un modo de juego válido y 0 en caso contrario
-int menu_principal(Partida *partida);
+void mostrar_menu_principal(void);
+int elegir_dificultad(Dificultad *dificultad);
+void ui_mostrar_reglamento(const char *ruta_al_archivo);
 
 // muestra los tableros de barcos y disparos del jugador indicado
-void mostrar_tableros(Jugador jugador, int turno);
+void ui_mostrar_tableros(const Jugador jugador, const int turno, const int tipo_de_partida);
 
 // mensaje de error
-void imprimir_posicion_invalida(void);
+void ui_confirmacion_barco_colocado(int caso);
 
 // muestra el tablero y solicita la colocación del barco indicado con tamanio
 void pedir_posicion_del_barco(Jugador *jugador, int tamanio);

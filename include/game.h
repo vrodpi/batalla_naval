@@ -1,8 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-#define BARCOS_MODO_NORMAL 5
-
+#include "config.h"
 #include "tablero.h"
 
 typedef enum { 
@@ -16,8 +15,8 @@ typedef enum {
 } Dificultad;
 
 typedef enum {
-    PJ1,        
-    PJ2      
+    TURNO_PJ1,        
+    TURNO_PJ2      
 } Turno;
 
 typedef struct  {
@@ -45,6 +44,6 @@ int comprobar_partida_terminada(Partida *partida);
 void cambiar_turno(Partida *partida);
 void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna, Rdo_Disparo disparo);
 Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo, char tablero[FIL][COL]);
-void modo_tormenta(Partida *partida); 
+int modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada); 
 
 #endif
