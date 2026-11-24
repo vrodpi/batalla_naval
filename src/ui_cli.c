@@ -26,7 +26,11 @@ char *nombres_barcos[] = {
 
 // limpia la pantalla de la consola detectando el sistema operativo
 void limpiar_pantalla_cli(void){
+    #if defined(_WIN32) && !defined(__CYGWIN__)
+        system("cls");
+    #else
         system("clear");
+    #endif
 }
 
 void consumir_buffer(void){

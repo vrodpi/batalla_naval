@@ -1,6 +1,7 @@
 CC = gcc
 CFLAGS = -std=c11 -Wall -Wextra
 OBJS = obj/main.o obj/game.o obj/tablero.o obj/ui_cli.o obj/ranking.o obj/ai.o
+TEST_OBJS = obj/test_ai.o obj/ai.o obj/game.o obj/tablero.o obj/ui_cli.o
 
 bin/demo: $(OBJS)
 	mkdir -p bin
@@ -26,9 +27,20 @@ obj/ranking.o: src/ranking.c include/ranking.h
 	mkdir -p obj
 	$(CC) $(CFLAGS) -c src/ranking.c -o obj/ranking.o
 
-obj/ai.o: src/ai.c include/ai.h
+obj/ai.o: src/ai.c include/ai.h include/game.h include/tablero.h
 	mkdir -p obj
 	$(CC) $(CFLAGS) -c src/ai.c -o obj/ai.o
+
+bin/test_ai: $(TEST_OBJS)
+	mkdir -p bin
+	$(CC) $(CFLAGS) $(TEST_OBJS) -o bin/test_ai
+
+obj/test_ai.o: tests/test_ai.c include/ai.h include/game.h include/tablero.h
+	mkdir -p obj
+	$(CC) $(CFLAGS) -Iinclude -c tests/test_ai.c -o obj/test_ai.o
+
+test: bin/test_ai
+	./bin/test_ai
 
 clean:
 	rm -rf obj bin

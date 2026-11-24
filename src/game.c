@@ -3,7 +3,6 @@
 #include "../include/ui_cli.h"
 
 #include <stdlib.h>
-#include <time.h>
 
 void inicializar_partida(Partida *partida) {
       
@@ -128,7 +127,8 @@ void barco_hundido(Jugador *defensor) {
                 }
 
                 // si hay alguna Posición sin impacto
-                if (defensor->tableros.tablero[fila][columna] != CASILLA_IMPACTO) {
+                if (defensor->tableros.tablero[fila][columna] != CASILLA_IMPACTO &&
+                    defensor->tableros.tablero[fila][columna] != CASILLA_TORMENTA) {
                     hundido = 0; // entonces aún no está hundido
                 }
             }
@@ -191,7 +191,11 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
             // y el tablero de disparos del atacante
             atacante->tableros.tablero_disparos[fila][columna] = CASILLA_TORMENTA;
 
-        
+            // la marca de tormenta cuenta para el hundimiento del barco
+            barco_hundido(defensor);
+
+            return;
+
         // si el disparo es repetido, no hace nada
         case disp_repetido:
             
@@ -205,8 +209,6 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
 // Tormenta cada 3 turnos.
 void modo_tormenta(Partida *partida){
 
-    srand(time(NULL));
-    
     //  Si la dificultad no es Tormenta sale de la función
     if(partida->dificultad != TORMENTA){
         return;
@@ -226,7 +228,7 @@ void modo_tormenta(Partida *partida){
             }
 
 
-    int tormenta_turnos = (partida->cantidad_turnos + 1) % 12 == 0;
+    int tormenta_turnos = (partida->cantidad_turnos + 1) % 3 == 0;
     int tormenta_agua=atacante->impacto_agua_consecutivo >= 3;
 
     // Verifica que hallan pasado 3 turnos.  Multiplo de 3, por eso el %
