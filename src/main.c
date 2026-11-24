@@ -46,25 +46,23 @@ int main(void){
     
     opcion_menu = menu_principal(&partida);
         
-        if (opcion_menu != 0) {   // para evitar que se ejecute una partida, si el jugador prefirió salir
+    if (opcion_menu != 0) {   // para evitar que se ejecute una partida, si el jugador prefirió salir
 
         // Para saber en que posición del puntero a función ejecutar_modo[]()
-        // En el Enum, PVP es 0 (y Dificultad Normal 0) entonces Posicion 0; 
+        // En el Enum, PVP es 0 (y Dificultad Normal 0) entonces Posicion 0;
         // PVP es 0 (Y Dificultad Tormenta es 1) entonces 0*2 + 1 = 1  Posicion 1;
         // PVIA es 1 (Dificultad Normal 0) entonces posición 2 y PVIA Tormenta posición 3
-        //int indice = partida.modo_de_juego * 2 + partida.dificultad;      
+        int indice = partida.modo_de_juego * 2 + partida.dificultad;
 
-        partida_pvp(&partida);
+        ejecutar_modo[indice](&partida);
 
         // Actualiza el ranking con el ganador de la ultima partida
         ranking_registrar_victoria(
             &ranking,
-            partida.ganador == 1 
+            partida.ganador == 1
                 ? partida.jugador1.nombre
                 : partida.jugador2.nombre
         );
-        // Implementar la función que corresponde
-       // ejecutar_modo[indice](&partida);
     }
 
     ranking_guardar(&ranking, "data/ranking.dat");
@@ -187,7 +185,6 @@ static int ejecutar_turno_ia(Partida *partida, EstadoIA *estado){
 
     int fila, columna;
     Rdo_Disparo disparo;
-    int barcos_antes, barcos_despues;
 
     mostrar_pantalla_cambio_de_turno(partida->jugador2,
                                      partida->cantidad_turnos);
@@ -206,13 +203,11 @@ static int ejecutar_turno_ia(Partida *partida, EstadoIA *estado){
         disparo = recibir_disparo(fila, columna,
                                   partida->jugador1.tableros.tablero);
 
-        barcos_antes = partida->jugador1.barcos_vivos;
         aplicar_disparo(&partida->jugador2, &partida->jugador1,
                         fila, columna, disparo);
-        barcos_despues = partida->jugador1.barcos_vivos;
 
         ai_registrar_resultado(estado, &partida->jugador2, fila, columna,
-                               disparo, barcos_antes, barcos_despues);
+                               disparo);
 
         mostrar_tableros(partida->jugador1, partida->cantidad_turnos);
         resultado_del_ataque(disparo);
