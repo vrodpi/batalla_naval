@@ -81,9 +81,20 @@ void ui_confirmacion_barco_colocado(int caso){
     esperar_usuario();
 }
 
+void ui_mensajes_menu(UI_Mensaje_menu opcion){
+    switch (opcion){
+    case UI_MENSAJE_SALIR:
+        printf("Saliendo...\n");
+        break;
+    case UI_MENSAJE_DEFAULT:
+        printf("<Opción inválida>\n");
+        esperar_usuario();
+    }
+}
+
 // pide al usuario que ingrese una opción numérica, 
 // si el usuario no ingresa una entrada válida, retorna 0
-int pedir_opcion_al_usuario(const char *texto, int *opcion){
+int ui_pedir_opcion_al_usuario(const char *texto, int *opcion){
     char linea[128];
     char *fin;
     long valor;
@@ -172,7 +183,7 @@ static int leer_nombre_de_usuario(char *jugador){
 }
 
 // ingresa el nombre del jugador y reemplaza el salto de línea por un \0
-void pedir_nombre_jugador(char jugador[], const int numero){
+void ui_pedir_nombre_jugador(char jugador[], const int numero){
 
     for (;;){
         imprimir_linea();
@@ -217,7 +228,7 @@ void ui_mostrar_reglamento(const char *ruta_al_archivo){
 void ui_mostrar_presentacion_y_reglamento(char jugador[], char ruta_al_archivo[]){
     system("clear");
 
-    pedir_nombre_jugador(jugador, 1);
+    ui_pedir_nombre_jugador(jugador, 1);
 
     system("clear");
 
@@ -229,7 +240,7 @@ void ui_mostrar_presentacion_y_reglamento(char jugador[], char ruta_al_archivo[]
     ui_mostrar_reglamento(ruta_al_archivo);
 }
 
-void mostrar_menu_principal(void){
+void ui_mostrar_menu_principal(void){
     
     system("clear");
 
@@ -257,7 +268,7 @@ static void mostrar_menu_de_dificultad(void){
 
 // Muestra el menú de selección de dificultad
 // retorna 1 si se eligió una opción de dificultad y 0 para volver al menú anterior
-int elegir_dificultad(Dificultad *dificultad){
+int ui_elegir_dificultad(Dificultad *dificultad){
     
     int opcion;
 
@@ -265,7 +276,7 @@ int elegir_dificultad(Dificultad *dificultad){
         system("clear");
         mostrar_menu_de_dificultad();
         
-        pedir_opcion_al_usuario(texto_por_defecto, &opcion);
+        ui_pedir_opcion_al_usuario(texto_por_defecto, &opcion);
 
         switch (opcion){
         
@@ -307,7 +318,7 @@ static void solicitar_entrada_de_fila(int *fila){
     do {
         
         // pide la columna al usuario
-        pedir_opcion_al_usuario("Fila: ", &opcion); // toma el primer caracter ingresado
+        ui_pedir_opcion_al_usuario("Fila: ", &opcion); // toma el primer caracter ingresado
         
         // si la opcion no era un int
         if (opcion == -1){
@@ -403,7 +414,7 @@ static void solicitar_orientacion(Orientacion *orientacion){
         printf("    2. Vertical\n");
         
         int opcion; 
-        pedir_opcion_al_usuario(texto_por_defecto, &opcion);
+        ui_pedir_opcion_al_usuario(texto_por_defecto, &opcion);
 
         switch (opcion){
             case 1:
@@ -422,7 +433,7 @@ static void solicitar_orientacion(Orientacion *orientacion){
     }
 }
 
-void pedir_posicion_del_barco(Jugador *jugador, const int indice){
+void ui_pedir_posicion_del_barco(Jugador *jugador, const int indice){
     
     printf("Barco a colocar: %s\n", nombres_barcos[indice]);
 
@@ -436,6 +447,12 @@ void pedir_posicion_del_barco(Jugador *jugador, const int indice){
     else {
         jugador->barco[indice].orientacion = horizontal;
     }
+}
+
+void ui_pedir_coordenadas_de_ataque(int *fila, int *columna){
+      
+    solicitar_entrada_de_fila(fila);
+    solicitar_entrada_de_columna(columna);
 }
 
 /* Muestra un encabezado con el Modo de Juego y la Dificultad de la partida,
@@ -543,13 +560,7 @@ void ui_mostrar_tableros(const Jugador jugador, const int turno, const int tipo_
     imprimir_linea();
 }
 
-void pedir_coordenadas_de_ataque(int *fila, int *columna){
-      
-    solicitar_entrada_de_fila(fila);
-    solicitar_entrada_de_columna(columna);
-}
-
-void mostrar_pantalla_cambio_de_turno(const Jugador jugador, const int turno){
+void ui_mostrar_pantalla_cambio_de_turno(const Jugador jugador, const int turno){
 
     system("clear");
     imprimir_linea();
@@ -571,7 +582,7 @@ void mostrar_pantalla_cambio_de_turno(const Jugador jugador, const int turno){
     esperar_usuario();
 }
 
-void mostrar_pantalla_de_victoria(Partida *partida){
+void ui_mostrar_pantalla_de_victoria(Partida *partida){
     
     system("clear");
     imprimir_linea();
@@ -599,7 +610,7 @@ void mostrar_pantalla_de_victoria(Partida *partida){
     esperar_usuario();
 }
 
-void resultado_del_ataque(const Rdo_Disparo disparo){
+void ui_resultado_del_ataque(const Rdo_Disparo disparo){
     switch (disparo){
 
     case disp_agua:
@@ -619,7 +630,7 @@ void resultado_del_ataque(const Rdo_Disparo disparo){
     esperar_usuario();
 }
 
-void mostrar_mensaje_tormenta(Jugador *defensor, int Fil_afectada, int Col_afectada){
+void ui_mostrar_mensaje_tormenta(Jugador *defensor, int Fil_afectada, int Col_afectada){
     imprimir_linea();
     printf("\n");
     imprimir_centrado("-------TORMENTA ACTIVADA-------", ANCHO_CONSOLA);
@@ -667,7 +678,6 @@ static void mostrar_menu_ranking(void){
     printf("    1. Mostrar todo el ranking.\n");
     printf("    2. Buscar usuario por nombre.\n");
     printf("    0. Volver al menú principal.\n");
-    imprimir_linea();
 }
 
 
@@ -700,7 +710,7 @@ static void mostrar_registro_ranking(const Ranking ranking, const int indice, co
     if (opcion == UI_RANKING_COMPLETO){
         for (int i = 0; i < indice; i++){
             printf("|%5d     | %-24s|%6d     |\n", 
-                indice + 1, 
+                i + 1, 
                 ranking.entradas[i].nombre, 
                 ranking.entradas[i].victorias
             );
@@ -736,7 +746,7 @@ void ui_mostrar_ranking(const Ranking ranking){
         mostrar_menu_ranking();
         
         int opcion;
-        pedir_opcion_al_usuario(texto_por_defecto, &opcion);
+        ui_pedir_opcion_al_usuario(texto_por_defecto, &opcion);
         
         switch (opcion){
             case UI_RANKING_COMPLETO:
