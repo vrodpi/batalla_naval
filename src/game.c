@@ -231,7 +231,7 @@ int modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
             }
 
 
-    int tormenta_turnos = partida->cantidad_turnos % 3 == 0;
+    int tormenta_turnos = partida->cantidad_turnos % 5 == 0;
     int tormenta_agua = atacante->impacto_agua_consecutivo >= 3;
 
     // Verifica que hallan pasado 3 turnos.  Multiplo de 3, por eso el %
