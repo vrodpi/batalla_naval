@@ -208,7 +208,7 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
 
 
 
-// Tormenta cada 3 turnos.
+// Tormenta cada 5 turnos.
 // Devuelve 1 si se activó en el turno
 int modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
 
@@ -234,9 +234,8 @@ int modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
     int tormenta_turnos = partida->cantidad_turnos % 5 == 0;
     int tormenta_agua = atacante->impacto_agua_consecutivo >= 3;
 
-    // Verifica que hallan pasado 3 turnos.  Multiplo de 3, por eso el %
-    // Se ejecuta antes de cambiar_turno. (por eso +1)  en donde se incrementa el contador
-    // Verifica que la cantidad de impactaos a agua consecutivos hechos por el atacante no sea menor a 3. 
+    // Verifica que hallan pasado 5 turnos.  Multiplo de 5, por eso el %
+    // Verifica que la cantidad de impactos a agua consecutivos hechos por el atacante no sea menor a 3. 
 
     if(!tormenta_turnos && !tormenta_agua){       // por lo tanto, sino se cumple ninguna retorna
         return 0;
