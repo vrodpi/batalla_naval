@@ -1,7 +1,4 @@
 #include "../include/game.h"
-#include "../include/tablero.h"
-#include "../include/ui_cli.h"
-
 #include <stdlib.h>
 
 void inicializar_partida(Partida *partida) {
@@ -15,10 +12,6 @@ void inicializar_partida(Partida *partida) {
     partida->jugador2.barcos_vivos = BARCOS_MODO_NORMAL;
 
     
-    // Inicializar los impactos
-    partida->jugador1.hits = 0;                 // cada jugador empieza con 0 impacto a barcos
-    partida->jugador2.hits = 0;
-
     partida->jugador1.impacto_agua_consecutivo= 0;          // el contador de impactos a agua, comienza en 0.
     partida->jugador2.impacto_agua_consecutivo= 0;
 
@@ -175,9 +168,6 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
             // y el tablero de disparos del atacante
             atacante->tableros.tablero_disparos[fila][columna] = CASILLA_IMPACTO;
 
-            // se aumentan los hits del atacante
-            atacante->hits++;
-            
             //Se reinicia el contador porque el impacto fue distinto a agua
             atacante->impacto_agua_consecutivo = 0;
 

@@ -152,6 +152,10 @@ static void ejecutar_turno_del_jugador(Partida *partida, int tipo_de_partida){
     // muestra la información del modo tormenta si se activa
     if (modo_tormenta(partida, &fila_ataque, &columna_ataque) == 1){
         ui_mostrar_mensaje_tormenta(defensor, fila_ataque, columna_ataque);
+        // revisa si la tormenta hundió el último barco
+        if (comprobar_partida_terminada(partida) == 1){
+            return;
+        }
     }
 
     // actualizar tableros
@@ -193,7 +197,7 @@ void partida_pvp(Partida *partida){
 
     colocar_barcos(&partida->jugador2, tipo_de_partida);
 
-    partida->cantidad_turnos++;
+    partida->cantidad_turnos = 1;
 
     // Ejecución de la partida
     while (comprobar_partida_terminada(partida) == 0){
@@ -222,6 +226,10 @@ static int ejecutar_turno_ia(Partida *partida, EstadoIA *estado, int tipo_de_par
     if (modo_tormenta(partida, &fila, &columna) == 1){
         // Muestra la casilla afectada
         ui_mostrar_mensaje_tormenta(&partida->jugador1, fila, columna);
+
+        if (comprobar_partida_terminada(partida) == 1){
+            return 1;
+        }
     }
 
     // Solo se muestra el tablero del humano; la flota de la IA queda oculta.

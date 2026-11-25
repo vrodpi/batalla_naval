@@ -9,14 +9,6 @@ typedef enum {              // orientación del barco a ingresar
     vertical
 } Orientacion;
 
-typedef enum {              // Tipo y tamaño del barco
-    porta_aviones=5,
-    buque=4,
-    submarino=3,
-    velero=2,
-    lancha=1
-} Tamanio;
-
 typedef struct {
     int tamanio;
     Orientacion orientacion;
@@ -47,7 +39,6 @@ typedef enum {
 } Casillas_tablero;
 
 void inicializar_tablero(char tablero[FIL][COL], char tablero_disparos[FIL][COL]);
-int validar_rango(Barco barco);
 int libre(Barco barco, char tablero[FIL][COL]);
 int validar_ingreso_barco(Barco barco, char tablero[FIL][COL]);
 void ingresar_barco(Barco barco, char tablero[FIL][COL]);

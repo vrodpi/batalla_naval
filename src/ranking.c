@@ -18,7 +18,7 @@
 
 #include "../include/ranking.h"
 /*
-static_assert(sizeof(RankingEntrada) == (RANKING_NOMBRE_MAX + sizeof(int)),
+static_assert(sizeof(RankingEntrada) == (MAX_NOMBRE_DE_USUARIO + sizeof(int)),
               "RankingEntrada no debe tener relleno");
 
 static_assert(sizeof(Ranking) == (RANKING_MAX_JUGADORES * sizeof(RankingEntrada)
@@ -116,7 +116,7 @@ static int comparar_insensible(const char *a, const char *b)
  *
  * Recorta espacios de los extremos y exige entre 1 y 31 caracteres utiles,
  * sin caracteres de control. La longitud se mide sobre el original para
- * rechazar nombres que no entren en RANKING_NOMBRE_MAX; recien despues se
+ * rechazar nombres que no entren en MAX_NOMBRE_DE_USUARIO; recien despues se
  * copia al buffer de salida.
  *
  * @return 1 si el nombre es valido; 0 si esta vacio, es demasiado largo o
@@ -124,7 +124,7 @@ static int comparar_insensible(const char *a, const char *b)
  */
 static int nombre_normalizado(const char *nombre, char *salida, int tam_salida)
 {
-    char tmp[RANKING_NOMBRE_MAX];
+    char tmp[MAX_NOMBRE_DE_USUARIO];
     int i;
     int largo;
 
@@ -148,13 +148,13 @@ static int nombre_normalizado(const char *nombre, char *salida, int tam_salida)
             fin--;
         }
         real = (int)(fin - ini);
-        if (real <= 0 || real >= RANKING_NOMBRE_MAX) {
+        if (real <= 0 || real >= MAX_NOMBRE_DE_USUARIO) {
             return 0;
         }
     }
 
     largo = (int)strlen(tmp);
-    if (largo <= 0 || largo >= RANKING_NOMBRE_MAX) {
+    if (largo <= 0 || largo >= MAX_NOMBRE_DE_USUARIO) {
         return 0;
     }
 
@@ -195,7 +195,7 @@ static int entrada_valida(const RankingEntrada *e, char *nombre)
     }
 
     tiene_fin = 0;
-    for (i = 0; i < RANKING_NOMBRE_MAX; i++) {
+    for (i = 0; i < MAX_NOMBRE_DE_USUARIO; i++) {
         if (e->nombre[i] == '\0') {
             tiene_fin = 1;
             break;
@@ -205,7 +205,7 @@ static int entrada_valida(const RankingEntrada *e, char *nombre)
         return 0;
     }
 
-    if (!nombre_normalizado(e->nombre, nombre, RANKING_NOMBRE_MAX)) {
+    if (!nombre_normalizado(e->nombre, nombre, MAX_NOMBRE_DE_USUARIO)) {
         return 0;
     }
 
@@ -255,7 +255,7 @@ const RankingEntrada *ranking_obtener(const Ranking *r, int indice)
  */
 int ranking_buscar(const Ranking *r, const char *nombre)
 {
-    char norm[RANKING_NOMBRE_MAX];
+    char norm[MAX_NOMBRE_DE_USUARIO];
     int i;
 
     if (r == NULL || nombre == NULL) {
@@ -350,7 +350,7 @@ void ranking_ordenar(Ranking *r)
  */
 int ranking_registrar_victoria(Ranking *r, const char *nombre)
 {
-    char norm[RANKING_NOMBRE_MAX];
+    char norm[MAX_NOMBRE_DE_USUARIO];
     int idx;
     int i;
 
@@ -441,7 +441,7 @@ int ranking_cargar(Ranking *r, const char *ruta)
     hubo_formato = 0;
 
     for (i = 0; i < disco.cantidad; i++) {
-        char nombre[RANKING_NOMBRE_MAX];
+        char nombre[MAX_NOMBRE_DE_USUARIO];
         int idx;
         int k;
 
@@ -515,7 +515,7 @@ int ranking_guardar(const Ranking *r, const char *ruta)
     for (i = 0; i < copia.cantidad; i++) {
         int j;
 
-        for (j = 0; j < RANKING_NOMBRE_MAX - 1
+        for (j = 0; j < MAX_NOMBRE_DE_USUARIO - 1
                     && r->entradas[i].nombre[j] != '\0'; j++) {
             copia.entradas[i].nombre[j] = r->entradas[i].nombre[j];
         }

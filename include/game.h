@@ -21,10 +21,9 @@ typedef enum {
 
 typedef struct  {
     Tableros tableros;
-    char nombre[50];
+    char nombre[MAX_NOMBRE_DE_USUARIO];
     Barco barco [BARCOS_MODO_NORMAL];
     int barcos_vivos;              //  comienza en 5, contador. barcos aun en juego.
-    int hits;                     //( impactos acertados; ranking)
     int impacto_agua_consecutivo;   // para que haya un registro independiente entre los jugadores
 } Jugador;
 

@@ -9,6 +9,7 @@
 #define BATALLA_NAVAL_RANKING_H
 
 #include <stdio.h>
+#include "config.h"
 
 #define RANKING_NOMBRE_MAX 32        /* Incluye el '\0'. */
 #define RANKING_MAX_JUGADORES 100
@@ -24,7 +25,7 @@
 #define RANKING_ERROR_FORMATO 5
 
 typedef struct {
-    char nombre[RANKING_NOMBRE_MAX]; /**< ASCII terminado en '\0'. */
+    char nombre[MAX_NOMBRE_DE_USUARIO]; /**< ASCII terminado en '\0'. */
     int victorias;                   /**< Partidas ganadas. */
 } RankingEntrada;
 

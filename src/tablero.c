@@ -12,31 +12,6 @@ void inicializar_tablero (char tablero[FIL][COL], char tablero_disparos[FIL][COL
 }
 
 
-
-//  Verificar que las coordenadas estén dentro del rango y que de acuerdo al tamaño del barco, el mismo pueda ingresar de forma entera.
-/*int validar_rango (Barco barco) {   
-
-    int ancho, alto;
-
-        // analizar la orientacion, para corroborar que el barco entre completo
-    if (barco.orientacion==horizontal) {
-        alto=1;    // barco horizontal, ocupa una fila
-        ancho=barco.tamanio;
-    } else if (barco.orientacion==vertical) {
-        ancho=1;        // barco vertical, ocupa una columna
-        alto=barco.tamanio;
-    }
-         // Verificar que las coordenadas sean válidas
-   // if (barco.fila < 0 || barco.fila >= FIL || barco.columna < 0 || barco.columna >= COL) { 
-    //    return 0;
-    //}
-
-
-    return 1;
-}*/
-
-
-
 // determinar si el barco entra en el tablero
 int libre(Barco barco, char tablero[FIL][COL]) {
     int alto;
