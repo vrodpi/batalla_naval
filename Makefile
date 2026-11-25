@@ -2,9 +2,9 @@ CC = gcc
 CFLAGS = -std=c11 -Wall -Wextra
 OBJS = obj/main.o obj/game.o obj/tablero.o obj/ui_cli.o obj/ranking.o obj/ai.o
 
-bin/demo: $(OBJS)
+bin/batalla_naval.exe: $(OBJS)
 	mkdir -p bin
-	$(CC) $(CFLAGS) $(OBJS) -o bin/demo
+	$(CC) $(CFLAGS) $(OBJS) -o bin/batalla_naval.exe
 
 obj/main.o: src/main.c include/game.h include/tablero.h include/ui_cli.h include/ranking.h include/ai.h include/config.h
 	mkdir -p obj
