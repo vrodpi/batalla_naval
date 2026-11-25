@@ -556,8 +556,6 @@ void ui_mostrar_tableros(const Jugador jugador, const int turno, const int tipo_
     }
 
     printf("\n");
-
-    imprimir_linea();
 }
 
 void ui_mostrar_pantalla_cambio_de_turno(const Jugador jugador, const int turno){
