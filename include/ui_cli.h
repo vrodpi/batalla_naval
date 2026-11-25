@@ -5,23 +5,34 @@
 #include "ranking.h"
 #include "config.h"
 
-enum UI_Menu_principal {
+typedef enum {
     UI_MENU_OPCION_PVP = 1,
     UI_MENU_OPCION_PVIA = 2,
     UI_MENU_MOSTRAR_RANKING = 3,
     UI_MENU_MOSTRAR_REGLAMENTO = 4,
     UI_MENU_SALIR = 0
-};
+} UI_Menu_principal;
 
-void imprimir_linea(void);
+typedef enum {
+    UI_RANKING_COMPLETO = 1,
+    UI_RANKING_REGISTRO = 2,
+    UI_RANKING_SALIR = 0
+} UI_Menu_ranking;
 
-void esperar_usuario(void);
-int pedir_opcion_al_usuario(char texto[]);
+typedef enum {
+    UI_MENSAJE_FLOTA,
+    UI_MENSAJE_DISPARO
+} UI_Mensajes_Error_IA;
+
+
+int pedir_opcion_al_usuario(const char *texto, int *opcion);
 
 // pide el nombre del jugador 1, le da la bienvenida y muestra el reglamento
 void ui_mostrar_presentacion_y_reglamento(char jugador[], char ruta_al_archivo[]);
 void pedir_nombre_jugador(char jugador[], const int numero);
 void ui_mostrar_ranking(const Ranking ranking);
+void ui_mensaje_disparo_ia(const char *nombre, const int fila, const int columna);
+void ui_mensaje_error_ia(UI_Mensajes_Error_IA mensaje);
 
 // menu principal del juego, permite elegir la partida, dificultad, ver el ránking y el reglamento
 // devuelve 1 si se eligió un modo de juego válido y 0 en caso contrario
