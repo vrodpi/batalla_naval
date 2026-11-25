@@ -1,12 +1,15 @@
 #include "../include/config.h"
 #include "../include/ui_cli.h"
-#include "../include/ranking.h"
 #include "../include/ai.h"
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-
+/*
+ *  PENDIENTES:
+        - Error al ingresar fila alfanumérica
+        - Arrepentirse del disparo?
+        - Salir de la partida
+*/
 void partida_pvp(Partida *partida);
 void partida_pvia(Partida *partida);
 
@@ -31,7 +34,7 @@ int main(void){
         
         mostrar_menu_principal();
 
-        opcion_menu = pedir_opcion_al_usuario("Ingrese una opción: ");
+        pedir_opcion_al_usuario("Ingrese una opción: ", &opcion_menu);
 
         switch (opcion_menu){
             case UI_MENU_OPCION_PVP:
@@ -94,7 +97,6 @@ int main(void){
             default:
                 
                 printf("Opción inválida.\n");
-                esperar_usuario();
                 break;
         }
     } while (opcion_menu != 0);
@@ -105,7 +107,7 @@ int main(void){
     return 0;
 }
 
-void colocar_barcos(Jugador *jugador, int tipo_de_partida){
+static void colocar_barcos(Jugador *jugador, int tipo_de_partida){
     
     int indice = BARCOS_MODO_NORMAL - 1;
 
@@ -123,21 +125,16 @@ void colocar_barcos(Jugador *jugador, int tipo_de_partida){
             indice--;
         }
 
-        // muestra un mensaje de acuerdo a la validacion
-        ui_confirmacion_barco_colocado(validacion);
-        
         // actualiza los tableros
         ui_mostrar_tableros(*jugador, 0, tipo_de_partida);
-    }
-
-    // le da tiempo al jugador a ver su tablero después de poner el último barco
-    if (indice == -1){
-        esperar_usuario();
+        
+        // muestra un mensaje de acuerdo a la validacion
+        ui_confirmacion_barco_colocado(validacion);
     }
 }
 
 // Ejecuta el turno de los jugadores
-void ejecutar_turno_del_jugador(Partida *partida, int tipo_de_partida){
+static void ejecutar_turno_del_jugador(Partida *partida, int tipo_de_partida){
     
     Jugador *atacante, *defensor;
 
@@ -242,8 +239,6 @@ static int ejecutar_turno_ia(Partida *partida, EstadoIA *estado, int tipo_de_par
             return 0;
         }
 
-        printf("La IA dispara en %c%d\n", 'A' + columna, fila + 1);
-
         disparo = recibir_disparo(fila, columna,
                                   partida->jugador1.tableros.tablero);
 
@@ -254,6 +249,9 @@ static int ejecutar_turno_ia(Partida *partida, EstadoIA *estado, int tipo_de_par
                                disparo);
 
         ui_mostrar_tableros(partida->jugador1, partida->cantidad_turnos, tipo_de_partida);
+        
+        // Resultado del ataque
+        ui_mensaje_disparo_ia(partida->jugador2.nombre, fila, columna);
         resultado_del_ataque(disparo);
 
         // Un disparo repetido no consume el turno: se vuelve a elegir.
@@ -276,11 +274,10 @@ static void jugar_pvia(Partida *partida){
 
     ai_inicializar(&estado);
 
-    strcpy(partida->jugador2.nombre, "IA");
+    strcpy(partida->jugador2.nombre, "SKYNET");
 
     if (!ai_colocar_flota(&partida->jugador2)) {
-        printf("No se pudo colocar la flota de la IA.\n");
-        esperar_usuario();
+        ui_mensaje_error_ia(UI_MENSAJE_FLOTA);
         return;
     }
 
@@ -298,8 +295,7 @@ static void jugar_pvia(Partida *partida){
         } else if (partida->turno == TURNO_PJ2) {
 
             if (!ejecutar_turno_ia(partida, &estado, tipo_de_partida)) {
-                printf("La IA no pudo elegir un disparo.\n");
-                esperar_usuario();
+                ui_mensaje_error_ia(UI_MENSAJE_DISPARO);
                 return;
             }
         }
