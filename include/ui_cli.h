@@ -30,6 +30,8 @@ typedef enum {
     UI_MENSAJE_DISPARO
 } UI_Mensajes_Error_IA;
 
+//presentación, nombre del jugador
+void ui_nombre_juego(void);
 
 int ui_pedir_opcion_al_usuario(const char *texto, int *opcion);
 

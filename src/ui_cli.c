@@ -223,12 +223,26 @@ void ui_mostrar_reglamento(const char *ruta_al_archivo){
 
     fclose(archivo);
 
+    printf("\n");
+
     esperar_usuario();
+}
+
+void ui_nombre_juego(){
+    imprimir_linea();
+    imprimir_linea();
+    imprimir_centrado("BATALLA NAVAL", ANCHO_CONSOLA);
+    printf("\n");
+    imprimir_centrado("DESTRUYE A TU OPONENTE", ANCHO_CONSOLA);
+    printf("\n");
+    imprimir_linea();
 }
 
 // pantalla inicial del juego, pide el nombre del Jugador y muestra el reglamento del juego
 void ui_mostrar_presentacion_y_reglamento(char jugador[], char ruta_al_archivo[]){
     system("clear");
+
+    ui_nombre_juego();
 
     ui_pedir_nombre_jugador(jugador, 1);
 
@@ -240,6 +254,7 @@ void ui_mostrar_presentacion_y_reglamento(char jugador[], char ruta_al_archivo[]
 
     imprimir_linea();
     ui_mostrar_reglamento(ruta_al_archivo);
+
 }
 
 void ui_mostrar_menu_principal(void){
