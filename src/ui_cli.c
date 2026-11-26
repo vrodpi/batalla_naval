@@ -221,6 +221,8 @@ void ui_mostrar_reglamento(const char *ruta_al_archivo){
 
     fclose(archivo);
 
+    printf("\n");
+
     esperar_usuario();
 }
 
@@ -250,6 +252,7 @@ void ui_mostrar_presentacion_y_reglamento(char jugador[], char ruta_al_archivo[]
 
     imprimir_linea();
     ui_mostrar_reglamento(ruta_al_archivo);
+
 }
 
 void ui_mostrar_menu_principal(void){
