@@ -1,1 +1,41 @@
-Archivo de prueba para el reglamento
+REGLAMENTO BATALLA NAVAL:
+
+Juego para 2 Jugadores, en caso de una batalla entre Personas o Para 1 jugador si la partida es contra la Máquina.
+Cada jugador deberá ingresar su Flota indicando Fila, Columna y Orientación. 
+
+Tableros 
+* Cada jugador contará con dos tableros de Tamaño 10 x 10.
+* Tablero de Barcos: Mostrará la Flota del Jugador de Turno y las actualizaciones correspondientes a Impactos recibidos. 
+* Tablero de Disparos: Registra los ataques al enemigo. Se actualiza según los resultados de Impacto.
+
+Sobre el Ingreso de Barcos
+* Cantidad de Barcos: 5. 
+    > Portaviones: 5 casillas 
+    > Buque: 4 casillas
+    > Submarino: 3 casillas
+    > Velero: 2 casillas
+    > Lancha: 1 casilla
+* No se permite superposición de Barcos.
+* Debe conservar una casilla de distancia entre barcos  (Incluido en su diagonal)
+
+Sobre Coordenadas de Ataque:
+* Un disparo por Turno. 
+* Coordenada de Ataque: Indicar Fila y Columna
+
+Modos de Juego:
+* Jugador vs Jugador: Entre cada turno, habrá una cortina para evitar espionaje. Un turno por Jugador. 
+* Jugador vs IA: Durante el Turno de la Máquina, en pantalla solo se muestra El tablero del Jugador Humano y un Mensaje del lugar en donde disparó y su resultado. Habrá una cortina para indicar cambio de Turno. 
+
+Dificultad:
+* Normal: 
+Modo Clásico del Juego Batalla Naval. 
+* Tormenta:
+Al activarse, un rayo impactará sobre alguna posición exacta de un barco. No lo hundirá, solo impactará sobre una casilla, excepto que se trate de la Lancha (Tamaño 1). 
+¿Cuándo se Activa?
+    > Por turnos: Ocurre cada 5 turnos. 
+    > Por Impacto a Agua: Cuando un jugador en sus 3 turnos consecutivos impacta a Agua. 
+
+Ganador:
+El primero en derribar la Flota Enemiga. 
+
+Acceda al Ranking, a traves del Menú para ver las posiciones y puntajes.
