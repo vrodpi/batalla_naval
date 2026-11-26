@@ -67,6 +67,8 @@ static void imprimir_centrado(const char *texto, int ancho){
 
 void ui_confirmacion_barco_colocado(int caso){
     
+    imprimir_linea();
+
     switch (caso){
         case 1:
             printf("Barco ingresado correctamente\n");
@@ -435,6 +437,7 @@ static void solicitar_orientacion(Orientacion *orientacion){
 
 void ui_pedir_posicion_del_barco(Jugador *jugador, const int indice){
     
+    imprimir_linea();
     printf("Barco a colocar: %s\n", nombres_barcos[indice]);
 
     solicitar_entrada_de_fila(&jugador->barco[indice].fila);
@@ -609,20 +612,22 @@ void ui_mostrar_pantalla_de_victoria(Partida *partida){
 }
 
 void ui_resultado_del_ataque(const Rdo_Disparo disparo){
-    switch (disparo){
 
-    case disp_agua:
-        printf("AGUA\n");
-        break;
-    case disp_impacto:
-        printf("IMPACTO\n");
-        break;
-    case disp_repetido:
-        printf("DISPARO REPETIDO: VUELVA A INTENTARLO\n");
-        break;
+    imprimir_linea();
+
+    switch (disparo){
+        case disp_agua:
+            printf("AGUA\n");
+            break;
+        case disp_impacto:
+            printf("IMPACTO\n");
+            break;
+        case disp_repetido:
+            printf("DISPARO REPETIDO: VUELVA A INTENTARLO\n");
+            break;
     
-    default:
-        break;
+        default:
+            break;
     }
 
     esperar_usuario();
@@ -648,6 +653,7 @@ void ui_mostrar_mensaje_tormenta(Jugador *defensor, int Fil_afectada, int Col_af
 
 // Mensajes IA
 void ui_mensaje_disparo_ia(const char *nombre, const int fila, const int columna){
+    imprimir_linea();
     printf("%s Dispara a las Coordenadas:\n", nombre);
     printf("    Fila %d\n", fila + 1);
     printf("    Columna %c\n", columna + 'A');
@@ -655,6 +661,7 @@ void ui_mensaje_disparo_ia(const char *nombre, const int fila, const int columna
 }
 
 void ui_mensaje_error_ia(UI_Mensajes_Error_IA mensaje){
+    imprimir_linea();
     if (mensaje == UI_MENSAJE_FLOTA){
         printf("No se pudo colocar la flota de la IA.\n");
     }
