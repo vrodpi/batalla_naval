@@ -19,16 +19,16 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
 
 ## 1) INTEGRANTES DEL PROYECTO:
 
-| NOMBRES Y APELLIDOS                       | HS TRABAJADAS  |
-|-----------------------------------------  |----------------|
-|Vicente Rodriguez Pi                       |-------X--------|
-|                                           |                |
-|Teresa de los Angeles Carabajal Anderson   |-------X--------|
-|                                           |                |
-|Gianfranco Di Pisa Echagüe                 |-------X--------|
-|                                           |                |
-|Huenú Rosalba Beatriz Margalef Quijada     |-------X--------|
-|                                           |                |
+| NOMBRES Y APELLIDOS                       | HS TRABAJADAS             |
+|-----------------------------------------  |----------------           |
+|Vicente Rodriguez Pi                       |main,ui_cli                |
+|                                           |                           |
+|Teresa de los Angeles Carabajal Anderson   |game, tablero,documentación|
+|                                           |                           |
+|Gianfranco Di Pisa Echagüe                 |ia, ranking                |
+|                                           |                           |
+|Huenú Rosalba Beatriz Margalef Quijada     |game, tablero              |
+|                                           |                           |
 
 <br> 
 
