@@ -34,14 +34,14 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
 
 ## 2) REGLAMENTO y DESARROLLO DEL JUEGO. 
 #### a) Tableros: 
-*Tamaño 10x10. 100 Casillas*. <br> 
-Tablero de Barcos (En Adelante solo "Tablero"): Se registran los barcos del Jugador de Turno, y se actualiza según los Disparos DEL enemigo. <br> 
-Tablero de Disparos: Para llevar un registro de los Disparos AL enemigo. <br> 
-Al inicio de cada Partida, ambos Tableros solo contienen Agua. <br> 
-*Para el ingreso de la Flota y para dar las Coordenadas de ataque, solo se Permite:
-Ingreso Numeral de la Fila (1 al 10). <br> 
-Ingreso Alfabético de la Columna (A a J). <br> 
-*La *FLOTA* de cada Jugador consiste en 5 barcos, que se diferenciarán de acuerdo a su nombre/tamaño respectivamente. <br> 
+* Tamaño 10x10. 100 Casillas*. <br> 
+* Tablero de Barcos (En Adelante solo "Tablero"): Se registran los barcos del Jugador de Turno, y se actualiza según los Disparos DEL enemigo. <br> 
+* Tablero de Disparos: Para llevar un registro de los Disparos AL enemigo. <br> 
+* Al inicio de cada Partida, ambos Tableros solo contienen Agua. <br> 
+* Para el ingreso de la Flota y para dar las Coordenadas de ataque, solo se Permite:
+    - Ingreso Numeral de la Fila (1 al 10). <br> 
+    - Ingreso Alfabético de la Columna (A a J). <br> 
+* La *FLOTA* de cada Jugador consiste en 5 barcos, que se diferenciarán de acuerdo a su nombre/tamaño respectivamente. <br> 
 
 **Tipo y tamaño del barco**
 |Cantidad|**FLOTA**         | **TAMAÑO**  | 
@@ -66,11 +66,11 @@ Ingreso Alfabético de la Columna (A a J). <br>
 
   
 #### b) Flota e Ingreso de Barcos:      
-*No se permite que los barcos se superpongan.  <br> 
-*No se permite que los barcos se encuentren ubicados en posiciones contiguas, ni en diagonal. (Al menos una casilla de distancia entre ellos).<br> 
-*No se permite el ingreso de ubicación fuera de rango. <br>
-*No se permite el ingreso de ubicación repetida. <br> 
-*No se permite el ingreso del barco, si por su tamaño (cantidad de casillas que ocupe), no entra completo en el Tablero. <br> 
+* No se permite que los barcos se superpongan.  <br> 
+* No se permite que los barcos se encuentren ubicados en posiciones contiguas, ni en diagonal. (Al menos una casilla de distancia entre ellos).<br> 
+* No se permite el ingreso de ubicación fuera de rango. <br>
+* No se permite el ingreso de ubicación repetida. <br> 
+* No se permite el ingreso del barco, si por su tamaño (cantidad de casillas que ocupe), no entra completo en el Tablero. <br> 
 <br>
 
 **Ingreso de Flota**
@@ -78,11 +78,11 @@ Ingreso Alfabético de la Columna (A a J). <br>
 <br>
 
 #### c) Disparos. Ataque a Flota Oponente.
-*El Atacante es el jugador de Turno. Solo tiene permitido hacer un (1) único disparo por turno. <br> 
-*El Disparo consiste en elegir (y escribir) una Fila y Una Columna.
-*Si el Disparo alcanzó un Barco, se confirma por Pantalla y se actualizan los tableros. En el Tablero Impacto a Barco es X . <br> 
-*Si el Disparo fue a agua, entonces en pantalla "AGUA". En el tablero Impacto a Agua se representa con un 0. <br> 
-*No se permite el ingreso de ubicación repetida. De ser el caso, se solicitan nuevas coordenadas.<br> 
+* El Atacante es el jugador de Turno. Solo tiene permitido hacer un (1) único disparo por turno. <br> 
+* El Disparo consiste en elegir (y escribir) una Fila y Una Columna.
+* Si el Disparo alcanzó un Barco, se confirma por Pantalla y se actualizan los tableros. En el Tablero Impacto a Barco es X . <br> 
+* Si el Disparo fue a agua, entonces en pantalla "AGUA". En el tablero Impacto a Agua se representa con un 0. <br> 
+* No se permite el ingreso de ubicación repetida. De ser el caso, se solicitan nuevas coordenadas.<br> 
 
 **Disparos**
 ![Disparos](<img/image-3 Disparos.png>) <br> 
@@ -121,8 +121,8 @@ Juego Clásico, sea el modo elegido (Entre Jugadores o Contra IA). No difiere en
 
 1) El jugador de turno dispara a flota enemiga.  <br>
 2) Sin importar si acertó o no, con Tormenta el adversario tendrá su flota en peligro debido a que por coordenada aleatoria elegido por el sistema, un rayo impactará sobre un barco activo (una de sus casillas).  <br> 
-*No permite el hundimiento total del barco, (excepto que se trate de una lancha, que por su tamaño solo ocupa una casilla).
-*El impacto por Tormenta se verá en el tablero con el simbolo "/". <br> 
+* No permite el hundimiento total del barco, (excepto que se trate de una lancha, que por su tamaño solo ocupa una casilla).
+* El impacto por Tormenta se verá en el tablero con el simbolo "/". <br> 
 
 #### i) TORMENTA POR TURNOS:<br>
 Se activa cada 3 turnos. <br>
@@ -148,19 +148,22 @@ Turno 3: Atacante dispara a Barco (impacto_agua_consecutivo= 0) -> se reinicia e
 <br>
 
 ## 4) JUGUEMOS UNA PARTIDA / FLUJO GENERAL                           
-1. Presentación.<br>
-2. Reglamento.<br>
-3. Solicitud del nombre del primer jugador.<br>
-4. Menú Modo: para elegir Modo "jugador contra jugador" o "jugador contra máquina". <br>
+1. Solicitud del nombre del primer jugador.<br>
+2. Saludo
+3. Reglamento.<br>
+4. Menú:
+    * Para elegir Modo "jugador contra Jugador" o "Jugador contra Máquina". <br>
+    * Para mostrar el Ranking y el Reglamento.
+    * Opción "Salir del Juego".
 5. Menú Dificultad: "Partida Normal" o "Tormenta".<br>
 6. En jugador contra jugador, solicitud del nombre del segundo jugador.<br>
-7. Cada jugador coloca sus barcos manualmente, en horizontal o vertical.<br>
+7. En Cualquier Modo/Dificultad elegida: Cada jugador deberá ingresar sus barcos por teclado, fila, columna, y especificar su orientación (horizontal o vertical).<br>
 8. Desarrollo de la partida. <br>
-En jugador contra jugador, una pantalla de espera separa los turnos, para que el siguiente jugador no vea el tablero del adversario.<br>
-En jugador contra la IA, el desarrollo se ejecuta sin intervención de una cortina.<br>
-9. Pantalla de victoria.<br>
-10. Actualización y presentación del ranking.<br>
-11. Opción de volver al menú o salir.<br>
+    * Cada Jugador tendrá solo un disparo por Turno. Deberá ingresar coordenada de ataque (Fila y Columna), el tipo de impacto se indicará mediante Mensaje de Aviso y se verá reflejado en el Tablero de Disparos del Atacante y en el Tablero de Barcos del Adversario. 
+    * En jugador contra jugador, una pantalla de espera separa los turnos, para que el siguiente jugador no vea el tablero del adversario.<br>
+    En jugador contra la IA: Durante el Turno de la Máquina, en pantalla muestra los tableros del Jugador Humano y un Mensaje del lugar en donde disparó y su resultado. Habrá una cortina para indicar cambio de Turno.<br>
+9. Mensaje de victoria, cuando la flota enemiga haya sido destruida.<br>
+10. Menú (Para indicar si volver a Jugar o salir).<br>
 
 <br>
 
@@ -202,7 +205,7 @@ BATALLA
 │   └── batalla_naval.exe
 |
 ├── data
-│   └── ranking.dat
+│   |__ ranking.dat
 |
 ├── files
 │   └── Reglamento.txt
@@ -239,6 +242,9 @@ BATALLA
 │   ├── tablero.c
 │   |__ ui_cli.c
 |   |__ai.c
+|
+|__tests
+|  |__test_ai.c
 |
 |__MAkefile
 |
@@ -290,145 +296,4 @@ make clean
 make
 ./bin/batalla_naval.exe
 ```
-<br>
 
-
-______________________________________________________________________________
-## ELIMINAR ESTO ANTES DE ENTREGAR EL README ##
-
-
-
-/*  TENER EN CUENTA: CONSIGNA DEL TRABAJO. BORRAR DDEL README, AL COMPLETARLO
-1) El programa pedirá el nombre del jugador, lo saludará y presentará las reglas o instrucciones antes de
-jugar.
-
-2) El programa debe permitir completar una partida. Al finalizar, mostrará el ranking o un resumen de
-resultados/puntajes, según corresponda al juego elegido, y permanecerá en esa pantalla hasta que el
-usuario presione una tecla; luego finalizará.  
-Como alternativa optativa se admite una interfaz gráfica; se sugiere SDL3, biblioteca para C. 
-
-3) Se entregará el código fuente .c y .h, los recursos indispensables y las instrucciones para compilar y
-ejecutar el programa. El ejecutable solo no constituye una entrega suficiente.
-
-4) El archivo README.md será el único informe obligatorio. De manera breve, incluirá:
-    a. Integrantes y aportes/horas aproximadas por cada uno.
-    b. Reglas y alcance del juego.
-    c. Instrucciones para compilar, ejecutar y controlar el juego
-    d. Organización general de datos y funciones
-    e. Si hay interfaz gráfica, también indicará qué funciones conectan la interfaz con la lógica y qué
-    parte gráfica se generó mediante IA.
-● El README.md podrá incluir opcionalmente capturas de pantalla, imágenes, tablas o diagramas para
-facilitar la explicación. Se sugiere Mermaid para elaborar diagramas sencillos (por ejemplo, el recorrido
-de una jugada o la relación entre las partes del programa) directamente en el README.md, donde
-GitHub puede visualizarlos. Los archivos gráficos utilizados deberán formar parte del repositorio y
-estar enlazados desde el README.md.
-
-5) EXPOSICIÓN ORAL: 
-    GRUPO: 8 MINUTOS.  
-    Mostrar una partida o secuencia representativa y explicar, de forma breve, cómo se organizaron los datos y las funciones.
-
-    INDIVIDUAL: 3- 4 MINUTOS
-    Responder preguntas sobre localizar una función, seguir manualmente una jugada, identificar un caso
-    límite o proponer o realizar un cambio pequeño y acotado. Se evaluará la comprensión del proyecto
-    desarrollado.
-
-6) Preguntas orientativas:
-
-    ● ¿Qué datos representan el estado actual de la partida? Señalalos en el código y explicá cuándo
-    cambian.
-
-    ● ¿Por dónde empieza el programa? Mostrá el recorrido desde el menú/inicio hasta una jugada
-    concreta.
-
-    ● ¿Qué función decide si una jugada es válida? ¿Qué devuelve o qué cambia cuando es inválida?
-
-    ● ¿Qué funciones elegiste separar y por qué? ¿Qué problema habría si las unieras en una sola?
-
-    ● ¿Qué parámetros recibe una función X y qué resultado produce? ¿Por qué?
-
-    ● ¿Cómo se determina el fin de la partida y el resultado? ¿Dónde se calcula el ranking?
-
-    ● ¿Qué ocurre si el jugador ingresa una opción fuera de rango, repite una jugada o no quedan
-    movimientos?
-
-    ● ¿Qué parte del programa cambiarías para modificar una regla sin alterar el resto?
-
-    ● Si aparece un resultado incorrecto, ¿cómo localizarías la función responsable y cómo lo probarías?
-
-    ● ¿Qué decidió o programó cada integrante? Elegí una parte hecha por otra persona y explicá cómo se
-    comunica con la tuya.
-
-    ● Si utilizaron una interfaz gráfica generada con IA: ¿qué le pidieron, qué archivos o funciones integraron
-    y cómo comprobaron que la interfaz usa correctamente la lógica? Si hicieron todo en consola: ¿cómo
-    separaron la presentación de las reglas?
-
-    ● Si hay gráficos: ¿qué acciones manda la interfaz a la lógica, qué datos recibe y qué código habría que
-    tocar para cambiar solamente el aspecto visual?
-
-    ● Si hay gráficos: ¿qué pasaría si mañana reemplazaran raylib o SDL3 por otra forma de mostrar el
-    juego? ¿Qué funciones deberían permanecer sin cambios?
-
-
-
-
-
-Crear un Diagrama de Flujo. MERMAID.
-Dirección	Significado
-TD o TB	    De arriba a abajo
-BT	        De abajo a arriba
-LR	        De izquierda a derecha
-RL	        De derecha a izquierda
-
-```mermaid
-graph LR
-    A --> B --> C      // para hacer una lista enlazada
-```
-```mermaid
-
-    A[Rectángulo]           // para las formas de los nodos.
-    B(Redondeado)
-    C([Estadio])
-    D[[Subrutina]]
-    E{Rombo / Decisión}
-    F{{Hexágono}}
-    G>Bandera]
-    H[(Base de datos)]
-```
-```mermaid
-    flowchart LR
-    A --> B
-    A --- C
-    A -.-> D
-    A ==> E
-    A -->|texto| F
-    A -- texto --> G
-```
-
-FORMA DE LOS NODOS
-A[[texto]]	Subrutina
-A{texto}	Rombo (decisión)
-A{{texto}}	Hexágono
-A>texto]	Bandera
-A[(texto)]	Base de datos (cilindro)
-A((texto))	Círculo
-A[/texto/]	Paralelogramo
-A[\texto\]	Paralelogramo invertido
-A[/texto\]	Trapecio
-A[\texto/]	Trapecio invertido
-
-
-TIPOS DE CONEXIÓN
-A --> B	Flecha sólida
-A --- B	Línea sin flecha
-A -.-> B	Flecha punteada
-A ==> B	Flecha gruesa
-A -->\|texto\| B	Flecha con etiqueta
-A -- texto --> B	Flecha con etiqueta (alternativa)
-A ~~~ B	Enlace invisible (para controlar el layout)
-
-// IMAGEN DE PRUEBA BORRAR
-<!-- COMENTARIOS QUE NO SE VERAN AL EJECUTARSE EL README -->
-para una imagen, copiar y pegar. 
-
-
- lleer los include de arriba de cada archiovo para conectar los main.c y eso. 
