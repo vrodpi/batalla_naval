@@ -1,5 +1,3 @@
-REGLAMENTO BATALLA NAVAL:
-
 Juego para 2 Jugadores, en caso de una batalla entre Personas o Para 1 jugador si la partida es contra la Máquina.
 Cada jugador deberá ingresar su Flota indicando Fila, Columna y Orientación. 
 
@@ -24,7 +22,7 @@ Sobre Coordenadas de Ataque:
 
 Modos de Juego:
 * Jugador vs Jugador: Entre cada turno, habrá una cortina para evitar espionaje. Un turno por Jugador. 
-* Jugador vs IA: Durante el Turno de la Máquina, en pantalla solo se muestra El tablero del Jugador Humano y un Mensaje del lugar en donde disparó y su resultado. Habrá una cortina para indicar cambio de Turno. 
+* Jugador vs IA: Durante el Turno de la Máquina, en pantalla solo se muestra El tablero del Jugador y un Mensaje del lugar en donde disparó y su resultado. Habrá una cortina para indicar cambio de Turno. 
 
 Dificultad:
 * Normal: 

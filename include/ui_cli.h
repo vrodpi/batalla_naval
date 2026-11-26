@@ -30,38 +30,25 @@ typedef enum {
     UI_MENSAJE_DISPARO
 } UI_Mensajes_Error_IA;
 
-//presentación, nombre del jugador
-void ui_nombre_juego(void);
-
+// Prototipos
 int ui_pedir_opcion_al_usuario(const char *texto, int *opcion);
-
-// pide el nombre del jugador 1, le da la bienvenida y muestra el reglamento
-void ui_mostrar_presentacion_y_reglamento(char jugador[], char ruta_al_archivo[]);
 void ui_pedir_nombre_jugador(char jugador[], const int numero);
-void ui_mostrar_ranking(const Ranking ranking);
-void ui_mensaje_disparo_ia(const char *nombre, const int fila, const int columna);
-void ui_mensaje_error_ia(UI_Mensajes_Error_IA mensaje);
-void ui_mensajes_menu(UI_Mensaje_menu opcion);
-
-// menu principal del juego, permite elegir la partida, dificultad, ver el ránking y el reglamento
-// devuelve 1 si se eligió un modo de juego válido y 0 en caso contrario
-void ui_mostrar_menu_principal(void);
-int ui_elegir_dificultad(Dificultad *dificultad);
 void ui_mostrar_reglamento(const char *ruta_al_archivo);
-
-// muestra los tableros de barcos y disparos del jugador indicado
-void ui_mostrar_tableros(const Jugador jugador, const int turno, const int tipo_de_partida);
-
-// mensaje de error
-void ui_confirmacion_barco_colocado(int caso);
-
-// muestra el tablero y solicita la colocación del barco indicado con tamanio
-void ui_pedir_posicion_del_barco(Jugador *jugador, int tamanio);
-void ui_mostrar_pantalla_cambio_de_turno(const Jugador jugador, const int turno);
-
-void ui_mostrar_pantalla_de_victoria(Partida *partida);
+void ui_nombre_juego(void);
+void ui_mostrar_presentacion_y_reglamento(char jugador[], const char ruta_al_archivo[]);
+void ui_mostrar_menu_principal(void);
+void ui_mensajes_menu(const UI_Mensaje_menu opcion);
+int ui_elegir_dificultad(Dificultad *dificultad);
+void ui_pedir_posicion_del_barco(Jugador *jugador, const int tamanio);
+void ui_confirmacion_barco_colocado(const int caso);
 void ui_pedir_coordenadas_de_ataque(int *fila, int *columna);
-void ui_resultado_del_ataque(Rdo_Disparo disparo);
-void ui_mostrar_mensaje_tormenta (Jugador *defensor, int Fil_afectada, int Col_afectada);
+void ui_resultado_del_ataque(const Rdo_Disparo disparo);
+void ui_mostrar_tableros(const Jugador jugador, const int turno, const int tipo_de_partida);
+void ui_mostrar_pantalla_cambio_de_turno(const Jugador jugador, const int turno);
+void ui_mostrar_pantalla_de_victoria(Partida *partida);
+void ui_mostrar_mensaje_tormenta(Jugador *defensor, const int Fil_afectada, const int Col_afectada);
+void ui_mensaje_disparo_ia(const char *nombre, const int fila, const int columna);
+void ui_mensaje_error_ia(const UI_Mensajes_Error_IA mensaje);
+void ui_mostrar_ranking(const Ranking ranking);
 
 #endif
