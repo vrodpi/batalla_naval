@@ -1,21 +1,21 @@
-#ifndef GAME_H
-#define GAME_H
+#ifndef GAME_H   // si este archivo no esta definido
+#define GAME_H   // se define con esta macro y se procesa el código // sino se saltea para evitar duplicados.
 
 #include "config.h"
-#include "tablero.h"
+#include "tablero.h"   // incluir archivo de cabecera
 
 typedef enum { 
-    PVP,    // Entre Personas // 0
-    PVIA    // Persona vs IA (normal) // 1
+    PVP,         // Partida entre Personas 
+    PVIA        // Persona vs IA (normal)
 } Modo_de_juego;
 
 typedef enum {
-    NORMAL,     //0
-    TORMENTA   //1
+    NORMAL,     
+    TORMENTA   
 } Dificultad;
 
 typedef enum {
-    TURNO_PJ1,        
+    TURNO_PJ1,   // turno del jugador 1
     TURNO_PJ2      
 } Turno;
 
@@ -30,9 +30,9 @@ typedef struct  {
 typedef struct {
     Jugador jugador1;
     Jugador jugador2;
-    Turno turno;
-    int cantidad_turnos;
-    Modo_de_juego modo_de_juego;
+    Turno turno;            // Jugador de Turno.
+    int cantidad_turnos;   // n° de turno.
+    Modo_de_juego modo_de_juego;        // Entre Personas o Vs IA
     Dificultad dificultad;
     int ganador;
 } Partida;
@@ -45,4 +45,4 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
 Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo, char tablero[FIL][COL]);
 int modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada); 
 
-#endif
+#endif  // fin de la macro.

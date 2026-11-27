@@ -1,11 +1,12 @@
 #include "../include/game.h"
 #include <stdlib.h>
 
+
 void inicializar_partida(Partida *partida) {
       
-    partida->turno = TURNO_PJ1;  
+    partida->turno = TURNO_PJ1;  // jugador de Turno Jugador1 
     partida->cantidad_turnos = 0;
-    partida->ganador = 0;
+    partida->ganador = 0;       // al iniciar la partida, no hay ganadores
 
     // Inicializar los barcos vivos
     partida->jugador1.barcos_vivos = BARCOS_MODO_NORMAL;        // cada jugador empieza con 5 barcos
@@ -27,9 +28,13 @@ void inicializar_partida(Partida *partida) {
 
    // inicializar el estado de los barcos
     for(int i = 0; i < BARCOS_MODO_NORMAL; i++){
-        partida->jugador1.barco[i].hundido = 0;
+
+        // al iniciar la partida ningún barco fue hundido
+        partida->jugador1.barco[i].hundido = 0;     
         partida->jugador2.barco[i].hundido = 0;
-        partida->jugador1.barco[i].tamanio = i + 1;
+
+        // indicar el tamaño de cada barco
+        partida->jugador1.barco[i].tamanio = i + 1;      // Barco[0] --> Lancha ocupa 1 casilla
         partida->jugador2.barco[i].tamanio = i + 1;
     }
 
@@ -64,33 +69,34 @@ int comprobar_partida_terminada(Partida *partida){
 void cambiar_turno(Partida *partida){
     
     // Cambiamos el turno
-    if (partida->turno == TURNO_PJ1){     // 1
-        partida->turno = TURNO_PJ2;      // 2
+    if (partida->turno == TURNO_PJ1){     // Si el primer turno fue del jugador1, luego el turno pasa a ser del jugador2
+        partida->turno = TURNO_PJ2;      
 
     } else {
         partida->turno = TURNO_PJ1;       //1
     }
 
-    partida->cantidad_turnos++;
+    partida->cantidad_turnos++;     // el n° de turno aumenta
 }
 
-// determina donde cae el disparo
+
+// determina a que disparó
 Rdo_Disparo recibir_disparo(int fila_disparo, int columna_disparo, char tablero[FIL][COL]) {
 
-    // En caso de que haya AGUA ~
+    // Si en el casillero habia Agua ~
     if (tablero[fila_disparo][columna_disparo] == CASILLA_AGUA) {
 
         return disp_agua;
 
     } 
-    // si hay un BARCO...
+    // si habia un BARCO...
     else if (tablero[fila_disparo][columna_disparo] == CASILLA_BARCO) { 
         
         return disp_impacto; 
 
     } 
 
-    // si no fue agua, ni barco, entonces el disparo esta repetido
+    // si no fue agua, ni barco, entonces la coordenada de ataque fue repetida.
     return disp_repetido;    
 }
 
@@ -106,17 +112,17 @@ void barco_hundido(Jugador *defensor) {
             int hundido = 1;   // asumimos que el barco fue hundido (verdadero)
 
           
-            // recorrer las posiciones de los barcos (depende de su tamanio)
+            // recorrer las posiciones de los barcos (depende de su tamaño)
             for (int j = 0; j < defensor->barco[i].tamanio; j++) {
 
-                int fila = defensor->barco[i].fila; 
+                int fila = defensor->barco[i].fila;   // el barco empieza en la fila...
                 int columna = defensor->barco[i].columna;
 
-                // calcular la posición de acuerdo a la posición
+                // si es horizontal entonces desde donde empieza hasta el tamaño -1 (J va de 0 a Tamaño -1) 
                 if (defensor->barco[i].orientacion == horizontal) {
                     columna += j;
                 } else {
-                    fila += j;
+                    fila += j;      // fila= fila + j // sumar la cantidad de filas
                 }
 
                 // si hay alguna Posición sin impacto
@@ -141,7 +147,7 @@ void barco_hundido(Jugador *defensor) {
     }
 }
 
-// aplica los cambios en los tableros del jugador atacante (en el tablero de disparos)y defensor (tablero)
+// aplica los cambios en los tableros del jugador atacante (en el Tablero de Disparos)y defensor (Tablero de Barcos)
 // si juega el jugador1 (atacante) el defensor es el jugador2
 void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna, Rdo_Disparo disparo){
 
@@ -150,25 +156,25 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
         // si el disparo fue al agua
         case disp_agua:
             
-            // se actualiza el tablero de barcos del defensor
+            // se actualiza el Tablero de Barcos del defensor
             defensor->tableros.tablero[fila][columna] = CASILLA_DISP_AGUA;
             
-            // se registran sus impactos en el tablero de disparos del atacante
+            // se registran sus impactos en el Tablero de Disparos del atacante
             atacante->tableros.tablero_disparos[fila][columna] = CASILLA_DISP_AGUA;
-            atacante->impacto_agua_consecutivo++;
+            atacante->impacto_agua_consecutivo++;       // aumenta impacto a agua, válido solo para Dificultad Tormenta
            
-            return;
+            return;  // entonces la función termina y vuelve al lugar donde se llamó --> ejecutar_turno_del_jugador(partida, tipo_de_partida); y/o en modo_tormenta(partida,fila_afectada,columna_afectada
 
-        // si el disparo fue impacto
+        // si disparo impacto sobre la ubicación de algún barco
         case disp_impacto:
 
-            // se actualiza el tablero de barcos del defensor
+            // se actualiza el Tablero de Barcos del defensor
             defensor->tableros.tablero[fila][columna] = CASILLA_IMPACTO;
             
-            // y el tablero de disparos del atacante
+            // y el Tablero de Disparos del atacante
             atacante->tableros.tablero_disparos[fila][columna] = CASILLA_IMPACTO;
 
-            //Se reinicia el contador porque el impacto fue distinto a agua
+            //Se reinicia el contador porque el impacto fue distinto a agua. Válido para Dificultad Tormenta
             atacante->impacto_agua_consecutivo = 0;
 
             // se comprueba si se hundió un barco
@@ -177,10 +183,10 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
             return;
             
         case disp_tormenta:
-            // se actualiza el tablero de barcos del defensor
+            // se actualiza el Tablero de Barcos del defensor
             defensor->tableros.tablero[fila][columna] = CASILLA_TORMENTA;
             
-            // y el tablero de disparos del atacante
+            // y el Tablero de Disparos del atacante
             atacante->tableros.tablero_disparos[fila][columna] = CASILLA_TORMENTA;
 
             // se comprueba si se hundió un barco
@@ -197,8 +203,7 @@ void aplicar_disparo(Jugador *atacante, Jugador *defensor, int fila, int columna
 
 
 
-
-// Tormenta cada 5 turnos.
+// Tormenta cada 5 turnos || Por 3 disparos consecutivos a Agua
 // Devuelve 1 si se activó en el turno
 int modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
 
@@ -220,12 +225,11 @@ int modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
             defensor = &partida->jugador1;
             }
 
-
+    // Verifica que hallan pasado 5 turnos.  Multiplo de 5, por eso el %
+    // Verifica que la cantidad de impactos a agua consecutivos hechos por el atacante no sea menor a 3. 
     int tormenta_turnos = partida->cantidad_turnos % 5 == 0;
     int tormenta_agua = atacante->impacto_agua_consecutivo >= 3;
 
-    // Verifica que hallan pasado 5 turnos.  Multiplo de 5, por eso el %
-    // Verifica que la cantidad de impactos a agua consecutivos hechos por el atacante no sea menor a 3. 
 
     if(!tormenta_turnos && !tormenta_agua){       // por lo tanto, sino se cumple ninguna retorna
         return 0;
@@ -234,20 +238,22 @@ int modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
     
 
     //Arreglos temporales para guardar posiciones que aun tienen barcos activos
-    int Fil_Tormenta[FIL*COL];   // 100 casillas= 10*10
-    int Col_Tormenta[FIL*COL];
+    int Fil_Tormenta[FIL*COL];   // 100 casillas= 10*10 // int Fil_Tormenta[100]
+    int Col_Tormenta[FIL*COL];  // arreglo que guarda las columnas
 
-    int cont_barcos = 0;
+    int cont_barcos = 0;    // 0 partes de barcos encontrados
 
     //Recorre el tablero del defensor, en busca de lugares ocupados
-    // #: barco no descubierto. 
-    for (int i = 0; i < FIL; i++){        // recorre las filas
-        for (int j = 0; j < COL; j++){          // recorre las columnas
-            if (defensor->tableros.tablero[i][j] == CASILLA_BARCO){
-                Fil_Tormenta[cont_barcos] = i;
-                Col_Tormenta[cont_barcos] = j;
+    // # = barco o parte del barco aún no descubierto = casilla_barco 
+    for (int i = 0; i < FIL; i++){        // recorre todas las filas del Tablero de Barcos 
+        for (int j = 0; j < COL; j++){          // recorre todas las columnas del Tablero de Barcos
+            if (defensor->tableros.tablero[i][j] == CASILLA_BARCO){   // si encontramos algún barco
 
-                cont_barcos++;
+                // recordar que primero cont_barcos=0-->Fil_Tormenta[0]=?
+                Fil_Tormenta[cont_barcos] = i; // Fil[0]=una parte del barco se encontró en la fila i
+                Col_Tormenta[cont_barcos] = j; // fila i y columna j.
+
+                cont_barcos++;   // cantidad de casilleros con barcos activos 
             }
         }
     }
@@ -257,7 +263,7 @@ int modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
         return 0;
     }
 
-    //Elige de forma aleatoria una posición
+    //Elige de forma aleatoria una posición de ataque
     int k = rand() % cont_barcos; 
 
     *fila_afectada = Fil_Tormenta[k];
@@ -268,7 +274,7 @@ int modo_tormenta(Partida *partida, int *fila_afectada, int *columna_afectada){
 
     // reiniciar el contador 0, si se activo tormenta por cantidad de impactos a agua (3 consecutivas)
     if(tormenta_agua){
-        atacante->impacto_agua_consecutivo = 0;
+        atacante->impacto_agua_consecutivo = 0;  
     }
 
     // se activó el modo tormenta en el turno actual
