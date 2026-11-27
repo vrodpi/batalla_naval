@@ -30,7 +30,7 @@ typedef struct  {
 typedef struct {
     Jugador jugador1;
     Jugador jugador2;
-    Turno turno;            // de quién es el turno.
+    Turno turno;            // Jugador de Turno.
     int cantidad_turnos;   // n° de turno.
     Modo_de_juego modo_de_juego;        // Entre Personas o Vs IA
     Dificultad dificultad;
