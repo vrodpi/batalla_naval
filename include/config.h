@@ -11,8 +11,8 @@
  */
 
 /* Tablero cuadrado inicial de 10 x 10. */
-#define CONFIG_FILAS 10
-#define CONFIG_COLUMNAS 10
+#define FIL 10
+#define COL 10
 
 /* Flota: cantidad de barcos y sus longitudes (mayor a menor). */
 #define BARCOS_MODO_NORMAL 5

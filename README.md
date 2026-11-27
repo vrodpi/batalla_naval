@@ -19,15 +19,15 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
 
 ## 1) INTEGRANTES DEL PROYECTO:
 
-| NOMBRES Y APELLIDOS                       | HS TRABAJADAS  |
+| NOMBRES Y APELLIDOS                       | APORTES REALIZADOS  |
 |-----------------------------------------  |----------------|
-|Vicente Rodriguez Pi                       |-------X--------|
+|Vicente Tomás Rodríguez Pi                 |main.c, ui_cli.c|
 |                                           |                |
-|Teresa de los Angeles Carabajal Anderson   |-------X--------|
+|Teresa de los Angeles Carabajal Anderson   |game.c, tablero.c, documentación|
 |                                           |                |
-|Gianfranco Di Pisa Echagüe                 |-------X--------|
+|Gianfranco Di Pisa Echagüe                 |ai.c, ranking.c|
 |                                           |                |
-|Huenú Rosalba Beatriz Margalef Quijada     |-------X--------|
+|Huenú Rosalba Beatriz Margalef Quijada     |game.c, tablero.c|
 |                                           |                |
 
 <br> 
@@ -50,7 +50,7 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
 | 1      |    buque         | 4 casilleros|
 | 1      |    submarino     | 3 casilleros|
 | 1      |    velero        | 2 casilleros|
-| 1      |    lancha        | 1 casilleros|
+| 1      |    lancha        | 1 casillero |
 
 <br> 
 
@@ -66,11 +66,11 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
 
   
 #### b) Flota e Ingreso de Barcos:      
+* No se permite el ingreso de ubicación fuera de rango. <br>
+* No se permite el ingreso del barco, si por su tamaño (cantidad de casillas que ocupe), no entra completo en el Tablero. <br> 
+* No se permite el ingreso de ubicación repetida. <br> 
 * No se permite que los barcos se superpongan.  <br> 
 * No se permite que los barcos se encuentren ubicados en posiciones contiguas, ni en diagonal. (Al menos una casilla de distancia entre ellos).<br> 
-* No se permite el ingreso de ubicación fuera de rango. <br>
-* No se permite el ingreso de ubicación repetida. <br> 
-* No se permite el ingreso del barco, si por su tamaño (cantidad de casillas que ocupe), no entra completo en el Tablero. <br> 
 <br>
 
 **Ingreso de Flota**
@@ -80,8 +80,8 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
 #### c) Disparos. Ataque a Flota Oponente.
 * El Atacante es el jugador de Turno. Solo tiene permitido hacer un (1) único disparo por turno. <br> 
 * El Disparo consiste en elegir (y escribir) una Fila y Una Columna.
-* Si el Disparo alcanzó un Barco, se confirma por Pantalla y se actualizan los tableros. En el Tablero Impacto a Barco es X . <br> 
-* Si el Disparo fue a agua, entonces en pantalla "AGUA". En el tablero Impacto a Agua se representa con un 0. <br> 
+* Si el Disparo alcanzó un Barco, se confirma por Pantalla y se actualizan los tableros. En el Tablero Impacto a Barco es 'X' . <br> 
+* Si el Disparo fue a agua, entonces en pantalla "AGUA". En el tablero Impacto a Agua se representa con un '0'. <br> 
 * No se permite el ingreso de ubicación repetida. De ser el caso, se solicitan nuevas coordenadas.<br> 
 
 **Disparos**
@@ -111,6 +111,7 @@ Como se mencionó anteriormente, mediante una cortina, se concede el turno al si
 
 #### b) JUGADOR VS IA**<br> 
 Enfrentamiento entre un Jugador y la Máquina.<br> 
+Durante el Turno de la Máquina, en pantalla sólo se muestra el tablero del Jugador y un Mensaje indicando las coordenadas del ataque de la Máquina y su resultado. Habrá una cortina para indicar cambio de Turno. <br>
 
 ## DIFICULTAD  <br> 
 
@@ -120,8 +121,8 @@ Juego Clásico, sea el modo elegido (Entre Jugadores o Contra IA). No difiere en
 #### b) DIFICULTAD TORMENTA APTO PARA JUGAR EN AMBOS MODOS.
 
 1) El jugador de turno dispara a flota enemiga.  <br>
-2) Sin importar si acertó o no, con Tormenta el adversario tendrá su flota en peligro debido a que por coordenada aleatoria elegido por el sistema, un rayo impactará sobre un barco activo (una de sus casillas).  <br> 
-* No permite el hundimiento total del barco, (excepto que se trate de una lancha, que por su tamaño solo ocupa una casilla).
+2) Al activarse la Tormenta, un rayo realizará un Impacto a un barco del Jugador defensor. <br>
+* El barco se elige de forma aleatoria entre la flota del Jugador defensor. <br>
 * El impacto por Tormenta se verá en el tablero con el simbolo "/". <br> 
 
 #### i) TORMENTA POR TURNOS:<br>
@@ -152,16 +153,16 @@ Turno 3: Atacante dispara a Barco (impacto_agua_consecutivo= 0) -> se reinicia e
 2. Saludo
 3. Reglamento.<br>
 4. Menú:
-    * Para elegir Modo "jugador contra Jugador" o "Jugador contra Máquina". <br>
+    * Para elegir Modo "Jugador contra Jugador" o "Jugador contra Máquina". <br>
     * Para mostrar el Ranking y el Reglamento.
     * Opción "Salir del Juego".
 5. Menú Dificultad: "Partida Normal" o "Tormenta".<br>
-6. En jugador contra jugador, solicitud del nombre del segundo jugador.<br>
+6. En Jugador contra Jugador, solicitud del nombre del segundo jugador.<br>
 7. En Cualquier Modo/Dificultad elegida: Cada jugador deberá ingresar sus barcos por teclado, fila, columna, y especificar su orientación (horizontal o vertical).<br>
 8. Desarrollo de la partida. <br>
     * Cada Jugador tendrá solo un disparo por Turno. Deberá ingresar coordenada de ataque (Fila y Columna), el tipo de impacto se indicará mediante Mensaje de Aviso y se verá reflejado en el Tablero de Disparos del Atacante y en el Tablero de Barcos del Adversario. 
-    * En jugador contra jugador, una pantalla de espera separa los turnos, para que el siguiente jugador no vea el tablero del adversario.<br>
-    En jugador contra la IA: Durante el Turno de la Máquina, en pantalla muestra los tableros del Jugador Humano y un Mensaje del lugar en donde disparó y su resultado. Habrá una cortina para indicar cambio de Turno.<br>
+    * En Jugador contra Jugador, una pantalla de espera separa los turnos, para que el siguiente jugador no vea el tablero del adversario.<br>
+    En Jugador contra la IA: Durante el Turno de la Máquina, en pantalla muestra los tableros del Jugador y un Mensaje del lugar en donde disparó y su resultado. Habrá una cortina para indicar cambio de Turno.<br>
 9. Mensaje de victoria, cuando la flota enemiga haya sido destruida.<br>
 10. Menú (Para indicar si volver a Jugar o salir).<br>
 
@@ -170,7 +171,7 @@ Turno 3: Atacante dispara a Barco (impacto_agua_consecutivo= 0) -> se reinicia e
 ## 5) ARCHIVOS: 
 #### De que trata cada Archivo y cual es su vínculo<br>
 
-#### DIAGRAMA DE DEPENDENCIAS
+### Diagrama de Dependencias
 ```mermaid
    
 
@@ -196,104 +197,91 @@ Turno 3: Atacante dispara a Barco (impacto_agua_consecutivo= 0) -> se reinicia e
 
 ```
 
-**Arbol de Directorios**
+### Arbol de Directorios
 
 ```
-BATALLA 
+BATALLA_NAVAL/
 |
-├── bin
+├── bin/
 │   └── batalla_naval.exe
 |
-├── data
-│   |__ ranking.dat
-|
-├── files
+├── data/
+│   └── ranking.dat
+│
+├── files/
 │   └── Reglamento.txt
-|
-|__img
-|   |__image Menu.png
-|   |__image-1 Dificultad.png
-|   |__image-2 Flota
-|   |__image-3 Disparos
-|   |__image-5 Tormenta
-|   |__image-6 Tormenta
-| 
-├── include
+│
+├── img/
+│   ├── image Menu.png
+│   ├── image-1 Dificultad.png
+│   ├── image-2 Flota.png
+│   ├── image-3 Disparos.png
+│   ├── image-5 Tormenta.png
+│   └── image-6 Tormenta.png
+│ 
+├── include/
+│   ├── ai.h
 │   ├── config.h
 │   ├── game.h
 │   ├── ranking.h
 │   ├── tablero.h
-│   |__ ui_cli.h
-|   |__ai.h
-|
-├── obj
+│   └── ui_cli.h
+│
+├── obj/
+│   ├── ai.o
 │   ├── game.o
 │   ├── main.o
 │   ├── ranking.o
 │   ├── tablero.o
-│   |__ ui_cli.o
-|   |__ai.o
-|
-├── src
-│   ├── demo_ranking.c
+│   └── ui_cli.o
+│
+├── src/
+│   ├── ai.c
 │   ├── game.c
 │   ├── main.c
 │   ├── ranking.c
 │   ├── tablero.c
-│   |__ ui_cli.c
-|   |__ai.c
-|
-|__tests
-|  |__test_ai.c
-|
-|__MAkefile
-|
-├── README.md
-|
-|__ git.txt
+│   └── ui_cli.c
+│
+├── Makefile
+│
+└── README.md
 ```
-  
-Los arhivos cuya terminación sea ".h" solo contienen las funciones y declaraciones de variables necesarias que se implementarán en sus respectivos archivos.c"<br>
+### Descripción de módulos
 
-#### main.c <br>
-Se encarga de la Presentación y Reglamento. Permite el flujo general del programa, cuya ejecución difiere según la decisión del/los jugadores respecto a Modo y Dificultad. También se encarga de la coordinación de la colocación de Barcos y Cambios de turno. 
-
-#### ui_cli.c 
-Se encarga de la interacción por consola con el jugador. Contiene funciones para la solicitud del nombre, coordenadas y orientación de la flota (Requiere validación, para traducir letras de columnas a índices numéricos). Coordenadas de ataque. Mensaje del lugar de Impacto y Victoria. Como así también se encarga de limpiar la consola, de acuerdo al Sistema Operativo que se esté usando. <br>
-
-#### game.c
-Administra el inicio de cada partida, los cambios de turno, comprueba si la partida finalizó (por inexistencia de barcos activos). Procesa los disparos y administra los cambios pertinentes en Tablero de Disparos (Jugador de Turno) y Tablero (Defensor). Y la lógica del juego en Modo tormenta. <br>
-
-#### tablero.c
-Inicializa los tableros con Agua. Valida que los barcos se ubiquen dentro de los límites del tablero y que los mismos no se superpongan.<br>
-El tamaño del barco, en terminos de ubicación, refiere a la cantidad de cuadrantes que ocupa, por lo que también "tablero.c" se encarga de validar que el barco entre completamente. <br> 
-Cuando cumpla con las condiciones, solo entonces, actualiza Agua por Barco. <br>
-
-#### config.h 
-En este archivo nombramos Macros para que el preprocesador, las reemplace por valores que previamente definimos: Dimensiones del tablero, cantidad de barcos y sus tamaños,etc.<br>
-Al realizar algun cambio en los valores de las macros, también se aplica en todos los archivos que las incluyan. <br>
-Con #ifndef BATALLA_NAVAL_CONFIG_H y #endif evitamos duplicados del archivo.<br>
-<br>
-
-#### ranking.c
-Registra, y administra y almacena las victorias en un archivo binario, "ranking.dat". Ordena de mayor a menor cantidad de victorias por jugador.
-<br>
+* **`config.h`:** Define las macros y constantes compartidas por todo el proyecto (dimensiones del tablero, cantidad y tamaños de barcos, etc.).
+* **`main.c`:** Punto de entrada del programa. Integra los módulos y coordina el flujo general según el modo de juego y la dificultad elegidos.
+* **`ui_cli.c` / `ui_cli.h`:** Gestiona la entrada y salida por consola: lectura de nombres, opciones de menú, coordenadas y orientación de barcos, y dibujado de tableros y mensajes.
+* **`game.c` / `game.h`:** Controla el ciclo de cada partida: inicialización, cambios de turno, procesamiento de disparos sobre los tableros de ataque y defensa, lógica del modo tormenta y detección del fin del juego.
+* **`tablero.c` / `tablero.h`:** Inicializa los tableros y valida la colocación de los barcos (que entren completos dentro de los límites y no se superpongan).
+* **`ai.c` / `ai.h`:** Implementa la lógica de elección de jugadas de la máquina en las partidas contra la CPU.
+* **`ranking.c` / `ranking.h`:** Administra el archivo binario `ranking.dat` para guardar las victorias por jugador y mostrar el ranking ordenado de mayor a menor.
+* **`bin/` / `obj/`:** Se generan durante la compilación del programa.
 
 
-## 6) COMPILACIÓN Y EJECUCIÓN <br>
-En Batalla Naval utilizamos Makefile, para vincular los archivos y automatizar la compilación. <br>
-Cada archivo.c se compila individualmente a traves del -c, generado su archivo.o (archivo objeto). La variable OBJS contiene la lista de estos archivos. Luego GCC (CC) los enlaza para obtener un único ejecutable denominado "batalla_naval.exe", que se va a almacenar en el directorio "bin". <br>
+## 6) COMPILACIÓN Y EJECUCIÓN 
+## Compilación y ejecución
 
-En la terminal, nos ubicamos en la carpeta del Juego y utilizamos los siguientes comandos:<br>
+### Requisitos
+- Compilador `gcc` con soporte para **C11**
+- Utilidad `make`
+- Entorno con comandos Unix (`mkdir -p`, `rm -rf`), como **MSYS2 / Git Bash** en Windows, **WSL** o una terminal **Linux**
 
-1) make clean: para eliminar los archivos y directorios que se generaron al compilar. Para hacer la compilación desde cero.<br>
-2) make: para compilar.<br>
-3) ./bin/batalla_naval.exe: para ejecutar el Juego.<br>
-
-**Comandos**
-```
-make clean
+### Compilar
+Desde la raíz del proyecto, ejecutar:
+```bash
 make
+```
+Esto generará el ejecutable en `bin/batalla_naval.exe` y los archivos objeto en `obj/`.
+
+### Ejecutar
+Para iniciar el programa, ejecutar desde la raíz:
+```bash
 ./bin/batalla_naval.exe
 ```
 
+### Limpiar archivos compilados
+Para eliminar los archivos generados con la compilación:
+```bash
+make clean
+```

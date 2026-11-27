@@ -28,7 +28,7 @@ Dificultad:
 * Normal: 
 Modo Clásico del Juego Batalla Naval. 
 * Tormenta:
-Al activarse, un rayo impactará sobre alguna posición exacta de un barco. No lo hundirá, solo impactará sobre una casilla, excepto que se trate de la Lancha (Tamaño 1). 
+Al activarse, un rayo impactará sobre alguna posición exacta de un barco, realizando un punto de daño.
 ¿Cuándo se Activa?
     > Por turnos: Ocurre cada 5 turnos. 
     > Por Impacto a Agua: Cuando un jugador en sus 3 turnos consecutivos impacta a Agua. 

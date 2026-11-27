@@ -1,9 +1,7 @@
 #ifndef TABLERO_H
 #define TABLERO_H
 
-// Tamanio fijo del tablero: 10 x 10
-#define FIL 10
-#define COL 10
+#include "config.h"
 
 // Define la orientación del barco ingresado: parado (vertical) o acostado (horizontal)
 typedef enum {              

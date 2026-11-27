@@ -33,4 +33,4 @@ obj/ai.o: src/ai.c include/ai.h include/game.h
 clean:
 	rm -rf obj bin
 
-.PHONY: clean test
+.PHONY: clean
