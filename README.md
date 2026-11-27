@@ -19,16 +19,28 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
 
 ## 1) INTEGRANTES DEL PROYECTO:
 
-| NOMBRES Y APELLIDOS                       | APORTES REALIZADOS         |
-|-------------------------------------------|----------------------------|
-|Vicente Tomás Rodríguez Pi                 |main, ui_cli                |
-|                                           |                            |
-|Teresa de los Angeles Carabajal Anderson   |game, tablero, documentación|
-|                                           |                            |
-|Gianfranco Di Pisa Echagüe                 |ia, ranking                 |
-|                                           |                            |
-|Huenú Rosalba Beatriz Margalef Quijada     |game, tablero               |
-|                                           |                            |
+| NOMBRES Y APELLIDOS                                          | APORTES REALIZADOS         |
+|--------------------------------------------------------------|----------------------------|
+|Vicente Tomás Rodríguez Pi  (@vrodpi)                         |main, ui_cli                |
+|                                                              |                            |
+|Teresa de los Angeles Carabajal Anderson (@AngelesCarabajal)  |game, tablero, documentación|
+|                                                              |                            |
+|Gianfranco Di Pisa Echagüe  (@gican)                          |ia, ranking                 |
+|                                                              |                            |
+|Huenú Rosalba Beatriz Margalef Quijada  (@RositaQuijada7)     |game, tablero               |
+|                                                              |                            |
+
+| NOMBRES Y APELLIDOS                                          | APORTES REALIZADOS         |
+|--------------------------------------------------------------|----------------------------|
+|Vicente Tomás Rodríguez Pi  (@vrodpi)                         |main, ui_cli                |
+|                                                              |                            |
+|Teresa de los Angeles Carabajal Anderson (@AngelesCarabajal)  |game, tablero, documentación|
+|                                                              |                            |
+|Gianfranco Di Pisa Echagüe  (@gican)                          |ia, ranking                 |
+|                                                              |                            |
+|Huenú Rosalba Beatriz Margalef Quijada  (@RositaQuijada7)     |game, tablero               |
+|                                                              |                            |
+
 
 <br> 
 
