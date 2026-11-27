@@ -60,11 +60,11 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
 
 **Menú Principal**
 
-![Menú Principal](<img/image Menu.png>)
+![Menú Principal](img/image_Menu.png)
 
 **Selección de Dificultad**
 
-![Dificultad](<img/image-1 Dificultad.png>)
+![Dificultad](img/image-1 _Dificultad.png)
 
   
 #### b) Flota e Ingreso de Barcos:      
@@ -77,7 +77,7 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
 
 **Ingreso de Flota**
 
-![Flota](<img/image-2 Flota.png>)<br> 
+![Flota](img/image-2 _Flota.png)<br> 
 
 
 #### c) Disparos. Ataque a Flota Oponente.
@@ -90,7 +90,7 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
 
 **Disparos**
 
-![Disparos](<img/image-3 Disparos.png>) <br> 
+![Disparos](img/image-3_Disparos.png) <br> 
 
 
 #### d) Partidas-Condiciones de Victoria:<br> 
@@ -148,8 +148,9 @@ Turno 3: Atacante dispara a Barco (impacto_agua_consecutivo= 0) -> se reinicia e
 
 **Modo Tormenta**
 
-![Mensaje Tormenta](<img/image-5 Tormenta.png>)<br> 
-![Tormenta "/"](img/image-6.Tormenta.png)<br> 
+![Mensaje_Tormenta](img/image-5_Tormenta1.png)
+<br> 
+![Tormenta](img/image-6_Tormenta2.png)<br> 
 
 ## 4) JUGUEMOS UNA PARTIDA / FLUJO GENERAL                           
 1. Solicitud del nombre del primer jugador.<br>
