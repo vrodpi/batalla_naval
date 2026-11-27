@@ -43,7 +43,10 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
     - Ingreso Alfabético de la Columna (A a J). <br> 
 * La *FLOTA* de cada Jugador consiste en 5 barcos, que se diferenciarán de acuerdo a su nombre/tamaño respectivamente. <br> 
 
+
+
 **Tipo y tamaño del barco**
+
 |Cantidad|**FLOTA**         | **TAMAÑO**  | 
 |:------:|:----------------:|:-----------:|
 | 1      |    porta_aviones | 5 casilleros|
@@ -54,6 +57,7 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
 
 <br> 
 
+
 **Menú Principal**
 
 ![Menú Principal](<img/image Menu.png>)
@@ -62,8 +66,6 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
 
 ![Dificultad](<img/image-1 Dificultad.png>)
 
-<br> 
-
   
 #### b) Flota e Ingreso de Barcos:      
 * No se permite el ingreso de ubicación fuera de rango. <br>
@@ -71,11 +73,12 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
 * No se permite el ingreso de ubicación repetida. <br> 
 * No se permite que los barcos se superpongan.  <br> 
 * No se permite que los barcos se encuentren ubicados en posiciones contiguas, ni en diagonal. (Al menos una casilla de distancia entre ellos).<br> 
-<br>
+
 
 **Ingreso de Flota**
+
 ![Flota](<img/image-2 Flota.png>)<br> 
-<br>
+
 
 #### c) Disparos. Ataque a Flota Oponente.
 * El Atacante es el jugador de Turno. Solo tiene permitido hacer un (1) único disparo por turno. <br> 
@@ -84,7 +87,9 @@ Proyecto realizado por Estudiantes de la Carrera Analista Programador Universita
 * Si el Disparo fue a agua, entonces en pantalla "AGUA". En el tablero Impacto a Agua se representa con un '0'. <br> 
 * No se permite el ingreso de ubicación repetida. De ser el caso, se solicitan nuevas coordenadas.<br> 
 
+
 **Disparos**
+
 ![Disparos](<img/image-3 Disparos.png>) <br> 
 
 
@@ -93,23 +98,18 @@ Al iniciar la Partida, se solicita el nombre del jugador, y a traves de un Menú
 Entre turno de jugadores, se ha implementado una pantalla cortina para separar los turnos, para evitar ver el tablero del adversario. <br>
 El Ganador de la Partida es el Jugador que lográ Hundir los 5 barcos de la flota Enemiga. Y con ello, se le suma 1 (una) Victoria en *ranking* <br> 
 
-**Modo Tormenta**
-![Mensaje Tormenta](<img/image-5 Tormenta.png>)<br> 
-![Tormenta "/"](img/image-6.Tormenta.png)<br> 
-
-<br>
 
 ## 3) MODOS DE JUEGO <br> 
 a) JUGADOR1 VS JUGADOR2: CLASICO Y TORMENTA<br> 
 b) JUGADOR VS IA (MÁQUINA): CLASICO Y TORMENTA<br> 
 
 
-#### a) JUGADOR1 VS JUGADOR2:**<br> 
+#### a) JUGADOR1 VS JUGADOR2:<br> 
 Enfrentamiento entre Personas.<br> 
 La interfaz muestra al jugador de turno sus tableros. En **Tablero** se muestra la situación actual de su Flota, y en **Tablero de Disparos** lleva un registro de sus operaciones tácticas. <br>
 Como se mencionó anteriormente, mediante una cortina, se concede el turno al siguiente jugador y así se oculta la ubicación de la flota del oponente. <br> 
 
-#### b) JUGADOR VS IA**<br> 
+#### b) JUGADOR VS IA<br> 
 Enfrentamiento entre un Jugador y la Máquina.<br> 
 Durante el Turno de la Máquina, en pantalla sólo se muestra el tablero del Jugador y un Mensaje indicando las coordenadas del ataque de la Máquina y su resultado. Habrá una cortina para indicar cambio de Turno. <br>
 
@@ -146,7 +146,10 @@ Turno 1: Atacante dispara a Agua (impacto_agua_consecutivo + 1). <br>
 Turno 2: Atacante dispara a Agua (impacto_agua_consecutivo + 1). <br> 
 Turno 3: Atacante dispara a Barco (impacto_agua_consecutivo= 0) -> se reinicia el contador. <br> 
 
-<br>
+**Modo Tormenta**
+
+![Mensaje Tormenta](<img/image-5 Tormenta.png>)<br> 
+![Tormenta "/"](img/image-6.Tormenta.png)<br> 
 
 ## 4) JUGUEMOS UNA PARTIDA / FLUJO GENERAL                           
 1. Solicitud del nombre del primer jugador.<br>
